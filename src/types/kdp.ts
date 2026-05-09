@@ -16,9 +16,24 @@ export type CheckerStep = 'import' | 'config' | 'preview';
 
 export type PreviewMode = 'single' | 'spread';
 
-export type OverlayType = 'bleed' | 'trim' | 'safe' | 'gutter' | 'crop';
+export type OverlayType = 'bleed' | 'trim' | 'safe' | 'gutter' | 'crop' | 'spine' | 'hinge';
 
 export type CheckStatus = 'pass' | 'safe' | 'warning' | 'risk' | 'fail';
+
+export type PageContentType = 'text' | 'image-heavy' | 'blank' | 'mixed' | 'low-ink' | 'dark-risk' | 'edge-artwork';
+
+export interface PageAnalysis {
+  pageIndex: number;
+  contentType: PageContentType;
+  imageCount: number;
+  hasArtworkNearEdge: boolean;
+  dominantColor: 'light' | 'dark' | 'colorful' | 'neutral';
+  marginSafety: 'safe' | 'caution' | 'risk';
+  estimatedDPI: number;
+  isBlank: boolean;
+  hasTransparency: boolean;
+  warnings: string[];
+}
 
 export interface TrimSize {
   key: TrimSizeKey;

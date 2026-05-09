@@ -24,3 +24,40 @@ Stage Summary:
 - Preview step: Single/Spread view, SVG overlays, issue navigation, thumbnail sidebar, zoom controls, smart suggestions
 - All components pass lint cleanly
 - Dev server running and responsive
+
+---
+Task ID: 9
+Agent: Main Orchestrator
+Task: Fix barcodeAreaIn undefined property bug and completely redesign Preview Step for professional publishing review
+
+Work Log:
+- Fixed critical bug: `calculateMeasurements()` returned `barcodeArea` but interface defined `barcodeAreaIn`, causing undefined property error at ConfigStep line 1058
+- Updated `OverlayType` in types/kdp.ts to include 'spine' and 'hinge' for hardcover support
+- Added new types: `PageContentType` (text/image-heavy/blank/mixed/low-ink/dark-risk/edge-artwork) and `PageAnalysis` interface
+- Completely rewrote `PreviewStep.tsx` (~950 lines) with comprehensive professional preview system:
+  - **Top Toolbar**: Back button, title, status badge, view mode toggle (single/spread), page navigation with jump input, zoom controls, overlay toggles (format-aware), Kindle dark mode toggle, issue panel toggle
+  - **Left Sidebar (IssuePanel)**: Collapsible validation panel with grouped issues (fail/risk/warning), summary counts, click-to-navigate issue resolution, smart suggestions
+  - **Center Canvas**: Main preview area with single/spread view, realistic gutter simulation in spread mode, SVG overlay system (bleed/trim/safe/gutter/crop/spine/hinge), mouse panning at high zoom, Ctrl+scroll zoom, premium page shadows
+  - **Right Sidebar**: Page metadata panel (content type, dimensions, bleed, DPI, margin safety, warnings) + thumbnail navigator with auto-scroll, issue severity badges, content type indicators, spread-mode thumbnails
+  - **Bottom Action Bar**: Progress indicator, first/prev/next/last navigation, final actions (Config, 3D Preview, Export Report)
+  - **PageRenderer**: Content type badges, ring indicators for margin safety, hover effects, SVG overlays
+  - **PageMetadataPanel**: Content analysis display, metadata grid, page warnings
+  - **OverlaySVG**: Enhanced with spine and hinge overlays for hardcover, format-aware rendering
+  - **analyzePageContent**: Heuristic page analysis engine (content type detection, margin safety, dark print risk, edge artwork detection)
+  - **runValidation**: Format-specific validation (Kindle: font embedding, TOC, reflow; Paperback: trim/gutter/resolution; Hardcover: hinge/margins)
+- Auto-fit zoom on mount and mode change
+- Keyboard navigation (arrow keys)
+- Page jump input
+- Empty state messaging
+- Format-aware overlay availability (Kindle: no bleed/trim overlays; Hardcover: spine/hinge)
+
+Stage Summary:
+- Fixed barcodeAreaIn → barcodeArea naming mismatch in kdp-constants.ts
+- Complete professional preview system with 7 overlay types, page content analysis, metadata panel
+- Three-panel layout: Issues | Canvas | Metadata+Thumbnails
+- Spread mode with realistic gutter simulation
+- Kindle dark mode simulation
+- All navigation methods: keyboard, click, jump, scroll, thumbnail
+- Issue navigation: click issue → jump to page
+- Format-aware overlays and validation
+- Lint clean, dev server responding 200
