@@ -12,8 +12,9 @@ async function getPdfjs() {
   
   pdfjsLoading = (async () => {
     const lib = await import('pdfjs-dist');
-    // Disable worker for simpler client-side usage
-    lib.GlobalWorkerOptions.workerSrc = '';
+    // Point to the worker file we copied to /public
+    // This avoids the "No GlobalWorkerOptions.workerSrc" error
+    lib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
     pdfjsLib = lib;
     return lib;
   })();
@@ -41,6 +42,9 @@ export async function loadPDF(file: File): Promise<{
   const pdf = await pdfjs.getDocument({ 
     data: new Uint8Array(arrayBuffer),
     useSystemFonts: true,
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    useFetchStream: false,
   }).promise;
   const pageCount = pdf.numPages;
   
