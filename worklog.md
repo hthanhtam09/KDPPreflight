@@ -1,62 +1,26 @@
 ---
-Task ID: 1-9
-Agent: Main Agent
-Task: Build KDPPreflight - Complete KDP book preflight validation and preview system
+Task ID: 1-8
+Agent: Main Orchestrator
+Task: Redesign the entire Checker Feature UX for KDPPreflight into a 3-step publishing workflow
 
 Work Log:
-- Installed dependencies: three.js, @react-three/fiber, @react-three/drei, pdfjs-dist, @types/three
-- Created project structure: types, store, engine, hooks, components (landing, setup, checker, preview, shared)
-- Built KDP types and constants (types/kdp.ts, engine/kdp-constants.ts) with real KDP specifications
-- Built Zustand store (store/use-app-store.ts) with book config, measurements, file uploads, validation state
-- Built validation engine (engine/validator.ts) with tolerance-based checks for cover and manuscript
-- Built PDF processor (engine/pdf-processor.ts) with client-side PDF.js loading and page rendering
-- Built Landing Page (components/landing/LandingPage.tsx) with hero, feature cards, why-KDP-fails section, FAQ, CTA
-- Built Book Setup feature (components/setup/SetupFeature.tsx) with trim size selection, bleed/paper/interior config, visual diagram, measurements panel, export functionality
-- Built Format Checker feature (components/checker/CheckerFeature.tsx) with file upload zones, validation report display, expandable check items with suggestions
-- Built 3D Book Preview (components/preview/BookPreview3D.tsx, PreviewFeature.tsx) with Three.js scene, book model with cover/spine/pages, OrbitControls, PNG export
-- Built main page (app/page.tsx) with navigation bar and view routing between landing/setup/checker/preview
-- Updated layout.tsx with dark mode and proper metadata
-- Updated globals.css with dark theme, custom scrollbar, and selection colors
-- Fixed naming conflicts (Home → HomeIcon, Image → ImageIcon)
-- Fixed React hooks violation in 3D component (separated TexturedCover and PlainCover)
-- Fixed Next.js config for Turbopack compatibility
+- Read and analyzed existing project structure (types, store, validator, pdf-processor, kdp-constants, existing CheckerFeature)
+- Updated `/home/z/my-project/src/types/kdp.ts` with new types: KDPFormat, CheckerStep, PreviewMode, OverlayType, DetectedMetadata, PageIssue, updated UploadedFile and AppState
+- Updated `/home/z/my-project/src/store/use-app-store.ts` with new store fields: kdpFormat, checkerStep, previewMode, activeOverlays, currentPreviewPage, detectedMetadata, pageIssues and their actions
+- Created `/home/z/my-project/src/components/checker/ImportStep.tsx` (729 lines) - Step 1: Format selector (Kindle/Paperback/Hardcover), cinematic upload zones, auto-detection with animated scan sequence, detection summary card
+- Created `/home/z/my-project/src/components/checker/ConfigStep.tsx` (1497 lines) - Step 2: Format-aware config cards (Kindle: layout/fonts/scaling/TOC; Paperback: trim/bleed/spine/paper/margins; Hardcover: all paperback + hinge/wrap/laminate/dust jacket), live SVG visualization, smart help text
+- Created `/home/z/my-project/src/components/checker/PreviewStep.tsx` (1410 lines) - Step 3: 3-column layout (Issue Panel | Preview | Thumbnails), single/spread view modes, SVG overlay system, issue navigation, smart suggestions, format-specific validation, zoom controls, keyboard navigation
+- Created `/home/z/my-project/src/components/checker/CheckerFeature.tsx` (114 lines) - Main orchestrator with step indicator, format badge, animated step transitions
+- Updated `/home/z/my-project/src/app/page.tsx` - Changed checker view to full-height layout
+- Updated `/home/z/my-project/src/app/globals.css` - Added checker-specific animations (scan-pulse, upload-shimmer, config transitions, overlay fades, severity glows, thumbnail glow)
+- Ran ESLint: Clean (no errors)
+- Verified dev server: Running on port 3000, responding 200
 
 Stage Summary:
-- Complete KDPPreflight application with 3 core features: Book Setup, Format Checker, 3D Preview
-- Dark modern aesthetic with cinematic feel
-- Client-side processing - no backend required
-- Real KDP specifications with tolerance-based validation
-- Interactive 3D book model using Three.js and React Three Fiber
-- All lint checks pass, page compiles and loads with 200 status
-
----
-Task ID: 10-14
-Agent: Main Agent
-Task: Complete Premium UI/UX Redesign with cinematic storytelling design system
-
-Work Log:
-- Rebuilt globals.css with premium design tokens: gradient-text, glass effects, noise overlay, glow effects, animated gradients, premium scrollbar, button hover states, card hover tilt, section dividers
-- Completely rewrote LandingPage.tsx with 8 cinematic storytelling sections:
-  1. Hero: Mouse-reactive gradient background, parallax scrolling, emotional headline "Your book looks perfect. Until KDP says otherwise.", animated badge, dual CTAs
-  2. Pain Section: Empathetic pain points with emoji cards, staggered reveals, relatable messaging
-  3. Feature Showcase: 3 features with inline visual previews (SVG template, animated validation report, 3D book preview), violet accent, card hover effects
-  4. Before/After: Transformation comparison with red/green gradient cards, staggered list animations
-  5. How It Works: 3-step flow with numbered steps, connector lines, center CTA
-  6. Trust/Social Proof: Stats grid with gradient numbers, testimonial cards
-  7. FAQ: Accordion-style with animated expand/collapse using AnimatePresence
-  8. Final CTA: Cinematic close with violet glow background, emotional messaging
-- Rebuilt page.tsx navigation with: fixed nav, scroll-aware backdrop blur, animated active pill (layoutId), mobile hamburger menu, smooth transitions
-- Updated layout.tsx background to #050508 (deeper black) with overflow-x-hidden
-- Background changed from #0a0a0f to #050508 for more cinematic contrast
-- Added RevealSection component for scroll-triggered animations
-- Added MouseGradient component for mouse-reactive ambient lighting
-- All animations use cubic-bezier easing [0.25, 0.4, 0.25, 1] for premium feel
-
-Stage Summary:
-- Premium cinematic landing page with 8 storytelling sections
-- Mouse-reactive gradient backgrounds and parallax effects
-- Staggered scroll-triggered animations throughout
-- Animated navigation with layout transitions and mobile support
-- Glass morphism cards, gradient text, glow effects
-- Violet accent color system replacing generic blue
-- All lint checks pass, page compiles and renders correctly
+- Complete 3-step checker workflow: Import → Config → Preview
+- Format-aware UI: Kindle, Paperback, Hardcover each show relevant settings
+- Import step: Animated auto-detection, cinematic upload zones, detection summary
+- Config step: Interactive cards with smart help, live SVG template visualization
+- Preview step: Single/Spread view, SVG overlays, issue navigation, thumbnail sidebar, zoom controls, smart suggestions
+- All components pass lint cleanly
+- Dev server running and responsive

@@ -153,7 +153,7 @@ function ViewRouter() {
           </div>
         )}
         {view === 'checker' && (
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pt-20">
+          <div className="h-[calc(100vh-56px)] pt-14">
             <CheckerFeature />
           </div>
         )}

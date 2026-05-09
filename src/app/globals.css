@@ -260,3 +260,59 @@ html {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
 }
+
+/* Checker-specific animations */
+@keyframes scan-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.02); }
+}
+
+@keyframes upload-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.upload-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+  background-size: 200% 100%;
+  animation: upload-shimmer 2s ease-in-out infinite;
+}
+
+/* Config card smooth transitions */
+.config-card-transition {
+  transition: all 0.4s cubic-bezier(0.25, 0.4, 0.25, 1);
+}
+
+/* Page preview smooth transitions */
+.page-transition {
+  transition: all 0.3s cubic-bezier(0.25, 0.4, 0.25, 1);
+}
+
+/* SVG overlay fade */
+.overlay-fade {
+  transition: opacity 0.3s ease, stroke-dashoffset 0.3s ease;
+}
+
+/* Issue severity glow effects */
+.severity-glow-fail {
+  box-shadow: inset 0 0 20px -5px rgba(239, 68, 68, 0.15);
+}
+
+.severity-glow-risk {
+  box-shadow: inset 0 0 20px -5px rgba(249, 115, 22, 0.15);
+}
+
+.severity-glow-warning {
+  box-shadow: inset 0 0 20px -5px rgba(245, 158, 11, 0.15);
+}
+
+/* Step connector animation */
+@keyframes step-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* Thumbnail active glow */
+.thumbnail-active-glow {
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2), 0 0 4px rgba(56, 189, 248, 0.1);
+}

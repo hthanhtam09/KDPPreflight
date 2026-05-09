@@ -10,6 +10,14 @@ export type InteriorType = 'black-white' | 'standard-color' | 'premium-color';
 
 export type BindingType = 'paperback' | 'hardcover';
 
+export type KDPFormat = 'kindle' | 'paperback' | 'hardcover';
+
+export type CheckerStep = 'import' | 'config' | 'preview';
+
+export type PreviewMode = 'single' | 'spread';
+
+export type OverlayType = 'bleed' | 'trim' | 'safe' | 'gutter' | 'crop';
+
 export type CheckStatus = 'pass' | 'safe' | 'warning' | 'risk' | 'fail';
 
 export interface TrimSize {
@@ -32,6 +40,30 @@ export interface BookConfig {
   interior: InteriorType;
   pageCount: number;
   binding: BindingType;
+}
+
+export interface DetectedMetadata {
+  trimSize: TrimSizeKey | null;
+  widthIn: number;
+  heightIn: number;
+  pageCount: number;
+  hasBleed: boolean;
+  probableFormat: KDPFormat;
+  spineWidthIn: number;
+  orientation: 'portrait' | 'landscape';
+  dpi: number;
+  isGrayscale: boolean;
+  hasTransparency: boolean;
+  colorProfile: string;
+}
+
+export interface PageIssue {
+  pageIndex: number;
+  checkId: string;
+  severity: CheckStatus;
+  label: string;
+  description: string;
+  suggestion?: string;
 }
 
 export interface CalculatedMeasurements {
@@ -78,6 +110,7 @@ export interface UploadedFile {
   pageCount?: number;
   dimensions?: { width: number; height: number };
   dataUrl?: string;
+  pages?: { index: number; dataUrl: string; width: number; height: number; isBlank: boolean }[];
 }
 
 export interface PageTexture {
@@ -100,4 +133,11 @@ export interface AppState {
   manuscriptTextures: PageTexture[];
   isProcessing: boolean;
   processingMessage: string;
+  kdpFormat: KDPFormat;
+  checkerStep: CheckerStep;
+  previewMode: PreviewMode;
+  activeOverlays: OverlayType[];
+  detectedMetadata: DetectedMetadata | null;
+  pageIssues: PageIssue[];
+  currentPreviewPage: number;
 }

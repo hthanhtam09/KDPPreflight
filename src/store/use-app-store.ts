@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppView, BookConfig, CalculatedMeasurements, UploadedFile, ValidationReport, PageTexture } from '@/types/kdp';
+import { AppView, BookConfig, CalculatedMeasurements, UploadedFile, ValidationReport, PageTexture, KDPFormat, CheckerStep, PreviewMode, OverlayType, DetectedMetadata, PageIssue } from '@/types/kdp';
 import { DEFAULT_BOOK_CONFIG, calculateMeasurements } from '@/engine/kdp-constants';
 
 interface AppStore {
@@ -33,6 +33,26 @@ interface AppStore {
   isProcessing: boolean;
   processingMessage: string;
   setProcessing: (isProcessing: boolean, message?: string) => void;
+
+  // Checker flow
+  kdpFormat: KDPFormat;
+  setKdpFormat: (format: KDPFormat) => void;
+  checkerStep: CheckerStep;
+  setCheckerStep: (step: CheckerStep) => void;
+
+  // Preview
+  previewMode: PreviewMode;
+  setPreviewMode: (mode: PreviewMode) => void;
+  activeOverlays: OverlayType[];
+  toggleOverlay: (overlay: OverlayType) => void;
+  currentPreviewPage: number;
+  setCurrentPreviewPage: (page: number) => void;
+
+  // Detection
+  detectedMetadata: DetectedMetadata | null;
+  setDetectedMetadata: (meta: DetectedMetadata | null) => void;
+  pageIssues: PageIssue[];
+  setPageIssues: (issues: PageIssue[]) => void;
 
   // Reset
   reset: () => void;
@@ -78,6 +98,31 @@ export const useAppStore = create<AppStore>((set) => ({
   processingMessage: '',
   setProcessing: (isProcessing, message = '') => set({ isProcessing, processingMessage: message }),
 
+  // Checker flow
+  kdpFormat: 'paperback',
+  setKdpFormat: (format) => set({ kdpFormat: format }),
+  checkerStep: 'import',
+  setCheckerStep: (step) => set({ checkerStep: step }),
+
+  // Preview
+  previewMode: 'single',
+  setPreviewMode: (mode) => set({ previewMode: mode }),
+  activeOverlays: [],
+  toggleOverlay: (overlay) =>
+    set((state) => ({
+      activeOverlays: state.activeOverlays.includes(overlay)
+        ? state.activeOverlays.filter((o) => o !== overlay)
+        : [...state.activeOverlays, overlay],
+    })),
+  currentPreviewPage: 1,
+  setCurrentPreviewPage: (page) => set({ currentPreviewPage: page }),
+
+  // Detection
+  detectedMetadata: null,
+  setDetectedMetadata: (meta) => set({ detectedMetadata: meta }),
+  pageIssues: [],
+  setPageIssues: (issues) => set({ pageIssues: issues }),
+
   // Reset
   reset: () =>
     set({
@@ -91,5 +136,12 @@ export const useAppStore = create<AppStore>((set) => ({
       manuscriptTextures: [],
       isProcessing: false,
       processingMessage: '',
+      kdpFormat: 'paperback',
+      checkerStep: 'import',
+      previewMode: 'single',
+      activeOverlays: [],
+      currentPreviewPage: 1,
+      detectedMetadata: null,
+      pageIssues: [],
     }),
 }));
