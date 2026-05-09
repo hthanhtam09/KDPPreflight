@@ -79,7 +79,7 @@ export function calculateMeasurements(config: BookConfig): CalculatedMeasurement
   const fullCoverWidthIn = trimWidthIn + bleedIn + spineWidthIn + bleedIn + trimWidthIn + (WRAP_AROUND_IN * 2);
   const fullCoverHeightIn = trimHeightIn + (bleedIn * 2) + (WRAP_AROUND_IN * 2);
   
-  const barcodeArea = {
+  const barcodeAreaIn = {
     x: trimWidthIn - BARCODE_AREA.width - SAFE_AREA_IN,
     y: trimHeightIn - BARCODE_AREA.height - SAFE_AREA_IN,
     width: BARCODE_AREA.width,
@@ -94,7 +94,7 @@ export function calculateMeasurements(config: BookConfig): CalculatedMeasurement
     fullCoverWidthIn: Math.round(fullCoverWidthIn * 1000) / 1000,
     fullCoverHeightIn: Math.round(fullCoverHeightIn * 1000) / 1000,
     safeAreaIn: SAFE_AREA_IN,
-    barcodeArea: barcodeArea,
+    barcodeAreaIn,
     wrapAroundIn: WRAP_AROUND_IN,
   };
 }
