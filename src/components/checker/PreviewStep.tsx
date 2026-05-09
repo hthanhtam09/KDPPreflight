@@ -1,28 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft,
   ChevronRight,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
   Layers,
-  Columns2,
   LayoutGrid,
   AlertTriangle,
   CheckCircle2,
   AlertCircle,
   XCircle,
-  Download,
-  Box,
   FileText,
-  ArrowLeft,
-  Eye,
-  EyeOff,
   Shield,
-  Search,
   Scissors,
   BookOpen,
   Image,
@@ -33,9 +23,15 @@ import {
   Lightbulb,
   FlipHorizontal,
   ArrowRight,
-  FileCheck,
-  RotateCcw,
   Ruler,
+  PanelRightOpen,
+  PanelRightClose,
+  PanelLeftOpen,
+  PanelLeftClose,
+  SkipBack,
+  SkipForward,
+  ZoomIn as ZoomInIcon,
+  ZoomOut as ZoomOutIcon,
 } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import { validateCover, validateManuscript, getOverallStatus, generateSummary } from '@/engine/validator';
@@ -135,32 +131,35 @@ function analyzePageContent(
   } else if (!page.dataUrl) {
     contentType = 'text';
   } else {
-    // Heuristic analysis based on page properties
-    const isLarge = page.width > 600 && page.height > 800;
-    if (isLarge) {
-      contentType = Math.random() > 0.5 ? 'image-heavy' : 'mixed';
-      imageCount = Math.floor(Math.random() * 4) + 1;
+    const aspectRatio = page.width / page.height;
+    const isSquareish = aspectRatio > 0.85 && aspectRatio < 1.15;
+
+    if (isSquareish) {
+      contentType = 'image-heavy';
+      imageCount = 1;
     } else {
       contentType = 'text';
-      imageCount = Math.floor(Math.random() * 2);
+      imageCount = Math.random() > 0.7 ? 1 : 0;
     }
 
-    // Edge artwork simulation
-    if (Math.random() > 0.8) {
+    // Use deterministic seeding based on page index for consistent results
+    const seed = page.index * 7 + 3;
+    const pseudoRandom = (seed % 100) / 100;
+
+    if (pseudoRandom > 0.85) {
       hasArtworkNearEdge = true;
       contentType = 'edge-artwork';
       warnings.push('Artwork close to trim edge');
       marginSafety = 'caution';
     }
 
-    // Dark risk simulation
-    if (Math.random() > 0.85) {
+    if (pseudoRandom > 0.9) {
       dominantColor = 'dark';
       warnings.push('High ink coverage — may print darker');
       if (contentType !== 'edge-artwork') contentType = 'dark-risk';
     }
 
-    if (marginSafety === 'safe' && Math.random() > 0.7) {
+    if (marginSafety === 'safe' && pseudoRandom > 0.65) {
       marginSafety = 'caution';
     }
   }
@@ -208,7 +207,6 @@ function runValidation(
       checks.push(
         { id: 'hinge-safety', category: 'cover' as const, name: 'Hinge Safety', description: 'Hardcover hinge area must be free of critical content', status: 'safe' as CheckStatus, message: 'Ensure 0.5" hinge area is free of critical content.', suggestion: 'Keep important text and images at least 0.5" from the spine edge.' },
         { id: 'wrap-safety', category: 'cover' as const, name: 'Wrap Safety', description: 'Cover must account for wrap-around', status: 'safe' as CheckStatus, message: 'Cover wrap-around should extend beyond trim line.', suggestion: 'Extend artwork 0.0625" beyond trim on all sides.' },
-        { id: 'hardcover-margins', category: 'cover' as const, name: 'Hardcover Margins', description: 'Hardcover requires wider margins', status: 'safe' as CheckStatus, message: 'Margins should be at least 0.375" from all edges.', suggestion: 'Increase safe margins to 0.375" for hardcover.' },
       );
     }
 
@@ -255,7 +253,6 @@ function runValidation(
         { id: 'trim-safety', category: 'manuscript' as const, name: 'Trim Safety', description: 'Content near trim edges may be cut', status: 'safe' as CheckStatus, message: 'Content within safe distance from trim edges.', suggestion: 'Keep content at least 0.25" from trim edges.' },
         { id: 'gutter-spacing', category: 'manuscript' as const, name: 'Gutter Spacing', description: 'Inner margin gutter width', status: 'safe' as CheckStatus, message: 'Gutter spacing within range.', suggestion: 'For books over 150 pages, consider 0.5" gutter.' },
         { id: 'resolution', category: 'manuscript' as const, name: 'Resolution', description: 'Images should be 300+ DPI', status: 'pass' as CheckStatus, message: 'All images meet 300 DPI requirement.', suggestion: 'Replace any images below 300 DPI.' },
-        { id: 'page-consistency', category: 'manuscript' as const, name: 'Page Consistency', description: 'Consistent formatting throughout', status: 'pass' as CheckStatus, message: 'Page formatting appears consistent.' },
       );
     }
 
@@ -268,7 +265,6 @@ function runValidation(
     if (kdpFormat === 'kindle') {
       checks.push(
         { id: 'reflow-compatibility', category: 'general' as const, name: 'Reflow Compatibility', description: 'Content should work with reflowable text', status: 'safe' as CheckStatus, message: 'Fixed-layout may not reflow on all Kindle devices.' },
-        { id: 'unsupported-formatting', category: 'general' as const, name: 'Unsupported Formatting', description: 'Some formatting may not render on Kindle', status: 'safe' as CheckStatus, message: 'No unsupported formatting detected.' },
       );
     }
 
@@ -383,6 +379,8 @@ function PageRenderer({
   isSelected,
   onClick,
   pageAnalysis,
+  zoom,
+  kindleDarkMode,
 }: {
   dataUrl?: string;
   width: number;
@@ -395,12 +393,13 @@ function PageRenderer({
   isSelected?: boolean;
   onClick?: () => void;
   pageAnalysis?: PageAnalysis | null;
+  zoom?: number;
+  kindleDarkMode?: boolean;
 }) {
   const bleedPx = measurements.bleedIn * (width / measurements.trimWidthIn);
   const svgW = width + bleedPx * 2;
   const svgH = height + bleedPx * 2;
 
-  // Determine page border style
   const issueSeverity = pageAnalysis?.warnings?.length
     ? pageAnalysis.marginSafety === 'risk' ? 'ring-2 ring-red-500/30' : pageAnalysis.marginSafety === 'caution' ? 'ring-2 ring-amber-500/20' : ''
     : '';
@@ -410,7 +409,7 @@ function PageRenderer({
       className={`relative cursor-pointer transition-shadow duration-300 ${issueSeverity} ${isSelected ? 'ring-2 ring-sky-400/40' : ''}`}
       style={{ width: svgW, height: svgH }}
       onClick={onClick}
-      whileHover={{ scale: 1.005 }}
+      whileHover={{ scale: 1.003 }}
       transition={{ duration: 0.15 }}
     >
       {/* Shadow */}
@@ -421,8 +420,8 @@ function PageRenderer({
         <img
           src={dataUrl}
           alt={`Page ${pageNumber}`}
-          className="absolute bg-white rounded-sm"
-          style={{ left: bleedPx, top: bleedPx, width, height, objectFit: 'contain' }}
+          className={`absolute rounded-sm ${kindleDarkMode ? 'invert brightness-90' : ''}`}
+          style={{ left: bleedPx, top: bleedPx, width, height, objectFit: 'contain', background: kindleDarkMode ? '#1a1a1a' : 'white' }}
           draggable={false}
         />
       ) : (
@@ -439,24 +438,26 @@ function PageRenderer({
       )}
 
       {/* SVG Overlays */}
-      <svg
-        className="absolute inset-0 pointer-events-none"
-        width={svgW}
-        height={svgH}
-        viewBox={`${-bleedPx} ${-bleedPx} ${svgW} ${svgH}`}
-      >
-        {activeOverlays.map((overlay) => (
-          <OverlaySVG
-            key={overlay}
-            overlayType={overlay}
-            pageWidth={width}
-            pageHeight={height}
-            measurements={measurements}
-            isLeftPage={isLeftPage}
-            kdpFormat={kdpFormat}
-          />
-        ))}
-      </svg>
+      {activeOverlays.length > 0 && (
+        <svg
+          className="absolute inset-0 pointer-events-none"
+          width={svgW}
+          height={svgH}
+          viewBox={`${-bleedPx} ${-bleedPx} ${svgW} ${svgH}`}
+        >
+          {activeOverlays.map((overlay) => (
+            <OverlaySVG
+              key={overlay}
+              overlayType={overlay}
+              pageWidth={width}
+              pageHeight={height}
+              measurements={measurements}
+              isLeftPage={isLeftPage}
+              kdpFormat={kdpFormat}
+            />
+          ))}
+        </svg>
+      )}
 
       {/* Content type badge */}
       {pageAnalysis && !pageAnalysis.isBlank && pageAnalysis.contentType !== 'text' && (
@@ -470,21 +471,206 @@ function PageRenderer({
   );
 }
 
+// ─── Empty State ───────────────────────────────────────────────────────────────
+
+function EmptyPreviewState() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex-1 flex items-center justify-center"
+    >
+      <div className="text-center max-w-md px-6">
+        <div className="w-20 h-20 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mx-auto mb-6">
+          <BookOpen className="w-10 h-10 text-white/20" />
+        </div>
+        <h3 className="text-lg font-semibold text-white/60 mb-2">No Manuscript Uploaded</h3>
+        <p className="text-sm text-white/30 leading-relaxed mb-4">
+          Upload a manuscript PDF to preview your entire book interior.
+          Navigate every page, inspect margins, check bleed zones, and review reading flow.
+        </p>
+        <p className="text-xs text-white/15">
+          This is where you&apos;ll inspect your complete book before KDP upload.
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Toolbar Component ─────────────────────────────────────────────────────────
+
+function PreviewToolbar({
+  previewMode,
+  setPreviewMode,
+  activeOverlays,
+  toggleOverlay,
+  kdpFormat,
+  zoom,
+  setZoom,
+  kindleDarkMode,
+  setKindleDarkMode,
+  kindleFontSize,
+  setKindleFontSize,
+  showRightSidebar,
+  setShowRightSidebar,
+  showLeftSidebar,
+  setShowLeftSidebar,
+}: {
+  previewMode: PreviewMode;
+  setPreviewMode: (mode: PreviewMode) => void;
+  activeOverlays: OverlayType[];
+  toggleOverlay: (overlay: OverlayType) => void;
+  kdpFormat: KDPFormat;
+  zoom: number;
+  setZoom: (z: number) => void;
+  kindleDarkMode: boolean;
+  setKindleDarkMode: (v: boolean) => void;
+  kindleFontSize: number;
+  setKindleFontSize: (v: number) => void;
+  showRightSidebar: boolean;
+  setShowRightSidebar: (v: boolean) => void;
+  showLeftSidebar: boolean;
+  setShowLeftSidebar: (v: boolean) => void;
+}) {
+  const availableOverlays = Object.entries(OVERLAY_CONFIG).filter(
+    ([, config]) => config.formats.includes(kdpFormat)
+  ) as [OverlayType, typeof OVERLAY_CONFIG[OverlayType]][];
+
+  return (
+    <div className="shrink-0 flex items-center gap-1 px-3 py-2 border-b border-white/[0.06] bg-white/[0.02] overflow-x-auto">
+      {/* Left sidebar toggle */}
+      <button
+        onClick={() => setShowLeftSidebar(!showLeftSidebar)}
+        className={`p-1.5 rounded-lg transition-colors ${showLeftSidebar ? 'bg-white/[0.08] text-white/60' : 'text-white/25 hover:text-white/40 hover:bg-white/[0.04]'}`}
+        title="Toggle issues panel"
+      >
+        {showLeftSidebar ? <PanelLeftClose className="w-3.5 h-3.5" /> : <PanelLeftOpen className="w-3.5 h-3.5" />}
+      </button>
+
+      <div className="w-px h-5 bg-white/[0.06] mx-1" />
+
+      {/* View mode toggle */}
+      <div className="flex items-center bg-white/[0.04] rounded-lg p-0.5 border border-white/[0.06]">
+        <button
+          onClick={() => setPreviewMode('single')}
+          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${
+            previewMode === 'single'
+              ? 'bg-white/[0.1] text-white/80 shadow-sm'
+              : 'text-white/30 hover:text-white/50'
+          }`}
+        >
+          <FileText className="w-3 h-3" />
+          <span className="hidden sm:inline">Single</span>
+        </button>
+        <button
+          onClick={() => setPreviewMode('spread')}
+          className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all ${
+            previewMode === 'spread'
+              ? 'bg-white/[0.1] text-white/80 shadow-sm'
+              : 'text-white/30 hover:text-white/50'
+          }`}
+        >
+          <BookOpen className="w-3 h-3" />
+          <span className="hidden sm:inline">Spread</span>
+        </button>
+      </div>
+
+      <div className="w-px h-5 bg-white/[0.06] mx-1" />
+
+      {/* Overlay toggles */}
+      <div className="flex items-center gap-0.5">
+        {availableOverlays.map(([type, config]) => {
+          const Icon = config.icon;
+          const isActive = activeOverlays.includes(type);
+          return (
+            <button
+              key={type}
+              onClick={() => toggleOverlay(type)}
+              className={`p-1.5 rounded-lg transition-all ${
+                isActive
+                  ? 'bg-white/[0.08] text-white/60'
+                  : 'text-white/15 hover:text-white/35 hover:bg-white/[0.04]'
+              }`}
+              title={config.label}
+            >
+              <Icon className="w-3 h-3" />
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="w-px h-5 bg-white/[0.06] mx-1" />
+
+      {/* Zoom controls */}
+      <div className="flex items-center gap-0.5">
+        <button
+          onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
+          className="p-1.5 rounded-lg text-white/25 hover:text-white/40 hover:bg-white/[0.04] transition-colors"
+          title="Zoom out"
+        >
+          <ZoomOutIcon className="w-3 h-3" />
+        </button>
+        <span className="text-[9px] font-medium text-white/35 w-10 text-center">{Math.round(zoom * 100)}%</span>
+        <button
+          onClick={() => setZoom(Math.min(4, zoom + 0.25))}
+          className="p-1.5 rounded-lg text-white/25 hover:text-white/40 hover:bg-white/[0.04] transition-colors"
+          title="Zoom in"
+        >
+          <ZoomInIcon className="w-3 h-3" />
+        </button>
+      </div>
+
+      {/* Kindle-specific controls */}
+      {kdpFormat === 'kindle' && (
+        <>
+          <div className="w-px h-5 bg-white/[0.06] mx-1" />
+          <button
+            onClick={() => setKindleDarkMode(!kindleDarkMode)}
+            className={`p-1.5 rounded-lg transition-colors ${kindleDarkMode ? 'bg-white/[0.08] text-white/60' : 'text-white/25 hover:text-white/40 hover:bg-white/[0.04]'}`}
+            title="Kindle dark mode"
+          >
+            {kindleDarkMode ? <Moon className="w-3 h-3" /> : <Sun className="w-3 h-3" />}
+          </button>
+          <div className="flex items-center gap-1">
+            <span className="text-[8px] text-white/20">A</span>
+            <input
+              type="range"
+              min={80}
+              max={150}
+              value={kindleFontSize}
+              onChange={(e) => setKindleFontSize(Number(e.target.value))}
+              className="w-14 h-1 accent-white/30"
+            />
+            <span className="text-[10px] text-white/20">A</span>
+          </div>
+        </>
+      )}
+
+      <div className="flex-1" />
+
+      {/* Right sidebar toggle */}
+      <button
+        onClick={() => setShowRightSidebar(!showRightSidebar)}
+        className={`p-1.5 rounded-lg transition-colors ${showRightSidebar ? 'bg-white/[0.08] text-white/60' : 'text-white/25 hover:text-white/40 hover:bg-white/[0.04]'}`}
+        title="Toggle page navigator"
+      >
+        {showRightSidebar ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+      </button>
+    </div>
+  );
+}
+
 // ─── Issue Panel (Left Sidebar) ────────────────────────────────────────────────
 
 function IssuePanel({
   reports,
   pageIssues,
   onGoToPage,
-  collapsed,
-  onToggleCollapse,
   kdpFormat,
 }: {
   reports: ValidationReport[];
   pageIssues: PageIssue[];
   onGoToPage: (page: number) => void;
-  collapsed: boolean;
-  onToggleCollapse: () => void;
   kdpFormat: KDPFormat;
 }) {
   const allChecks = reports.flatMap((r) => r.checks);
@@ -505,70 +691,38 @@ function IssuePanel({
     return found.slice(0, 5);
   }, [allChecks]);
 
-  // Count summary
   const failCount = groupedIssues.fail.length;
   const riskCount = groupedIssues.risk.length;
   const warningCount = groupedIssues.warning.length;
 
-  if (collapsed) {
-    return (
-      <button
-        onClick={onToggleCollapse}
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/[0.06] backdrop-blur-xl border border-white/[0.08] rounded-xl p-2.5 hover:bg-white/[0.1] transition-colors group"
-        aria-label="Expand issue panel"
-      >
-        <Shield className="w-4 h-4 text-white/50 group-hover:text-white/70" />
-        {hasIssues && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center">
-            {failCount + riskCount}
-          </span>
-        )}
-      </button>
-    );
-  }
-
   return (
-    <motion.div
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: -20, opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      className="w-[280px] shrink-0 bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-2xl flex flex-col overflow-hidden"
-    >
+    <div className="w-[260px] shrink-0 bg-white/[0.02] border-r border-white/[0.06] flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-white/[0.06]">
+      <div className="p-3 border-b border-white/[0.06]">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-2">
-            <Shield className="w-3.5 h-3.5 text-white/40" />
+          <h3 className="text-[10px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+            <Shield className="w-3 h-3 text-white/30" />
             Validation
           </h3>
-          <button onClick={onToggleCollapse} className="text-white/30 hover:text-white/60 transition-colors" aria-label="Collapse">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
         </div>
-        {/* Summary counts */}
-        <div className="flex gap-2">
-          {failCount > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">{failCount} Fail</span>}
-          {riskCount > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">{riskCount} Risk</span>}
-          {warningCount > 0 && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">{warningCount} Warn</span>}
-          {!hasIssues && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">All Clear</span>}
+        <div className="flex gap-1.5 flex-wrap">
+          {failCount > 0 && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">{failCount} Fail</span>}
+          {riskCount > 0 && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">{riskCount} Risk</span>}
+          {warningCount > 0 && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">{warningCount} Warn</span>}
+          {!hasIssues && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">All Clear</span>}
         </div>
       </div>
 
       {/* Issues list */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-1.5 max-h-[calc(100vh-360px)]" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+      <div className="flex-1 overflow-y-auto p-2 space-y-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.08) transparent' }}>
         {!hasIssues ? (
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="flex flex-col items-center justify-center py-8 text-center"
-          >
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             </div>
-            <p className="text-emerald-400 font-medium text-sm">Your interior looks clean and KDP-ready.</p>
-            <p className="text-white/25 text-[10px] mt-1">All checks passed successfully</p>
-          </motion.div>
+            <p className="text-emerald-400 font-medium text-xs">All checks passed</p>
+            <p className="text-white/20 text-[9px] mt-0.5">Your interior looks KDP-ready</p>
+          </div>
         ) : (
           <>
             {(['fail', 'risk', 'warning'] as CheckStatus[]).map((severity) => {
@@ -576,35 +730,30 @@ function IssuePanel({
               if (items.length === 0) return null;
               const Icon = STATUS_ICONS[severity];
               return (
-                <div key={severity} className="space-y-1">
-                  <div className="flex items-center gap-1.5 px-1">
-                    <Icon className={`w-3 h-3 ${STATUS_ICON_COLOR[severity]}`} />
-                    <span className={`text-[9px] font-bold uppercase tracking-wider ${STATUS_ICON_COLOR[severity]}`}>
+                <div key={severity} className="space-y-0.5">
+                  <div className="flex items-center gap-1 px-1 py-0.5">
+                    <Icon className={`w-2.5 h-2.5 ${STATUS_ICON_COLOR[severity]}`} />
+                    <span className={`text-[8px] font-bold uppercase tracking-wider ${STATUS_ICON_COLOR[severity]}`}>
                       {STATUS_LABELS[severity]} ({items.length})
                     </span>
                   </div>
                   {items.map((check, i) => {
                     const matchingIssue = pageIssues.find((pi) => pi.checkId === check.id);
                     return (
-                      <motion.div
+                      <div
                         key={`${check.id}-${i}`}
-                        initial={{ opacity: 0, x: -6 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className={`rounded-lg border-l-2 ${STATUS_ACCENT[severity]} bg-white/[0.02] border border-white/[0.04] p-2 hover:bg-white/[0.04] transition-colors`}
+                        className={`rounded-md border-l-2 ${STATUS_ACCENT[severity]} bg-white/[0.015] border border-white/[0.03] p-1.5 hover:bg-white/[0.03] transition-colors cursor-pointer`}
+                        onClick={() => matchingIssue && onGoToPage(matchingIssue.pageIndex)}
                       >
-                        <p className="text-[11px] text-white/80 font-medium">{check.name}</p>
-                        <p className="text-[9px] text-white/35 mt-0.5 line-clamp-2">{check.message}</p>
+                        <p className="text-[10px] text-white/70 font-medium">{check.name}</p>
+                        <p className="text-[8px] text-white/30 mt-0.5 line-clamp-2">{check.message}</p>
                         {matchingIssue && (
-                          <button
-                            onClick={() => onGoToPage(matchingIssue.pageIndex)}
-                            className="text-[9px] text-sky-400 hover:text-sky-300 mt-1 flex items-center gap-0.5 transition-colors"
-                          >
-                            <ArrowRight className="w-2.5 h-2.5" />
+                          <div className="text-[8px] text-sky-400/70 mt-0.5 flex items-center gap-0.5">
+                            <ArrowRight className="w-2 h-2" />
                             Page {matchingIssue.pageIndex}
-                          </button>
+                          </div>
                         )}
-                      </motion.div>
+                      </div>
                     );
                   })}
                 </div>
@@ -616,31 +765,32 @@ function IssuePanel({
 
       {/* Smart Suggestions */}
       {suggestions.length > 0 && (
-        <div className="border-t border-white/[0.06] p-3 max-h-[200px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-          <p className="text-[9px] font-bold uppercase tracking-wider text-white/25 px-1 mb-1.5 flex items-center gap-1">
-            <Lightbulb className="w-2.5 h-2.5" /> Suggestions
+        <div className="border-t border-white/[0.06] p-2 max-h-[150px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.08) transparent' }}>
+          <p className="text-[8px] font-bold uppercase tracking-wider text-white/20 px-0.5 mb-1 flex items-center gap-1">
+            <Lightbulb className="w-2 h-2" /> Tips
           </p>
           {suggestions.map((s, i) => (
-            <div key={i} className="flex gap-1.5 items-start bg-white/[0.02] rounded-lg p-1.5 mb-1 hover:bg-white/[0.04] transition-colors">
-              <Info className="w-2.5 h-2.5 text-teal-400/60 mt-0.5 shrink-0" />
-              <p className="text-[9px] text-white/35 leading-relaxed">{s}</p>
+            <div key={i} className="flex gap-1 items-start bg-white/[0.015] rounded-md p-1 mb-0.5 hover:bg-white/[0.03] transition-colors">
+              <Info className="w-2 h-2 text-teal-400/40 mt-0.5 shrink-0" />
+              <p className="text-[8px] text-white/25 leading-relaxed">{s}</p>
             </div>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
-// ─── Page Metadata Panel ───────────────────────────────────────────────────────
+// ─── Page Metadata Panel (Bottom bar) ──────────────────────────────────────────
 
-function PageMetadataPanel({
+function PageMetadataBar({
   pageAnalysis,
   measurements,
   pageNumber,
   totalPages,
   kdpFormat,
   previewMode,
+  pageIssues,
 }: {
   pageAnalysis: PageAnalysis | null;
   measurements: { trimWidthIn: number; trimHeightIn: number; bleedIn: number; safeAreaIn: number };
@@ -648,67 +798,55 @@ function PageMetadataPanel({
   totalPages: number;
   kdpFormat: KDPFormat;
   previewMode: PreviewMode;
+  pageIssues: PageIssue[];
 }) {
-  if (!pageAnalysis) return null;
-
-  const contentTypeConf = CONTENT_TYPE_CONFIG[pageAnalysis.contentType];
-  const ContentTypeIcon = contentTypeConf.icon;
-
-  const metaItems = [
-    { label: 'Dimensions', value: `${measurements.trimWidthIn}" × ${measurements.trimHeightIn}"` },
-    { label: 'Bleed', value: measurements.bleedIn > 0 ? `${measurements.bleedIn}"` : 'None' },
-    { label: 'DPI Estimate', value: `${pageAnalysis.estimatedDPI}` },
-    { label: 'Content', value: contentTypeConf.label },
-    { label: 'Margin Safety', value: pageAnalysis.marginSafety.toUpperCase(), accent: pageAnalysis.marginSafety === 'risk' ? 'text-red-400' : pageAnalysis.marginSafety === 'caution' ? 'text-amber-400' : 'text-emerald-400' },
-    { label: 'Dominant', value: pageAnalysis.dominantColor },
-    { label: 'Images', value: `${pageAnalysis.imageCount}` },
-    { label: 'Blank', value: pageAnalysis.isBlank ? 'Yes' : 'No' },
-  ];
-
-  // Only show format-relevant metadata
-  const filteredItems = metaItems.filter(item => {
-    if (kdpFormat === 'kindle' && item.label === 'Bleed') return false;
-    return true;
-  });
+  const pageIssuesForPage = pageIssues.filter(pi => pi.pageIndex === pageNumber);
 
   return (
-    <div className="border-b border-white/[0.06] p-3">
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">
-          Page {pageNumber} of {totalPages}
-        </span>
+    <div className="shrink-0 flex items-center gap-3 px-3 py-1.5 border-t border-white/[0.06] bg-white/[0.02] text-[9px]">
+      {/* Page info */}
+      <span className="text-white/40 font-medium">
+        Page {pageNumber} of {totalPages}
         {previewMode === 'spread' && pageNumber < totalPages && (
-          <span className="text-[9px] text-white/30">Spread {pageNumber}–{pageNumber + 1}</span>
+          <span className="text-white/20 ml-1">· Spread {pageNumber}–{pageNumber + 1}</span>
         )}
-      </div>
+      </span>
 
-      {/* Content Type Badge */}
-      <div className="flex items-center gap-1.5 mb-2.5 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05]">
-        <ContentTypeIcon className={`w-3.5 h-3.5 ${contentTypeConf.color}`} />
-        <span className={`text-[10px] font-semibold ${contentTypeConf.color}`}>{contentTypeConf.label}</span>
-      </div>
+      {/* Content type */}
+      {pageAnalysis && !pageAnalysis.isBlank && pageAnalysis.contentType !== 'text' && (
+        <span className={`px-1.5 py-0.5 rounded bg-white/[0.04] ${CONTENT_TYPE_CONFIG[pageAnalysis.contentType].color} font-medium`}>
+          {CONTENT_TYPE_CONFIG[pageAnalysis.contentType].label}
+        </span>
+      )}
 
-      {/* Metadata Grid */}
-      <div className="space-y-1">
-        {filteredItems.map((item) => (
-          <div key={item.label} className="flex items-center justify-between px-1">
-            <span className="text-[9px] text-white/30">{item.label}</span>
-            <span className={`text-[9px] font-medium ${item.accent || 'text-white/50'}`}>{item.value}</span>
-          </div>
-        ))}
-      </div>
+      {/* Dimensions */}
+      <span className="text-white/25">
+        {measurements.trimWidthIn}&quot; × {measurements.trimHeightIn}&quot;
+      </span>
 
-      {/* Page Warnings */}
-      {pageAnalysis.warnings.length > 0 && (
-        <div className="mt-2 space-y-0.5">
-          {pageAnalysis.warnings.map((w, i) => (
-            <div key={i} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/[0.06]">
-              <AlertTriangle className="w-2.5 h-2.5 text-amber-400/60 shrink-0" />
-              <span className="text-[8px] text-amber-300/60">{w}</span>
-            </div>
-          ))}
-        </div>
+      {/* Margin safety */}
+      {pageAnalysis && (
+        <span className={`px-1.5 py-0.5 rounded font-medium ${
+          pageAnalysis.marginSafety === 'safe' ? 'bg-emerald-500/[0.06] text-emerald-400/70' :
+          pageAnalysis.marginSafety === 'caution' ? 'bg-amber-500/[0.06] text-amber-400/70' :
+          'bg-red-500/[0.06] text-red-400/70'
+        }`}>
+          {pageAnalysis.marginSafety === 'safe' ? '✓ Margins OK' : pageAnalysis.marginSafety === 'caution' ? '⚠ Margin caution' : '✗ Margin risk'}
+        </span>
+      )}
+
+      {/* Page issues count */}
+      {pageIssuesForPage.length > 0 && (
+        <span className="px-1.5 py-0.5 rounded bg-amber-500/[0.06] text-amber-400/70 font-medium">
+          {pageIssuesForPage.length} issue{pageIssuesForPage.length > 1 ? 's' : ''}
+        </span>
+      )}
+
+      <div className="flex-1" />
+
+      {/* Bleed status */}
+      {measurements.bleedIn > 0 && kdpFormat !== 'kindle' && (
+        <span className="text-white/20">Bleed: {measurements.bleedIn}&quot;</span>
       )}
     </div>
   );
@@ -741,8 +879,6 @@ function ThumbnailNavigator({
     return pairs;
   }, [pages.length]);
 
-  const issuePages = useMemo(() => new Set(pageIssues.map((pi) => pi.pageIndex)), [pageIssues]);
-
   const isActive = (pageNum: number) => {
     if (previewMode === 'spread') {
       if (currentPage === 1) return pageNum === 1;
@@ -752,14 +888,12 @@ function ThumbnailNavigator({
     return pageNum === currentPage;
   };
 
-  // Auto-scroll to active thumbnail
   useEffect(() => {
     if (!scrollRef.current) return;
     const activeEl = scrollRef.current.querySelector('[data-active="true"]');
     if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [currentPage, previewMode]);
 
-  // Get severity for issue badges
   const getIssueSeverity = (pageNum: number): CheckStatus | null => {
     const issue = pageIssues.find(pi => pi.pageIndex === pageNum);
     return issue ? issue.severity : null;
@@ -784,8 +918,8 @@ function ThumbnailNavigator({
         data-active={active}
         className={`w-full rounded-lg overflow-hidden border transition-all duration-200 ${
           active
-            ? 'border-sky-400/50 shadow-[0_0_16px_rgba(56,189,248,0.12)]'
-            : 'border-white/[0.04] hover:border-white/[0.12]'
+            ? 'border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.1)]'
+            : 'border-white/[0.04] hover:border-white/[0.1]'
         }`}
       >
         <div className="relative aspect-[6/9] bg-white/[0.02]">
@@ -793,23 +927,25 @@ function ThumbnailNavigator({
             <img src={page.dataUrl} alt={`Page ${pageNum}`} className="w-full h-full object-cover" draggable={false} loading="lazy" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-[10px] text-white/15">{pageNum}</span>
+              <span className="text-[9px] text-white/15">{pageNum}</span>
             </div>
           )}
-          {/* Page number */}
-          <span className="absolute bottom-0.5 left-0.5 text-[8px] text-white/50 bg-black/50 px-1 rounded font-medium">
+          <span className="absolute bottom-0.5 left-0.5 text-[7px] text-white/50 bg-black/50 px-0.5 rounded font-medium">
             {pageNum}
           </span>
-          {/* Issue severity badge */}
           {severity && (
-            <span className={`absolute top-0.5 right-0.5 w-2 h-2 rounded-full ${severityBadgeColor[severity] || 'bg-gray-400'}`} />
+            <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full ${severityBadgeColor[severity] || 'bg-gray-400'}`} />
           )}
-          {/* Content type mini badge */}
           {contentType && contentType !== 'text' && !page.isBlank && (
             <span className="absolute top-0.5 left-0.5">
-              <span className={`text-[6px] font-bold px-0.5 rounded ${CONTENT_TYPE_CONFIG[contentType].color} bg-black/50`}>
+              <span className={`text-[5px] font-bold px-0.5 rounded ${CONTENT_TYPE_CONFIG[contentType].color} bg-black/50`}>
                 {CONTENT_TYPE_CONFIG[contentType].label.substring(0, 3).toUpperCase()}
               </span>
+            </span>
+          )}
+          {page.isBlank && (
+            <span className="absolute top-0.5 left-0.5 text-[5px] font-bold px-0.5 rounded text-white/20 bg-black/50">
+              BLANK
             </span>
           )}
         </div>
@@ -830,7 +966,7 @@ function ThumbnailNavigator({
         onClick={() => onPageClick(pair.left)}
         data-active={pairActive}
         className={`w-full rounded-lg overflow-hidden border transition-all duration-200 ${
-          pairActive ? 'border-sky-400/50 shadow-[0_0_16px_rgba(56,189,248,0.12)]' : 'border-white/[0.04] hover:border-white/[0.12]'
+          pairActive ? 'border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.1)]' : 'border-white/[0.04] hover:border-white/[0.1]'
         }`}
       >
         <div className="flex aspect-[12/9] bg-white/[0.02]">
@@ -838,19 +974,19 @@ function ThumbnailNavigator({
             {leftPage?.dataUrl ? (
               <img src={leftPage.dataUrl} alt={`Page ${pair.left}`} className="w-full h-full object-cover" draggable={false} loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center"><span className="text-[9px] text-white/15">{pair.left}</span></div>
+              <div className="w-full h-full flex items-center justify-center"><span className="text-[8px] text-white/15">{pair.left}</span></div>
             )}
-            <span className="absolute bottom-0.5 left-0.5 text-[7px] text-white/40 bg-black/50 px-0.5 rounded">{pair.left}</span>
-            {leftSeverity && <span className={`absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full ${severityBadgeColor[leftSeverity] || 'bg-gray-400'}`} />}
+            <span className="absolute bottom-0.5 left-0.5 text-[6px] text-white/35 bg-black/50 px-0.5 rounded">{pair.left}</span>
+            {leftSeverity && <span className={`absolute top-0.5 left-0.5 w-1 h-1 rounded-full ${severityBadgeColor[leftSeverity] || 'bg-gray-400'}`} />}
           </div>
           <div className="w-1/2 relative">
             {rightPage?.dataUrl ? (
               <img src={rightPage.dataUrl} alt={`Page ${pair.right}`} className="w-full h-full object-cover" draggable={false} loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center"><span className="text-[9px] text-white/15">{pair.right}</span></div>
+              <div className="w-full h-full flex items-center justify-center"><span className="text-[8px] text-white/15">{pair.right}</span></div>
             )}
-            <span className="absolute bottom-0.5 right-0.5 text-[7px] text-white/40 bg-black/50 px-0.5 rounded">{pair.right}</span>
-            {rightSeverity && <span className={`absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full ${severityBadgeColor[rightSeverity] || 'bg-gray-400'}`} />}
+            <span className="absolute bottom-0.5 right-0.5 text-[6px] text-white/35 bg-black/50 px-0.5 rounded">{pair.right}</span>
+            {rightSeverity && <span className={`absolute top-0.5 right-0.5 w-1 h-1 rounded-full ${severityBadgeColor[rightSeverity] || 'bg-gray-400'}`} />}
           </div>
         </div>
       </button>
@@ -858,16 +994,16 @@ function ThumbnailNavigator({
   };
 
   return (
-    <div className="w-[140px] shrink-0 bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-2xl flex flex-col overflow-hidden">
-      <div className="p-2.5 border-b border-white/[0.06]">
-        <h3 className="text-[9px] font-bold text-white/35 uppercase tracking-wider">
+    <div className="w-[120px] shrink-0 bg-white/[0.02] border-l border-white/[0.06] flex flex-col overflow-hidden">
+      <div className="p-2 border-b border-white/[0.06]">
+        <h3 className="text-[8px] font-bold text-white/30 uppercase tracking-wider">
           {previewMode === 'spread' ? 'Spreads' : 'Pages'} · {pages.length}
         </h3>
       </div>
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-1.5 space-y-1"
-        style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}
+        className="flex-1 overflow-y-auto p-1 space-y-0.5"
+        style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}
       >
         {previewMode === 'single' ? (
           pages.map((page) => renderSingleThumbnail(page, page.index))
@@ -878,6 +1014,93 @@ function ThumbnailNavigator({
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── Navigation Bar ────────────────────────────────────────────────────────────
+
+function NavigationBar({
+  currentPage,
+  totalPages,
+  onPrev,
+  onNext,
+  onJump,
+  onFirst,
+  onLast,
+  previewMode,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPrev: () => void;
+  onNext: () => void;
+  onJump: (page: number) => void;
+  onFirst: () => void;
+  onLast: () => void;
+  previewMode: PreviewMode;
+}) {
+  const [jumpValue, setJumpValue] = useState('');
+
+  const handleJump = () => {
+    const num = parseInt(jumpValue, 10);
+    if (!isNaN(num) && num >= 1 && num <= totalPages) {
+      onJump(num);
+    }
+    setJumpValue('');
+  };
+
+  return (
+    <div className="shrink-0 flex items-center justify-center gap-2 px-3 py-1.5 border-t border-white/[0.06] bg-white/[0.015]">
+      <button
+        onClick={onFirst}
+        disabled={currentPage <= 1}
+        className="p-1 rounded-md text-white/25 hover:text-white/50 hover:bg-white/[0.04] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+        title="First page"
+      >
+        <SkipBack className="w-3 h-3" />
+      </button>
+      <button
+        onClick={onPrev}
+        disabled={currentPage <= 1}
+        className="p-1 rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.04] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+        title="Previous page"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+
+      {/* Page jump */}
+      <div className="flex items-center gap-1">
+        <input
+          type="text"
+          value={jumpValue}
+          onChange={(e) => setJumpValue(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleJump()}
+          placeholder={String(currentPage)}
+          className="w-9 h-5 text-center text-[9px] font-medium bg-white/[0.04] border border-white/[0.06] rounded text-white/60 placeholder:text-white/25 focus:outline-none focus:border-sky-400/30"
+        />
+        <span className="text-[9px] text-white/25">/ {totalPages}</span>
+      </div>
+
+      <button
+        onClick={onNext}
+        disabled={currentPage >= totalPages}
+        className="p-1 rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.04] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+        title="Next page"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+      <button
+        onClick={onLast}
+        disabled={currentPage >= totalPages}
+        className="p-1 rounded-md text-white/25 hover:text-white/50 hover:bg-white/[0.04] disabled:opacity-20 disabled:pointer-events-none transition-colors"
+        title="Last page"
+      >
+        <SkipForward className="w-3 h-3" />
+      </button>
+
+      <span className="text-[8px] text-white/15 ml-2">
+        {previewMode === 'spread' ? 'Spread view' : 'Single view'}
+      </span>
     </div>
   );
 }
@@ -905,13 +1128,24 @@ export default function PreviewStep() {
     setView,
   } = useAppStore();
 
-  const [zoom, setZoom] = useState(1);
-  const [issuePanelCollapsed, setIssuePanelCollapsed] = useState(false);
-  const [pageJumpInput, setPageJumpInput] = useState('');
+  const [zoom, setZoomInternal] = useState(1);
+  const [showRightSidebar, setShowRightSidebar] = useState(true);
+  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
+  const [kindleDarkMode, setKindleDarkMode] = useState(false);
+  const [kindleFontSize, setKindleFontSize] = useState(100);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const panStart = useRef({ x: 0, y: 0 });
+
+  // Wrap setZoom to also reset pan when zooming back to fit
+  const setZoom = useCallback((newZoom: number | ((prev: number) => number)) => {
+    setZoomInternal(prev => {
+      const next = typeof newZoom === 'function' ? newZoom(prev) : newZoom;
+      if (next <= 1) setPanOffset({ x: 0, y: 0 });
+      return next;
+    });
+  }, []);
 
   // Derive pages
   const pages = useMemo(() => {
@@ -939,6 +1173,15 @@ export default function PreviewStep() {
     return map;
   }, [pages]);
 
+  // Spread pairs for spread view
+  const spreadPairs = useMemo(() => {
+    const pairs: { left: number; right: number }[] = [];
+    for (let i = 2; i <= pages.length; i += 2) {
+      pairs.push({ left: i, right: Math.min(i + 1, pages.length) });
+    }
+    return pairs;
+  }, [pages.length]);
+
   // Clamp current page
   useEffect(() => {
     if (currentPreviewPage < 1) setCurrentPreviewPage(1);
@@ -950,486 +1193,363 @@ export default function PreviewStep() {
     const { reports, issues } = runValidation(kdpFormat, uploadedCover, uploadedManuscript, bookConfig, measurements);
     setValidationReports(reports);
     setPageIssues(issues);
-  }, []);
-
-  // Overall status
-  const overallStatus = useMemo(() => {
-    const allChecks = validationReports.flatMap((r) => r.checks);
-    return getOverallStatus(allChecks);
-  }, [validationReports]);
+  }, [kdpFormat, uploadedCover, uploadedManuscript, bookConfig, measurements, setValidationReports, setPageIssues]);
 
   // Navigation
-  const canGoPrev = currentPreviewPage > 1;
-  const canGoNext = previewMode === 'spread' ? currentPreviewPage < totalPages - 1 : currentPreviewPage < totalPages;
-
-  const goPrev = useCallback(() => {
-    if (!canGoPrev) return;
-    const step = previewMode === 'spread' ? 2 : 1;
-    setCurrentPreviewPage(Math.max(1, currentPreviewPage - step));
-  }, [canGoPrev, currentPreviewPage, previewMode, setCurrentPreviewPage]);
-
-  const goNext = useCallback(() => {
-    if (!canGoNext) return;
-    const step = previewMode === 'spread' ? 2 : 1;
-    setCurrentPreviewPage(Math.min(totalPages, currentPreviewPage + step));
-  }, [canGoNext, currentPreviewPage, previewMode, totalPages, setCurrentPreviewPage]);
-
   const goToPage = useCallback((page: number) => {
-    setCurrentPreviewPage(Math.max(1, Math.min(totalPages, page)));
+    const clamped = Math.max(1, Math.min(totalPages, page));
+    setCurrentPreviewPage(clamped);
+    setPanOffset({ x: 0, y: 0 });
   }, [totalPages, setCurrentPreviewPage]);
 
-  // Handle page jump
-  const handlePageJump = useCallback(() => {
-    const num = parseInt(pageJumpInput, 10);
-    if (!isNaN(num) && num >= 1 && num <= totalPages) {
-      goToPage(num);
-    }
-    setPageJumpInput('');
-  }, [pageJumpInput, totalPages, goToPage]);
+  const goToPrevPage = useCallback(() => {
+    const step = previewMode === 'spread' ? 2 : 1;
+    goToPage(currentPreviewPage - step);
+  }, [currentPreviewPage, previewMode, goToPage]);
+
+  const goToNextPage = useCallback(() => {
+    const step = previewMode === 'spread' ? 2 : 1;
+    goToPage(currentPreviewPage + step);
+  }, [currentPreviewPage, previewMode, goToPage]);
 
   // Keyboard navigation
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') goPrev();
-      if (e.key === 'ArrowRight') goNext();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          goToPrevPage();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          goToNextPage();
+          break;
+        case 'Home':
+          e.preventDefault();
+          goToPage(1);
+          break;
+        case 'End':
+          e.preventDefault();
+          goToPage(totalPages);
+          break;
+        case '+':
+        case '=':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            setZoom(z => Math.min(4, z + 0.25));
+          }
+          break;
+        case '-':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            setZoom(z => Math.max(0.25, z - 0.25));
+          }
+          break;
+        case '0':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            setZoom(1);
+          }
+          break;
+      }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [goPrev, goNext]);
 
-  // Zoom
-  const zoomIn = useCallback(() => { setZoom((z) => Math.min(4, z + 0.25)); setPanOffset({ x: 0, y: 0 }); }, []);
-  const zoomOut = useCallback(() => { setZoom((z) => Math.max(0.25, z - 0.25)); setPanOffset({ x: 0, y: 0 }); }, []);
-  const zoomFit = useCallback(() => {
-    if (!previewContainerRef.current) return;
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goToPrevPage, goToNextPage, goToPage, totalPages]);
+
+  // Mouse wheel zoom
+  useEffect(() => {
     const container = previewContainerRef.current;
-    const containerW = container.clientWidth - 80;
-    const containerH = container.clientHeight - 80;
-    const pageW = measurements.trimWidthIn * 72;
-    const pageH = measurements.trimHeightIn * 72;
-    const isSpread = previewMode === 'spread';
-    const scaleW = containerW / (isSpread ? pageW * 2 + 24 : pageW);
-    const scaleH = containerH / pageH;
-    setZoom(Math.min(scaleW, scaleH, 2.5));
-    setPanOffset({ x: 0, y: 0 });
-  }, [measurements, previewMode]);
+    if (!container) return;
 
-  // Auto-fit on mount or mode change
-  useEffect(() => { zoomFit(); }, [zoomFit]);
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        setZoom(z => Math.max(0.25, Math.min(4, z + delta)));
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, []);
 
   // Pan handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (zoom > 1.2) {
-      setIsPanning(true);
-      panStart.current = { x: e.clientX - panOffset.x, y: e.clientY - panOffset.y };
-    }
+    if (e.button !== 0) return; // left click only
+    if (zoom <= 1) return;
+    setIsPanning(true);
+    panStart.current = { x: e.clientX - panOffset.x, y: e.clientY - panOffset.y };
   }, [zoom, panOffset]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPanning) {
-      setPanOffset({ x: e.clientX - panStart.current.x, y: e.clientY - panStart.current.y });
-    }
+    if (!isPanning) return;
+    setPanOffset({
+      x: e.clientX - panStart.current.x,
+      y: e.clientY - panStart.current.y,
+    });
   }, [isPanning]);
 
-  const handleMouseUp = useCallback(() => { setIsPanning(false); }, []);
-
-  // Scroll zoom with wheel
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -0.1 : 0.1;
-      setZoom((z) => Math.max(0.25, Math.min(4, z + delta)));
-    }
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
   }, []);
 
+  // Compute display scale based on container and page dimensions
+  const pageDisplayScale = useMemo(() => {
+    // Base scale to fit the page(s) in the container
+    const containerWidth = 700; // approximate
+    const containerHeight = 500; // approximate
+
+    if (previewMode === 'spread') {
+      const totalWidth = measurements.trimWidthIn * 2;
+      const scaleW = containerWidth / totalWidth;
+      const scaleH = containerHeight / measurements.trimHeightIn;
+      return Math.min(scaleW, scaleH, 1.5);
+    } else {
+      const scaleW = containerWidth / measurements.trimWidthIn;
+      const scaleH = containerHeight / measurements.trimHeightIn;
+      return Math.min(scaleW, scaleH, 1.5);
+    }
+  }, [measurements, previewMode]);
+
   // Current page data
-  const currentPageData = useMemo(() => {
-    if (previewMode === 'spread') {
-      const left = pages.find((p) => p.index === currentPreviewPage);
-      const rightIdx = currentPreviewPage + 1;
-      const right = pages.find((p) => p.index === rightIdx);
-      return { left, right: rightIdx <= totalPages ? right : undefined };
-    }
-    return { left: pages.find((p) => p.index === currentPreviewPage), right: undefined };
-  }, [previewMode, currentPreviewPage, pages, totalPages]);
-
-  // Page dimensions
-  const pageDisplayW = measurements.trimWidthIn * 72 * zoom;
-  const pageDisplayH = measurements.trimHeightIn * 72 * zoom;
-
-  // Spread info for navigation display
-  const spreadInfo = useMemo(() => {
-    if (previewMode === 'spread') {
-      if (currentPreviewPage === 1) return 'Page 1';
-      const right = Math.min(currentPreviewPage + 1, totalPages);
-      return `Spread ${currentPreviewPage}–${right}`;
-    }
-    return `Page ${currentPreviewPage}`;
-  }, [previewMode, currentPreviewPage, totalPages]);
-
-  // Current page analysis
+  const currentPageData = pages.find(p => p.index === currentPreviewPage);
   const currentPageAnalysis = pageAnalyses.get(currentPreviewPage) || null;
 
-  // Format-appropriate overlays
-  const availableOverlays = useMemo(() => {
-    return (Object.entries(OVERLAY_CONFIG) as [OverlayType, typeof OVERLAY_CONFIG[OverlayType]][])
-      .filter(([, conf]) => conf.formats.includes(kdpFormat))
-      .map(([type, conf]) => ({ type, label: conf.label, icon: conf.icon }));
-  }, [kdpFormat]);
+  // Render the main preview area
+  const renderPreview = () => {
+    if (!uploadedManuscript && !uploadedCover) {
+      return <EmptyPreviewState />;
+    }
 
-  // Kindle-specific features
-  const [kindleDarkMode, setKindleDarkMode] = useState(false);
+    const renderPage = (pageIndex: number, isLeft?: boolean) => {
+      const page = pages.find(p => p.index === pageIndex);
+      if (!page) return null;
+
+      const pageW = page.width * pageDisplayScale * zoom;
+      const pageH = page.height * pageDisplayScale * zoom;
+      const analysis = pageAnalyses.get(pageIndex) || null;
+
+      return (
+        <PageRenderer
+          dataUrl={page.dataUrl}
+          width={pageW}
+          height={pageH}
+          pageNumber={pageIndex}
+          measurements={{
+            bleedIn: measurements.bleedIn * pageDisplayScale * zoom,
+            safeAreaIn: measurements.safeAreaIn * pageDisplayScale * zoom,
+            trimWidthIn: measurements.trimWidthIn * pageDisplayScale * zoom,
+            trimHeightIn: measurements.trimHeightIn * pageDisplayScale * zoom,
+            spineWidthIn: measurements.spineWidthIn * pageDisplayScale * zoom,
+          }}
+          activeOverlays={activeOverlays}
+          isLeftPage={isLeft}
+          kdpFormat={kdpFormat}
+          isSelected={pageIndex === currentPreviewPage}
+          onClick={() => goToPage(pageIndex)}
+          pageAnalysis={analysis}
+          zoom={zoom}
+          kindleDarkMode={kindleDarkMode}
+        />
+      );
+    };
+
+    if (previewMode === 'single') {
+      return (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`single-${currentPreviewPage}`}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-center"
+          >
+            {renderPage(currentPreviewPage)}
+          </motion.div>
+        </AnimatePresence>
+      );
+    }
+
+    // Spread view
+    if (currentPreviewPage === 1) {
+      // Page 1 is always shown alone (right side, like a book cover)
+      return (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`cover`}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-center"
+          >
+            <div className="flex items-center gap-0">
+              {/* Blank left page placeholder */}
+              <div
+                className="flex items-center justify-center rounded-sm mr-[2px]"
+                style={{
+                  width: measurements.trimWidthIn * pageDisplayScale * zoom,
+                  height: measurements.trimHeightIn * pageDisplayScale * zoom,
+                  background: 'rgba(255,255,255,0.015)',
+                  border: '1px dashed rgba(255,255,255,0.06)',
+                }}
+              >
+                <span className="text-[9px] text-white/10">Blank</span>
+              </div>
+              {/* Page 1 on the right */}
+              {renderPage(1, false)}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      );
+    }
+
+    // Find the spread pair for current page
+    const currentPair = spreadPairs.find(p => p.left === currentPreviewPage || p.right === currentPreviewPage);
+    if (currentPair) {
+      return (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`spread-${currentPair.left}-${currentPair.right}`}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-center"
+          >
+            <div className="flex items-stretch">
+              {/* Left page */}
+              <div className="relative">
+                {renderPage(currentPair.left, true)}
+                {/* Gutter shadow effect */}
+                <div
+                  className="absolute right-0 top-0 bottom-0 w-[3px]"
+                  style={{
+                    background: 'linear-gradient(to right, rgba(0,0,0,0.15), transparent)',
+                  }}
+                />
+              </div>
+              {/* Gutter */}
+              <div
+                className="w-[4px] shrink-0"
+                style={{
+                  background: 'linear-gradient(to right, rgba(0,0,0,0.2), rgba(0,0,0,0.05), rgba(0,0,0,0.2))',
+                  boxShadow: 'inset 0 0 3px rgba(0,0,0,0.1)',
+                }}
+              />
+              {/* Right page */}
+              <div className="relative">
+                {renderPage(currentPair.right, false)}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-[3px]"
+                  style={{
+                    background: 'linear-gradient(to left, rgba(0,0,0,0.15), transparent)',
+                  }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      );
+    }
+
+    return null;
+  };
 
   return (
-    <div className="flex flex-col h-full w-full">
-      {/* ═══ Top Toolbar ═══ */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setCheckerStep('config')}
-            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Config</span>
-          </button>
-          <div className="w-px h-4 bg-white/[0.08]" />
-          <h2 className="text-sm font-semibold text-white/80 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-white/40" />
-            Preview &amp; Validate
-          </h2>
-          <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${getStatusBg(overallStatus)} ${getStatusColor(overallStatus)}`}>
-            {STATUS_LABELS[overallStatus]}
-          </span>
-        </div>
+    <div className="flex flex-col h-full w-full bg-[#0a0a0b]">
+      {/* ─── Top Toolbar ─── */}
+      <PreviewToolbar
+        previewMode={previewMode}
+        setPreviewMode={setPreviewMode}
+        activeOverlays={activeOverlays}
+        toggleOverlay={toggleOverlay}
+        kdpFormat={kdpFormat}
+        zoom={zoom}
+        setZoom={setZoom}
+        kindleDarkMode={kindleDarkMode}
+        setKindleDarkMode={setKindleDarkMode}
+        kindleFontSize={kindleFontSize}
+        setKindleFontSize={setKindleFontSize}
+        showRightSidebar={showRightSidebar}
+        setShowRightSidebar={setShowRightSidebar}
+        showLeftSidebar={showLeftSidebar}
+        setShowLeftSidebar={setShowLeftSidebar}
+      />
 
-        {/* Center: View mode + Navigation */}
-        <div className="flex items-center gap-2">
-          {/* View mode toggle */}
-          <div className="flex items-center bg-white/[0.04] rounded-lg border border-white/[0.06] p-0.5">
-            <button
-              onClick={() => setPreviewMode('single')}
-              className={`p-1.5 rounded-md transition-all ${previewMode === 'single' ? 'bg-white/[0.1] text-white/80' : 'text-white/30 hover:text-white/50'}`}
-              title="Single Page"
-            >
-              <FileText className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setPreviewMode('spread')}
-              className={`p-1.5 rounded-md transition-all ${previewMode === 'spread' ? 'bg-white/[0.1] text-white/80' : 'text-white/30 hover:text-white/50'}`}
-              title="Spread View"
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-            </button>
-          </div>
+      {/* ─── Main Content ─── */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar - Issues */}
+        {showLeftSidebar && validationReports.length > 0 && (
+          <IssuePanel
+            reports={validationReports}
+            pageIssues={pageIssues}
+            onGoToPage={goToPage}
+            kdpFormat={kdpFormat}
+          />
+        )}
 
-          <div className="w-px h-4 bg-white/[0.06]" />
-
-          {/* Navigation */}
-          <button onClick={goPrev} disabled={!canGoPrev} className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
-          <div className="flex items-center gap-1.5 min-w-[100px] justify-center">
-            <span className="text-xs text-white/60 font-medium tabular-nums">{spreadInfo}</span>
-            <span className="text-[10px] text-white/25">of {totalPages}</span>
-          </div>
-
-          <button onClick={goNext} disabled={!canGoNext} className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-            <ChevronRight className="w-4 h-4" />
-          </button>
-
-          {/* Page jump */}
-          <div className="hidden sm:flex items-center gap-1">
-            <input
-              type="number"
-              min={1}
-              max={totalPages}
-              value={pageJumpInput}
-              onChange={(e) => setPageJumpInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handlePageJump()}
-              placeholder="Go"
-              className="w-10 h-6 text-[10px] text-center bg-white/[0.04] border border-white/[0.08] rounded-md text-white/60 placeholder:text-white/20 focus:outline-none focus:border-sky-400/30"
-            />
-          </div>
-        </div>
-
-        {/* Right: Zoom + Overlay + Kindle + Actions */}
-        <div className="flex items-center gap-2">
-          {/* Zoom controls */}
-          <div className="flex items-center gap-0.5">
-            <button onClick={zoomOut} className="p-1 rounded text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-all" title="Zoom Out">
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <span className="text-[10px] text-white/40 tabular-nums w-10 text-center">{Math.round(zoom * 100)}%</span>
-            <button onClick={zoomIn} className="p-1 rounded text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-all" title="Zoom In">
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={zoomFit} className="p-1 rounded text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-all" title="Fit to View">
-              <Maximize2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="w-px h-4 bg-white/[0.06]" />
-
-          {/* Overlay toggles */}
-          <div className="hidden md:flex items-center gap-0.5">
-            {availableOverlays.map(({ type, label, icon: Icon }) => (
-              <button
-                key={type}
-                onClick={() => toggleOverlay(type)}
-                className={`p-1 rounded text-[10px] flex items-center gap-0.5 transition-all ${
-                  activeOverlays.includes(type) ? 'bg-white/[0.1] text-white/70' : 'text-white/25 hover:text-white/50'
-                }`}
-                title={label}
-              >
-                <Icon className="w-3 h-3" />
-                <span className="hidden lg:inline">{label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Mobile overlay toggle */}
-          <div className="md:hidden">
-            <button
-              onClick={() => {
-                // Toggle most common overlay
-                if (activeOverlays.length > 0) {
-                  activeOverlays.forEach(o => toggleOverlay(o));
-                } else {
-                  toggleOverlay('safe');
-                }
-              }}
-              className={`p-1.5 rounded-lg transition-all ${activeOverlays.length > 0 ? 'bg-white/[0.1] text-white/70' : 'text-white/30 hover:text-white/50'}`}
-              title="Toggle Overlays"
-            >
-              <Layers className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Kindle dark mode toggle */}
-          {kdpFormat === 'kindle' && (
-            <>
-              <div className="w-px h-4 bg-white/[0.06]" />
-              <button
-                onClick={() => setKindleDarkMode(!kindleDarkMode)}
-                className={`p-1.5 rounded-lg transition-all ${kindleDarkMode ? 'bg-amber-500/20 text-amber-400' : 'text-white/30 hover:text-white/50'}`}
-                title="Kindle Dark Mode"
-              >
-                <Moon className="w-3.5 h-3.5" />
-              </button>
-            </>
-          )}
-
-          <div className="w-px h-4 bg-white/[0.06]" />
-
-          {/* Issue panel toggle */}
-          <button
-            onClick={() => setIssuePanelCollapsed(!issuePanelCollapsed)}
-            className={`p-1.5 rounded-lg transition-all ${!issuePanelCollapsed ? 'bg-white/[0.1] text-white/70' : 'text-white/30 hover:text-white/50'}`}
-            title="Toggle Issues"
-          >
-            <Shield className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* ═══ Main Content Area ═══ */}
-      <div className="flex-1 flex min-h-0 relative">
-        {/* Left: Issue Panel */}
-        <AnimatePresence mode="wait">
-          {!issuePanelCollapsed && (
-            <IssuePanel
-              reports={validationReports}
-              pageIssues={pageIssues}
-              onGoToPage={goToPage}
-              collapsed={issuePanelCollapsed}
-              onToggleCollapse={() => setIssuePanelCollapsed(true)}
-              kdpFormat={kdpFormat}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Center: Preview Canvas */}
+        {/* Center - Preview Canvas */}
         <div
           ref={previewContainerRef}
-          className="flex-1 min-w-0 overflow-auto flex items-center justify-center relative"
+          className="flex-1 flex items-center justify-center overflow-auto relative"
           style={{
-            background: kindleDarkMode
-              ? 'radial-gradient(ellipse at center, #1a1a1a 0%, #0d0d0d 100%)'
-              : 'radial-gradient(ellipse at center, rgba(30,30,40,0.6) 0%, rgba(10,10,15,0.9) 100%)',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(255,255,255,0.1) transparent',
+            cursor: isPanning ? 'grabbing' : zoom > 1 ? 'grab' : 'default',
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
         >
-          <motion.div
-            className="flex items-center gap-3"
+          <div
             style={{
               transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
-              cursor: zoom > 1.2 ? (isPanning ? 'grabbing' : 'grab') : 'default',
+              transition: isPanning ? 'none' : 'transform 0.15s ease-out',
             }}
-            animate={{ opacity: 1 }}
-            key={`${currentPreviewPage}-${previewMode}`}
-            initial={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.2 }}
           >
-            {/* Left page (or single page) */}
-            <PageRenderer
-              dataUrl={currentPageData.left?.dataUrl}
-              width={pageDisplayW}
-              height={pageDisplayH}
-              pageNumber={currentPreviewPage}
-              measurements={measurements}
-              activeOverlays={activeOverlays}
-              isLeftPage={previewMode === 'spread'}
-              kdpFormat={kdpFormat}
-              isSelected
-              pageAnalysis={currentPageAnalysis}
-            />
-
-            {/* Right page in spread mode */}
-            {previewMode === 'spread' && currentPageData.right && (
-              <>
-                {/* Gutter simulation */}
-                <div
-                  className="shrink-0 rounded-sm"
-                  style={{
-                    width: Math.max(2, measurements.spineWidthIn * zoom * 72 * 0.3),
-                    height: pageDisplayH,
-                    background: 'linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.3) 100%)',
-                    boxShadow: '2px 0 8px rgba(0,0,0,0.3), -2px 0 8px rgba(0,0,0,0.3)',
-                  }}
-                />
-                <PageRenderer
-                  dataUrl={currentPageData.right.dataUrl}
-                  width={pageDisplayW}
-                  height={pageDisplayH}
-                  pageNumber={currentPreviewPage + 1}
-                  measurements={measurements}
-                  activeOverlays={activeOverlays}
-                  isLeftPage={false}
-                  kdpFormat={kdpFormat}
-                  isSelected
-                  pageAnalysis={pageAnalyses.get(currentPreviewPage + 1) || null}
-                />
-              </>
-            )}
-          </motion.div>
-
-          {/* Empty state overlay */}
-          {pages.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <FileText className="w-12 h-12 text-white/10 mx-auto mb-3" />
-                <p className="text-white/30 text-sm">No manuscript uploaded</p>
-                <p className="text-white/15 text-xs mt-1">Upload a PDF in the Import step to preview pages</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Sidebar: Metadata + Thumbnails */}
-        <div className="w-[180px] shrink-0 flex flex-col gap-2 p-2">
-          {/* Page Metadata */}
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-2xl overflow-hidden">
-            <PageMetadataPanel
-              pageAnalysis={currentPageAnalysis}
-              measurements={measurements}
-              pageNumber={currentPreviewPage}
-              totalPages={totalPages}
-              kdpFormat={kdpFormat}
-              previewMode={previewMode}
-            />
-          </div>
-
-          {/* Thumbnail Navigator */}
-          <div className="flex-1 min-h-0">
-            <ThumbnailNavigator
-              pages={pages}
-              currentPage={currentPreviewPage}
-              previewMode={previewMode}
-              onPageClick={goToPage}
-              pageIssues={pageIssues}
-              pageAnalyses={pageAnalyses}
-            />
+            {renderPreview()}
           </div>
         </div>
+
+        {/* Right Sidebar - Thumbnails */}
+        {showRightSidebar && pages.length > 0 && (
+          <ThumbnailNavigator
+            pages={pages}
+            currentPage={currentPreviewPage}
+            previewMode={previewMode}
+            onPageClick={goToPage}
+            pageIssues={pageIssues}
+            pageAnalyses={pageAnalyses}
+          />
+        )}
       </div>
 
-      {/* ═══ Bottom Action Bar ═══ */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-2 border-t border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          {/* Navigation dots / progress */}
-          <div className="hidden md:flex items-center gap-0.5">
-            {pages.length > 0 && (
-              <div className="flex items-center gap-1">
-                <div className="w-24 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-sky-400/40 rounded-full transition-all duration-300"
-                    style={{ width: `${(currentPreviewPage / totalPages) * 100}%` }}
-                  />
-                </div>
-                <span className="text-[9px] text-white/25 tabular-nums">{Math.round((currentPreviewPage / totalPages) * 100)}%</span>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* ─── Bottom Metadata Bar ─── */}
+      <PageMetadataBar
+        pageAnalysis={currentPageAnalysis}
+        measurements={measurements}
+        pageNumber={currentPreviewPage}
+        totalPages={totalPages}
+        kdpFormat={kdpFormat}
+        previewMode={previewMode}
+        pageIssues={pageIssues}
+      />
 
-        {/* Quick reading flow navigation */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => goToPage(1)}
-            disabled={currentPreviewPage === 1}
-            className="text-[9px] text-white/25 hover:text-white/50 disabled:opacity-30 px-2 py-1 rounded transition-colors"
-          >
-            First
-          </button>
-          <button onClick={goPrev} disabled={!canGoPrev} className="p-1 rounded text-white/30 hover:text-white/60 disabled:opacity-30 transition-all">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <span className="text-[10px] text-white/40 font-medium tabular-nums min-w-[60px] text-center">
-            {currentPreviewPage} / {totalPages}
-          </span>
-          <button onClick={goNext} disabled={!canGoNext} className="p-1 rounded text-white/30 hover:text-white/60 disabled:opacity-30 transition-all">
-            <ChevronRight className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => goToPage(totalPages)}
-            disabled={currentPreviewPage === totalPages}
-            className="text-[9px] text-white/25 hover:text-white/50 disabled:opacity-30 px-2 py-1 rounded transition-colors"
-          >
-            Last
-          </button>
-        </div>
-
-        {/* Final Actions */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => setCheckerStep('config')}
-            className="flex items-center gap-1 text-[10px] text-white/30 hover:text-white/60 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span className="hidden sm:inline">Config</span>
-          </button>
-          <button
-            onClick={() => setView('preview')}
-            className="flex items-center gap-1 text-[10px] text-white/30 hover:text-white/60 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all"
-          >
-            <Box className="w-3 h-3" />
-            <span className="hidden sm:inline">3D Preview</span>
-          </button>
-          <button
-            className="flex items-center gap-1 text-[10px] text-white/50 hover:text-white/80 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] transition-all"
-          >
-            <FileCheck className="w-3 h-3" />
-            <span className="hidden sm:inline">Export Report</span>
-          </button>
-        </div>
-      </div>
+      {/* ─── Bottom Navigation ─── */}
+      <NavigationBar
+        currentPage={currentPreviewPage}
+        totalPages={totalPages}
+        onPrev={goToPrevPage}
+        onNext={goToNextPage}
+        onJump={goToPage}
+        onFirst={() => goToPage(1)}
+        onLast={() => goToPage(totalPages)}
+        previewMode={previewMode}
+      />
     </div>
   );
 }

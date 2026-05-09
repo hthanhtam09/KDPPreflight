@@ -61,3 +61,48 @@ Stage Summary:
 - Issue navigation: click issue → jump to page
 - Format-aware overlays and validation
 - Lint clean, dev server responding 200
+
+---
+Task ID: 10
+Agent: Main Orchestrator
+Task: Critical Preview Update — Full Manuscript Interior Preview Support
+
+Work Log:
+- Upgraded `/home/z/my-project/src/engine/pdf-processor.ts` with:
+  - New `initPDFDocument()` for lazy page-by-page rendering (no longer requires rendering all 50 pages upfront)
+  - New `renderPage()` for single page rendering with quality settings (low/medium/high/ultra) and LRU caching
+  - New `renderPagesBatch()` for batch rendering with progress callback
+  - New `prefetchPages()` for pre-rendering adjacent pages around current page
+  - New `PageCache` class (LRU cache with TTL) for rendered page texture caching
+  - New `PageContentAnalysis` interface and `analyzePageContent()` for real page content analysis
+  - New `cleanupPDFDocument()` for memory management
+  - Backward compatible `loadPDF()` preserved for legacy usage
+- Completely rewrote `/home/z/my-project/src/components/checker/PreviewStep.tsx` with professional publishing review environment:
+  - **PreviewToolbar**: Top bar with view mode toggle (Single/Spread), overlay toggles (format-aware), zoom controls, Kindle-specific controls (dark mode toggle, font scaling slider), sidebar toggles
+  - **IssuePanel (Left Sidebar)**: Toggleable validation panel with grouped issues, click-to-navigate, summary counts, smart suggestions
+  - **PageRenderer**: Enhanced with kindleDarkMode support, overlay rendering, content type badges, margin safety indicators
+  - **EmptyPreviewState**: Professional empty state with BookOpen icon and reassuring messaging
+  - **ThumbnailNavigator (Right Sidebar)**: Toggleable, auto-scrolling, single/spread mode thumbnails with issue badges, blank page indicators, content type mini-badges
+  - **PageMetadataBar (Bottom)**: Page info, content type, dimensions, margin safety status, issue count, bleed info
+  - **NavigationBar**: First/Prev/Jump/Next/Last with page jump input, keyboard arrow navigation, Ctrl+scroll zoom
+  - **Spread View**: Proper book-like spread with gutter shadow effects, blank left page for page 1 (cover), left/right page alignment
+  - **Single View**: Full page display with zoom and pan support
+  - **Kindle Support**: Dark mode simulation (CSS invert), font scaling slider
+  - **Performance**: useCallback for navigation, useMemo for analyses, lazy thumbnail loading, LRU caching in PDF processor
+  - **Keyboard Navigation**: Arrow keys for prev/next, Home/End for first/last, Ctrl+/-/0 for zoom
+  - **Mouse Navigation**: Ctrl+scroll for zoom, click-drag for pan at high zoom
+- Fixed lint errors: Moved setZoom wrapper before effects, removed unused imports, fixed ref access during render
+- All source files pass lint cleanly (only warnings in pdf.worker.min.mjs which is third-party)
+
+Stage Summary:
+- Full manuscript interior preview (not just cover) — users can now navigate every page
+- Professional 3-panel layout: Issues (left) | Canvas (center) | Thumbnails (right)
+- Toggleable sidebars for maximum canvas space
+- Single Page + Spread View modes with realistic gutter simulation
+- Enhanced PDF processor with lazy rendering, LRU caching, high-DPI support
+- Kindle-specific features: dark mode simulation, font scaling
+- Complete navigation: keyboard, mouse, thumbnails, page jump, issue click
+- Smart overlays: bleed, trim, safe area, gutter, crop risk, spine, hinge
+- Page analysis with content type detection and margin safety indicators
+- Professional empty states with reassuring messaging
+- Dev server running, all lint checks pass
