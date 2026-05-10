@@ -1,27 +1,164 @@
 import { BookConfig, CalculatedMeasurements, ValidationCheck, CheckStatus, PageIssue, PageIssueExtended, ValidationSummary, IssueCategory } from '@/types/kdp';
-import { DIMENSION_TOLERANCE_IN, SPINE_TOLERANCE_IN, MIN_COVER_DPI, SAFE_AREA_IN, BARCODE_AREA } from './kdp-constants';
+import { DIMENSION_TOLERANCE_IN, SPINE_TOLERANCE_IN, MIN_COVER_DPI, SAFE_AREA_IN, BARCODE_AREA, BLEED_SIZE_IN } from './kdp-constants';
 
-// Determine check status based on deviation from expected value
+// ---------------------------------------------------------------------------
+// KDP-Realistic Dimension Tolerances
+// ---------------------------------------------------------------------------
+
+/** ±0.02" — Within KDP accepted variance */
+const TOLERANCE_OK_IN = 0.02;
+
+/** 0.02"–0.05" — Possible export rounding, usually accepted but improvement recommended */
+const TOLERANCE_WARNING_IN = 0.05;
+
+/** >0.05" — Wrong export settings or incorrect trim setup, likely rejection */
+// Anything above TOLERANCE_WARNING_IN is critical
+
+// ---------------------------------------------------------------------------
+// Evaluate a dimension against expected value with KDP-realistic tolerances
+// ---------------------------------------------------------------------------
+
+interface DimensionEval {
+  status: CheckStatus;
+  message: string;
+  diffIn: number;
+}
+
 function evaluateDimension(
   actual: number,
   expected: number,
-  tolerance: number = DIMENSION_TOLERANCE_IN
-): { status: CheckStatus; message: string } {
+): DimensionEval {
   const diff = Math.abs(actual - expected);
-  const pctDiff = expected > 0 ? (diff / expected) * 100 : 0;
+  const direction = actual < expected ? 'small' : 'large';
 
-  if (diff <= tolerance * 0.5) {
-    return { status: 'pass', message: `Exactly matches KDP specification (${actual.toFixed(3)}" vs ${expected.toFixed(3)}").` };
-  } else if (diff <= tolerance) {
-    return { status: 'safe', message: `Within acceptable KDP tolerance (±${(tolerance * 1000).toFixed(0)} mils).` };
-  } else if (pctDiff < 2) {
-    return { status: 'warning', message: `Slightly outside KDP specification but commonly accepted in practice.` };
-  } else if (pctDiff < 5) {
-    return { status: 'risk', message: `Notably different from KDP specification. May cause issues during upload.` };
+  if (diff <= TOLERANCE_OK_IN) {
+    return {
+      status: diff <= TOLERANCE_OK_IN * 0.5 ? 'pass' : 'safe',
+      message: diff <= TOLERANCE_OK_IN * 0.5
+        ? `Exactly matches KDP specification.`
+        : `Within acceptable KDP tolerance (±${TOLERANCE_OK_IN.toFixed(2)}").`,
+      diffIn: diff,
+    };
+  } else if (diff <= TOLERANCE_WARNING_IN) {
+    return {
+      status: 'warning',
+      message: `Slightly outside KDP specification — ${direction === 'small' ? 'smaller' : 'larger'} than expected by ${diff.toFixed(3)}". This may be due to export rounding and is usually accepted.`,
+      diffIn: diff,
+    };
   } else {
-    return { status: 'fail', message: `Significantly outside KDP specification. Will likely be rejected by KDP.` };
+    // >0.05" — Critical
+    const severity: CheckStatus = diff > 0.5 ? 'fail' : 'risk';
+    return {
+      status: severity,
+      message: `Significantly ${direction === 'small' ? 'smaller' : 'larger'} than KDP specification by ${diff.toFixed(3)}". ${severity === 'fail' ? 'Will likely be rejected by KDP.' : 'May cause issues during upload.'}`,
+      diffIn: diff,
+    };
   }
 }
+
+// ---------------------------------------------------------------------------
+// Compute expected manuscript dimensions (bleed-aware)
+// ---------------------------------------------------------------------------
+
+/**
+ * When bleed is enabled, the manuscript PDF should include bleed area.
+ * Expected page size = trim + (bleedIn * 2) for both width and height.
+ * When bleed is disabled, expected page size = trim exactly.
+ */
+function getExpectedManuscriptDimensions(
+  config: BookConfig,
+  measurements: CalculatedMeasurements,
+): { widthIn: number; heightIn: number; includesBleed: boolean } {
+  const hasBleed = config.bleed === 'bleed';
+  const bleedAdd = hasBleed ? measurements.bleedIn * 2 : 0;
+
+  return {
+    widthIn: measurements.trimWidthIn + bleedAdd,
+    heightIn: measurements.trimHeightIn + bleedAdd,
+    includesBleed: hasBleed,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Smart Export Detection Heuristics
+// ---------------------------------------------------------------------------
+
+interface ExportDiagnosis {
+  /** What likely went wrong during export */
+  likelyCause: string;
+  /** How to fix it */
+  fixHint: string;
+}
+
+/**
+ * Detect common export mistakes by comparing actual vs expected dimensions.
+ */
+function diagnoseExportIssue(
+  actualW: number,
+  actualH: number,
+  expectedW: number,
+  expectedH: number,
+  hasBleed: boolean,
+  trimW: number,
+  trimH: number,
+): ExportDiagnosis | null {
+  // Heuristic: PDF is exactly trim size but bleed is enabled → exported without bleed
+  if (hasBleed) {
+    const matchesTrimExactly =
+      Math.abs(actualW - trimW) < TOLERANCE_OK_IN &&
+      Math.abs(actualH - trimH) < TOLERANCE_OK_IN;
+
+    if (matchesTrimExactly) {
+      return {
+        likelyCause: 'This PDF appears to be exported WITHOUT bleed enabled, but your KDP configuration requires bleed.',
+        fixHint: `Re-export your manuscript with bleed enabled. The page size should be ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}" (trim ${trimW}" × ${trimH}" plus 0.125" bleed on each side). In Canva, enable "Show print bleed" before exporting. In InDesign, include bleed in the export settings.`,
+      };
+    }
+
+    // Heuristic: Width is close to trim + one-side bleed only (0.125" instead of 0.25")
+    const oneSideBleedW = trimW + BLEED_SIZE_IN;
+    const oneSideBleedH = trimH + BLEED_SIZE_IN;
+    const matchesOneSideBleed =
+      Math.abs(actualW - oneSideBleedW) < TOLERANCE_OK_IN ||
+      Math.abs(actualH - oneSideBleedH) < TOLERANCE_OK_IN;
+
+    if (matchesOneSideBleed) {
+      return {
+        likelyCause: 'This PDF appears to include bleed on only one side instead of all sides.',
+        fixHint: `Ensure bleed is added symmetrically on ALL sides (0.125" on each edge). Expected size: ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}".`,
+      };
+    }
+  }
+
+  // Heuristic: PDF matches a common KDP trim size that isn't the selected one
+  // (e.g., user exported at 6×9 but selected 8.5×11)
+  const commonSizes = [
+    { w: 6, h: 9, label: '6" × 9"' },
+    { w: 8.5, h: 11, label: '8.5" × 11"' },
+    { w: 8, h: 10, label: '8" × 10"' },
+    { w: 5.5, h: 8.5, label: '5.5" × 8.5"' },
+    { w: 7, h: 10, label: '7" × 10"' },
+  ];
+
+  for (const size of commonSizes) {
+    if (
+      Math.abs(actualW - size.w) < TOLERANCE_OK_IN &&
+      Math.abs(actualH - size.h) < TOLERANCE_OK_IN &&
+      (Math.abs(trimW - size.w) > TOLERANCE_OK_IN || Math.abs(trimH - size.h) > TOLERANCE_OK_IN)
+    ) {
+      return {
+        likelyCause: `This PDF matches the ${size.label} trim size, but your selected trim size is ${trimW}" × ${trimH}". The document was likely created for a different book format.`,
+        fixHint: `Either re-export the document at ${trimW}" × ${trimH}"${hasBleed ? ` (with bleed: ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}")` : ''}, or change the trim size setting to match your document.`,
+      };
+    }
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Cover Validation
+// ---------------------------------------------------------------------------
 
 export interface PDFAnalysisResult {
   widthIn: number;
@@ -46,16 +183,16 @@ export function validateCover(
 
   // 1. Cover Width Check
   const expectedWidth = measurements.fullCoverWidthIn;
-  const widthResult = evaluateDimension(analysis.widthIn, expectedWidth);
+  const widthEval = evaluateDimension(analysis.widthIn, expectedWidth);
   checks.push({
     id: 'cover-width',
     category: 'cover',
     name: 'Cover Width',
     description: `Full cover width (including spine, bleed, and wrap)`,
-    status: widthResult.status,
-    message: `Cover width is ${analysis.widthIn.toFixed(3)}", expected ${expectedWidth.toFixed(3)}". ${widthResult.message}`,
-    suggestion: widthResult.status === 'fail' || widthResult.status === 'risk' 
-      ? `Adjust your cover width to ${expectedWidth.toFixed(3)}" (including ${measurements.spineWidthIn.toFixed(3)}" spine + ${measurements.bleedIn}" bleed on each side).`
+    status: widthEval.status,
+    message: `Cover width is ${analysis.widthIn.toFixed(3)}", expected ${expectedWidth.toFixed(3)}". ${widthEval.message}`,
+    suggestion: widthEval.status === 'fail' || widthEval.status === 'risk'
+      ? `Adjust your cover width to ${expectedWidth.toFixed(3)}" for ${config.trimSize === 'custom' ? `${config.customWidth}" × ${config.customHeight}"` : config.trimSize.replace('x', '" × ')}" with ${measurements.spineWidthIn.toFixed(3)}" spine. This includes: front (${measurements.trimWidthIn}") + spine (${measurements.spineWidthIn.toFixed(3)}") + back (${measurements.trimWidthIn}") + bleed + wrap.`
       : undefined,
     value: analysis.widthIn,
     expected: expectedWidth,
@@ -63,16 +200,16 @@ export function validateCover(
 
   // 2. Cover Height Check
   const expectedHeight = measurements.fullCoverHeightIn;
-  const heightResult = evaluateDimension(analysis.heightIn, expectedHeight);
+  const heightEval = evaluateDimension(analysis.heightIn, expectedHeight);
   checks.push({
     id: 'cover-height',
     category: 'cover',
     name: 'Cover Height',
     description: `Full cover height (including bleed and wrap)`,
-    status: heightResult.status,
-    message: `Cover height is ${analysis.heightIn.toFixed(3)}", expected ${expectedHeight.toFixed(3)}". ${heightResult.message}`,
-    suggestion: heightResult.status === 'fail' || heightResult.status === 'risk'
-      ? `Adjust your cover height to ${expectedHeight.toFixed(3)}".`
+    status: heightEval.status,
+    message: `Cover height is ${analysis.heightIn.toFixed(3)}", expected ${expectedHeight.toFixed(3)}". ${heightEval.message}`,
+    suggestion: heightEval.status === 'fail' || heightEval.status === 'risk'
+      ? `Adjust your cover height to ${expectedHeight.toFixed(3)}" for ${config.trimSize === 'custom' ? `${config.customWidth}" × ${config.customHeight}"` : config.trimSize.replace('x', '" × ')}" with ${config.bleed === 'bleed' ? 'bleed enabled' : 'no bleed'}.`
       : undefined,
     value: analysis.heightIn,
     expected: expectedHeight,
@@ -80,18 +217,17 @@ export function validateCover(
 
   // 3. Spine Width Check
   const expectedSpine = measurements.spineWidthIn;
-  // For a full cover, spine = total width - 2*trim - 2*bleed - 2*wrap
   const actualSpine = analysis.widthIn - (2 * measurements.trimWidthIn) - (2 * measurements.bleedIn) - (2 * measurements.wrapAroundIn);
-  const spineResult = evaluateDimension(actualSpine, expectedSpine, SPINE_TOLERANCE_IN);
+  const spineEval = evaluateDimension(actualSpine, expectedSpine);
   checks.push({
     id: 'spine-width',
     category: 'cover',
     name: 'Spine Width',
     description: `Calculated spine width based on page count and paper type`,
-    status: spineResult.status,
-    message: `Calculated spine width is ${actualSpine.toFixed(3)}", expected ${expectedSpine.toFixed(3)}". ${spineResult.message}`,
-    suggestion: spineResult.status !== 'pass' && spineResult.status !== 'safe'
-      ? `For ${config.pageCount} pages on ${config.paper} paper, spine should be approximately ${expectedSpine.toFixed(3)}".`
+    status: spineEval.status,
+    message: `Calculated spine width is ${actualSpine.toFixed(3)}", expected ${expectedSpine.toFixed(3)}" for ${config.pageCount} pages on ${config.paper} paper. ${spineEval.message}`,
+    suggestion: spineEval.status !== 'pass' && spineEval.status !== 'safe'
+      ? `For ${config.pageCount} pages on ${config.paper} paper, spine should be approximately ${expectedSpine.toFixed(3)}". Update your page count setting if needed.`
       : undefined,
     value: actualSpine,
     expected: expectedSpine,
@@ -105,7 +241,7 @@ export function validateCover(
     name: 'Bleed Area',
     description: 'Bleed area extends artwork beyond trim line',
     status: hasBleed ? (analysis.hasBleed ? 'pass' : 'warning') : (analysis.hasBleed ? 'warning' : 'pass'),
-    message: hasBleed 
+    message: hasBleed
       ? (analysis.hasBleed ? 'Bleed area detected on cover.' : 'Bleed is enabled but no bleed area detected. Ensure artwork extends 0.125" beyond trim.')
       : (analysis.hasBleed ? 'No bleed selected but bleed area detected. This is fine if intentional.' : 'No bleed required, and none detected.'),
     suggestion: hasBleed && !analysis.hasBleed ? 'Add 0.125" bleed on each side of your cover.' : undefined,
@@ -166,6 +302,10 @@ export function validateCover(
   return checks;
 }
 
+// ---------------------------------------------------------------------------
+// Manuscript Validation
+// ---------------------------------------------------------------------------
+
 export function validateManuscript(
   analysis: PDFAnalysisResult,
   config: BookConfig,
@@ -173,41 +313,72 @@ export function validateManuscript(
 ): ValidationCheck[] {
   const checks: ValidationCheck[] = [];
 
-  // 1. Trim Size Check
-  const expectedWidth = measurements.trimWidthIn;
-  const expectedHeight = measurements.trimHeightIn;
-  const widthResult = evaluateDimension(analysis.widthIn, expectedWidth);
-  const heightResult = evaluateDimension(analysis.heightIn, expectedHeight);
-  
+  // Calculate expected manuscript dimensions (bleed-aware!)
+  const expected = getExpectedManuscriptDimensions(config, measurements);
+
+  // 1. Trim Size Check (bleed-aware)
+  const widthEval = evaluateDimension(analysis.widthIn, expected.widthIn);
+  const heightEval = evaluateDimension(analysis.heightIn, expected.heightIn);
+
+  const trimLabel = config.trimSize === 'custom'
+    ? `${config.customWidth}" × ${config.customHeight}"`
+    : config.trimSize.replace('x', '" × ') + '"';
+
   checks.push({
     id: 'manuscript-trim-width',
     category: 'manuscript',
     name: 'Page Width',
-    description: 'Manuscript page width must match selected trim size',
-    status: widthResult.status,
-    message: `Manuscript width is ${analysis.widthIn.toFixed(3)}", expected ${expectedWidth.toFixed(3)}". ${widthResult.message}`,
-    suggestion: widthResult.status === 'fail' || widthResult.status === 'risk'
-      ? `Set your document page size to ${expectedWidth.toFixed(3)}" × ${expectedHeight.toFixed(3)}".`
+    description: `Manuscript page width must match selected trim size${expected.includesBleed ? ' plus bleed' : ''}`,
+    status: widthEval.status,
+    message: `Manuscript width is ${analysis.widthIn.toFixed(3)}", expected ${expected.widthIn.toFixed(3)}"${expected.includesBleed ? ` (trim ${measurements.trimWidthIn}" + ${measurements.bleedIn}" bleed × 2)` : ''}. ${widthEval.message}`,
+    suggestion: widthEval.status === 'fail' || widthEval.status === 'risk'
+      ? expected.includesBleed
+        ? `Export your manuscript at ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" for ${trimLabel} books with bleed enabled. This is the trim size (${measurements.trimWidthIn}" × ${measurements.trimHeightIn}") plus 0.125" bleed on each side.`
+        : `Set your document page size to ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" to match the KDP ${trimLabel} trim size.`
       : undefined,
     value: analysis.widthIn,
-    expected: expectedWidth,
+    expected: expected.widthIn,
   });
 
   checks.push({
     id: 'manuscript-trim-height',
     category: 'manuscript',
     name: 'Page Height',
-    description: 'Manuscript page height must match selected trim size',
-    status: heightResult.status,
-    message: `Manuscript height is ${analysis.heightIn.toFixed(3)}", expected ${expectedHeight.toFixed(3)}". ${heightResult.message}`,
-    suggestion: heightResult.status === 'fail' || heightResult.status === 'risk'
-      ? `Set your document page size to ${expectedWidth.toFixed(3)}" × ${expectedHeight.toFixed(3)}".`
+    description: `Manuscript page height must match selected trim size${expected.includesBleed ? ' plus bleed' : ''}`,
+    status: heightEval.status,
+    message: `Manuscript height is ${analysis.heightIn.toFixed(3)}", expected ${expected.heightIn.toFixed(3)}"${expected.includesBleed ? ` (trim ${measurements.trimHeightIn}" + ${measurements.bleedIn}" bleed × 2)` : ''}. ${heightEval.message}`,
+    suggestion: heightEval.status === 'fail' || heightEval.status === 'risk'
+      ? expected.includesBleed
+        ? `Export your manuscript at ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" for ${trimLabel} books with bleed enabled.`
+        : `Set your document page size to ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" to match the KDP ${trimLabel} trim size.`
       : undefined,
     value: analysis.heightIn,
-    expected: expectedHeight,
+    expected: expected.heightIn,
   });
 
-  // 2. Page Count Check
+  // 2. Smart Export Detection
+  const diagnosis = diagnoseExportIssue(
+    analysis.widthIn,
+    analysis.heightIn,
+    expected.widthIn,
+    expected.heightIn,
+    expected.includesBleed,
+    measurements.trimWidthIn,
+    measurements.trimHeightIn,
+  );
+  if (diagnosis && (widthEval.status !== 'pass' || heightEval.status !== 'pass')) {
+    checks.push({
+      id: 'manuscript-export-diagnosis',
+      category: 'manuscript',
+      name: 'Export Settings',
+      description: 'Smart analysis of detected vs expected dimensions',
+      status: widthEval.status === 'fail' || heightEval.status === 'fail' ? 'risk' : 'warning',
+      message: diagnosis.likelyCause,
+      suggestion: diagnosis.fixHint,
+    });
+  }
+
+  // 3. Page Count Check
   if (config.pageCount !== analysis.pageCount) {
     const diff = Math.abs(config.pageCount - analysis.pageCount);
     const status: CheckStatus = diff <= 2 ? 'safe' : diff <= 10 ? 'warning' : 'risk';
@@ -224,7 +395,7 @@ export function validateManuscript(
     });
   }
 
-  // 3. Bleed Consistency Check
+  // 4. Bleed Consistency Check
   const hasBleed = config.bleed === 'bleed';
   if (hasBleed && !analysis.hasBleed) {
     checks.push({
@@ -234,11 +405,11 @@ export function validateManuscript(
       description: 'Manuscript should have bleed when bleed is enabled',
       status: 'warning',
       message: 'Bleed is enabled but manuscript pages do not appear to include bleed area.',
-      suggestion: 'Add 0.125" bleed to each edge of your manuscript pages.',
+      suggestion: `Add 0.125" bleed to each edge of your manuscript pages. Expected page size with bleed: ${(measurements.trimWidthIn + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(measurements.trimHeightIn + BLEED_SIZE_IN * 2).toFixed(3)}".`,
     });
   }
 
-  // 4. Margin Safety Check
+  // 5. Margin Safety Check
   checks.push({
     id: 'manuscript-margins',
     category: 'manuscript',
@@ -249,7 +420,7 @@ export function validateManuscript(
     suggestion: 'Keep text and important images at least 0.25" from all page edges.',
   });
 
-  // 5. Blank Pages Check
+  // 6. Blank Pages Check
   if (analysis.blankPages.length > 0) {
     const ratio = analysis.blankPages.length / analysis.pageCount;
     const status: CheckStatus = ratio < 0.05 ? 'safe' : ratio < 0.15 ? 'warning' : 'risk';
@@ -265,7 +436,7 @@ export function validateManuscript(
     });
   }
 
-  // 6. Page Size Consistency
+  // 7. Page Size Consistency
   const uniqueWidths = new Set(analysis.pageWidths.map(w => Math.round(w * 100)));
   const uniqueHeights = new Set(analysis.pageHeights.map(h => Math.round(h * 100)));
   if (uniqueWidths.size > 1 || uniqueHeights.size > 1) {
@@ -280,7 +451,7 @@ export function validateManuscript(
     });
   }
 
-  // 7. Resolution Check
+  // 8. Resolution Check
   const lowResPages = analysis.imageResolutions.filter(r => r.dpi < MIN_COVER_DPI);
   if (lowResPages.length > 0) {
     const status: CheckStatus = lowResPages.length <= 2 ? 'warning' : 'risk';
@@ -298,26 +469,25 @@ export function validateManuscript(
   return checks;
 }
 
-// Simulate PDF analysis (since real PDF analysis would need pdf.js on client)
+// ---------------------------------------------------------------------------
+// Simulate PDF analysis
+// ---------------------------------------------------------------------------
+
 export function analyzePDFDimensions(
   widthPx: number,
   heightPx: number,
   pageCount: number,
   fileName: string
 ): PDFAnalysisResult {
-  // Estimate DPI from file dimensions - use 300 DPI as baseline for calculation
   const estimatedDPI = 300;
   const widthIn = widthPx / estimatedDPI;
   const heightIn = heightPx / estimatedDPI;
-  
-  // Detect bleed by checking if dimensions suggest extra space
-  const hasBleed = false; // Conservative default
-  
+
   return {
     widthIn,
     heightIn,
     pageCount,
-    hasBleed,
+    hasBleed: false,
     dpi: estimatedDPI,
     isGrayscale: false,
     hasTransparency: false,
@@ -328,7 +498,10 @@ export function analyzePDFDimensions(
   };
 }
 
-// Get overall status from checks
+// ---------------------------------------------------------------------------
+// Overall status from checks
+// ---------------------------------------------------------------------------
+
 export function getOverallStatus(checks: ValidationCheck[]): CheckStatus {
   const statusPriority: CheckStatus[] = ['fail', 'risk', 'warning', 'safe', 'pass'];
   for (const status of statusPriority) {
@@ -337,10 +510,14 @@ export function getOverallStatus(checks: ValidationCheck[]): CheckStatus {
   return 'pass';
 }
 
+// ---------------------------------------------------------------------------
+// Per-page issue analysis (bleed-aware, config-driven)
+// ---------------------------------------------------------------------------
+
 /**
  * Analyze pages and generate per-page issues for the preview UX.
- * This provides the data that shows issue markers on thumbnails and overlays.
- * Returns PageIssueExtended[] with actual/expected values, suggestion, category, and region info.
+ * ALWAYS uses active config + measurements as the source of truth.
+ * Bleed-aware: when bleed is enabled, expected dimensions = trim + bleed*2.
  */
 export function analyzePagesForIssues(
   pdfAnalysis: PDFAnalysisResult,
@@ -350,37 +527,62 @@ export function analyzePagesForIssues(
   const issues: PageIssueExtended[] = [];
   const { trimWidthIn, trimHeightIn, bleedIn, safeAreaIn, gutterIn } = measurements;
 
-  // Check each page for potential issues
+  // Calculate expected manuscript dimensions (bleed-aware)
+  const expected = getExpectedManuscriptDimensions(config, measurements);
+  const hasBleed = config.bleed === 'bleed';
+
+  // Trim size label for context-aware suggestions
+  const trimLabel = config.trimSize === 'custom'
+    ? `${config.customWidth}" × ${config.customHeight}"`
+    : config.trimSize.replace('x', '" × ') + '"';
+
   for (let i = 0; i < pdfAnalysis.pageCount; i++) {
     const pageNum = i + 1;
 
-    // 1. Page size mismatch — category: 'size', region: full page
-    const pageW = pdfAnalysis.pageWidths[i] ?? trimWidthIn;
-    const pageH = pdfAnalysis.pageHeights[i] ?? trimHeightIn;
-    const widthDiff = Math.abs(pageW - trimWidthIn);
-    const heightDiff = Math.abs(pageH - trimHeightIn);
+    // 1. Page size mismatch — BLEED-AWARE comparison
+    const pageW = pdfAnalysis.pageWidths[i] ?? expected.widthIn;
+    const pageH = pdfAnalysis.pageHeights[i] ?? expected.heightIn;
+    const widthDiff = Math.abs(pageW - expected.widthIn);
+    const heightDiff = Math.abs(pageH - expected.heightIn);
 
-    if (widthDiff > DIMENSION_TOLERANCE_IN || heightDiff > DIMENSION_TOLERANCE_IN) {
+    if (widthDiff > TOLERANCE_OK_IN || heightDiff > TOLERANCE_OK_IN) {
+      // Determine severity using KDP-realistic tolerances
+      const maxDiff = Math.max(widthDiff, heightDiff);
       const severity: CheckStatus =
-        widthDiff > DIMENSION_TOLERANCE_IN * 3 || heightDiff > DIMENSION_TOLERANCE_IN * 3
-          ? 'risk'
-          : 'warning';
+        maxDiff > TOLERANCE_WARNING_IN * 2 ? 'fail'
+        : maxDiff > TOLERANCE_WARNING_IN ? 'risk'
+        : 'warning';
+
+      // Smart export detection for this page
+      const diagnosis = diagnoseExportIssue(
+        pageW, pageH,
+        expected.widthIn, expected.heightIn,
+        hasBleed,
+        trimWidthIn, trimHeightIn,
+      );
+
+      const contextHint = hasBleed
+        ? ` for ${trimLabel} books with bleed enabled`
+        : ` for ${trimLabel} books`;
+
       issues.push({
         id: `page-${pageNum}-size`,
         page: pageNum,
         type: 'inconsistent-size',
         severity,
-        message: `Page ${pageNum} size (${pageW.toFixed(2)}" × ${pageH.toFixed(2)}") doesn't match trim size`,
-        description: `Expected ${trimWidthIn.toFixed(2)}" × ${trimHeightIn.toFixed(2)}"`,
+        message: `Page ${pageNum} size (${pageW.toFixed(3)}" × ${pageH.toFixed(3)}") doesn't match expected dimensions${contextHint}`,
+        description: `Expected ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"${hasBleed ? ` (trim ${trimWidthIn}" × ${trimHeightIn}" + 0.125" bleed each side)` : ''}`,
         category: 'size',
-        actual: `${pageW.toFixed(2)}" × ${pageH.toFixed(2)}"`,
-        expected: `${trimWidthIn.toFixed(2)}" × ${trimHeightIn.toFixed(2)}"`,
+        actual: `${pageW.toFixed(3)}" × ${pageH.toFixed(3)}"`,
+        expected: `${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"`,
         region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
-        suggestion: `Resize page ${pageNum} to ${trimWidthIn.toFixed(2)}" × ${trimHeightIn.toFixed(2)}" to match the KDP trim size for ${config.trimSize}.`,
+        suggestion: diagnosis
+          ? `${diagnosis.fixHint}`
+          : `Resize page ${pageNum} to ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"${contextHint}.`,
       });
     }
 
-    // 2. Blank page detection — category: 'interior'
+    // 2. Blank page detection
     if (pdfAnalysis.blankPages.includes(pageNum)) {
       const isFrontMatter = pageNum <= 2;
       issues.push({
@@ -404,12 +606,11 @@ export function analyzePagesForIssues(
       });
     }
 
-    // 3. Low resolution images — category: 'dpi', region: estimated image area
+    // 3. Low resolution images
     const lowRes = pdfAnalysis.imageResolutions.find(r => r.page === pageNum);
     if (lowRes && lowRes.dpi < MIN_COVER_DPI) {
       const severity: CheckStatus =
         lowRes.dpi < 150 ? 'fail' : lowRes.dpi < 200 ? 'risk' : 'warning';
-      // Estimate the image occupies the center 60% of the page
       const imgW = pageW * 0.6;
       const imgH = pageH * 0.6;
       const imgX = pageW * 0.2;
@@ -432,11 +633,10 @@ export function analyzePagesForIssues(
       });
     }
 
-    // 4. Bleed issues — category: 'bleed', region: edge strips
-    if (config.bleed === 'bleed') {
+    // 4. Bleed issues — category: 'bleed'
+    if (hasBleed) {
       const hasBleedArea = pdfAnalysis.hasBleed;
       if (!hasBleedArea && pageNum > 2) {
-        // No bleed detected on a page that should have bleed
         issues.push({
           id: `page-${pageNum}-bleed`,
           page: pageNum,
@@ -447,12 +647,10 @@ export function analyzePagesForIssues(
           category: 'bleed',
           actual: 'No bleed area detected',
           expected: `${bleedIn}" bleed on all sides`,
-          // Region: the outer bleed strip around the page edges
           region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
-          suggestion: `Extend artwork on page ${pageNum} by ${bleedIn}" beyond the trim line on all sides so background colors/images bleed off the page edge.`,
+          suggestion: `Extend artwork on page ${pageNum} by ${bleedIn}" beyond the trim line on all sides so background colors/images bleed off the page edge. For ${trimLabel} books, the full page with bleed should be ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}".`,
         });
       } else if (hasBleedArea && pageNum > 2) {
-        // Bleed is present — informational
         issues.push({
           id: `page-${pageNum}-bleed-ok`,
           page: pageNum,
@@ -469,10 +667,9 @@ export function analyzePagesForIssues(
       }
     }
 
-    // 5. Margin safety — category: 'margin', region: near edge
-    // Check content proximity to the outer trim edges
-    const estimatedMarginSafety = safeAreaIn; // Estimated distance from edge
-    const marginDanger = estimatedMarginSafety < 0.125; // Content closer than 0.125" to edge
+    // 5. Margin safety
+    const estimatedMarginSafety = safeAreaIn;
+    const marginDanger = estimatedMarginSafety < 0.125;
     if (marginDanger) {
       issues.push({
         id: `page-${pageNum}-margin`,
@@ -484,7 +681,6 @@ export function analyzePagesForIssues(
         category: 'margin',
         actual: `${estimatedMarginSafety.toFixed(3)}" from trim edge`,
         expected: `Minimum ${SAFE_AREA_IN}"`,
-        // Region: a narrow strip along all four edges
         region: {
           xIn: safeAreaIn,
           yIn: safeAreaIn,
@@ -495,14 +691,13 @@ export function analyzePagesForIssues(
       });
     }
 
-    // 6. Gutter tightness — category: 'gutter', region: gutter area
+    // 6. Gutter tightness
     const isLeftPage = pageNum % 2 === 0;
     const isRightPage = !isLeftPage;
     if (gutterIn > 0 && (isLeftPage || isRightPage)) {
-      // Content near the gutter/binding edge
-      const gutterSide = isLeftPage ? 'left' : 'right'; // left page has gutter on right, right page on left
+      const gutterSide = isLeftPage ? 'left' : 'right';
       const gutterEdgeX = isLeftPage ? pageW - gutterIn : 0;
-      const isTight = gutterIn < 0.1; // Gutter clearance is tight
+      const isTight = gutterIn < 0.1;
       issues.push({
         id: `page-${pageNum}-gutter`,
         page: pageNum,
@@ -527,7 +722,7 @@ export function analyzePagesForIssues(
       });
     }
 
-    // 7. Trim danger — category: 'margin', region: edge strip
+    // 7. Trim danger
     issues.push({
       id: `page-${pageNum}-trim`,
       page: pageNum,
@@ -551,11 +746,10 @@ export function analyzePagesForIssues(
   return issues;
 }
 
-/**
- * Compute a validation summary from a list of extended page issues.
- * Aggregates counts by severity and category, determines overall status,
- * and provides a ready flag.
- */
+// ---------------------------------------------------------------------------
+// Compute validation summary
+// ---------------------------------------------------------------------------
+
 export function computeValidationSummary(issues: PageIssueExtended[]): ValidationSummary {
   const categories: IssueCategory[] = ['cover', 'interior', 'bleed', 'dpi', 'font', 'gutter', 'margin', 'size'];
   const byCategory: Record<IssueCategory, number> = {} as Record<IssueCategory, number>;
@@ -570,7 +764,6 @@ export function computeValidationSummary(issues: PageIssueExtended[]): Validatio
   let pass = 0;
 
   for (const issue of issues) {
-    // Count by severity
     switch (issue.severity) {
       case 'fail': fail++; break;
       case 'risk': risk++; break;
@@ -578,7 +771,6 @@ export function computeValidationSummary(issues: PageIssueExtended[]): Validatio
       case 'safe': safe++; break;
       case 'pass': pass++; break;
     }
-    // Count by category
     if (byCategory[issue.category] !== undefined) {
       byCategory[issue.category]++;
     }
@@ -586,7 +778,6 @@ export function computeValidationSummary(issues: PageIssueExtended[]): Validatio
 
   const total = issues.length;
 
-  // Determine overall status (worst severity wins)
   let overallStatus: CheckStatus = 'pass';
   if (fail > 0) overallStatus = 'fail';
   else if (risk > 0) overallStatus = 'risk';
@@ -608,7 +799,10 @@ export function computeValidationSummary(issues: PageIssueExtended[]): Validatio
   };
 }
 
+// ---------------------------------------------------------------------------
 // Generate summary text
+// ---------------------------------------------------------------------------
+
 export function generateSummary(checks: ValidationCheck[]): string {
   const counts = {
     pass: checks.filter(c => c.status === 'pass').length,

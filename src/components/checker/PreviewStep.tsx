@@ -44,7 +44,7 @@ import {
   SpreadModel,
   ValidationSummary,
 } from '@/types/kdp';
-import { computeValidationSummary } from '@/engine/validator';
+import { computeValidationSummary, analyzePagesForIssues, PDFAnalysisResult } from '@/engine/validator';
 import {
   getStatusColor,
   getStatusIcon,
@@ -898,14 +898,14 @@ function ThumbnailSidebar({
 
 // Category → friendly problem/why/fix descriptions
 const CATEGORY_FRIENDLY: Record<string, { problemPrefix: string; whyItMatters: string; fixHint: string; icon: typeof AlertTriangle }> = {
-  margin: { problemPrefix: 'Content is too close to the edge.', whyItMatters: 'Printed books may cut off content near edges.', fixHint: 'Move content slightly inward from the edge.', icon: Ruler },
-  bleed: { problemPrefix: 'Content extends beyond the bleed area.', whyItMatters: 'Parts of your design may be trimmed unexpectedly during printing.', fixHint: 'Extend background images to the bleed edge, but keep text inside the safe area.', icon: AlertTriangle },
-  dpi: { problemPrefix: 'Image resolution is too low.', whyItMatters: 'Low resolution images will appear blurry or pixelated in print.', fixHint: 'Replace with a higher resolution image (300 DPI recommended).', icon: ImageIcon },
-  font: { problemPrefix: 'A font issue was detected.', whyItMatters: 'Missing or embedded fonts may render incorrectly in the final book.', fixHint: 'Embed all fonts in your PDF before uploading.', icon: FileText },
-  gutter: { problemPrefix: 'Content is too close to the gutter (spine).', whyItMatters: 'Text near the spine can be hard to read when the book is open.', fixHint: 'Add more inner margin space to keep text readable.', icon: BookOpen },
-  size: { problemPrefix: 'Page dimensions do not match the selected trim size.', whyItMatters: 'Incorrect page size may cause printing issues or unexpected cropping.', fixHint: 'Adjust your document to match the KDP trim size exactly.', icon: Ruler },
-  interior: { problemPrefix: 'An interior page issue was detected.', whyItMatters: 'This may affect the quality or readability of your book.', fixHint: 'Review the page and make adjustments as needed.', icon: FileText },
-  cover: { problemPrefix: 'A cover issue was detected.', whyItMatters: 'Cover problems may cause your book to be rejected by KDP.', fixHint: 'Review the cover file and ensure it meets KDP specifications.', icon: AlertTriangle },
+  margin: { problemPrefix: 'Content is positioned too close to the page edge.', whyItMatters: 'During printing, pages are trimmed — content near edges may be cut off or appear uneven.', fixHint: 'Move important text and images further inward from the page edge.', icon: Ruler },
+  bleed: { problemPrefix: 'Artwork does not extend into the bleed area.', whyItMatters: 'Without bleed, tiny shifts during printing can leave unprinted white strips at the edges of your book.', fixHint: 'Extend background colors or images 0.125" beyond the trim line on all sides.', icon: AlertTriangle },
+  dpi: { problemPrefix: 'Image resolution is too low for quality printing.', whyItMatters: 'Low-resolution images will appear blurry, pixelated, or soft in the final printed book.', fixHint: 'Replace with a higher resolution image (300 DPI at the printed size is recommended).', icon: ImageIcon },
+  font: { problemPrefix: 'A font issue was detected in the document.', whyItMatters: 'Missing or unembedded fonts may cause text to render incorrectly or be replaced during KDP processing.', fixHint: 'Embed all fonts in your PDF before uploading to KDP.', icon: FileText },
+  gutter: { problemPrefix: 'Content is too close to the inner edge (gutter/spine).', whyItMatters: 'Text near the spine can be difficult to read when the book is open — it curves into the binding.', fixHint: 'Increase the inner margin so text is at least 0.1" away from the gutter edge.', icon: BookOpen },
+  size: { problemPrefix: 'Page dimensions do not match the selected KDP trim size.', whyItMatters: 'Incorrect page size may cause KDP to reject the file, or result in unexpected cropping and scaling.', fixHint: 'Export your document at the correct dimensions for the selected trim size (plus bleed if enabled).', icon: Ruler },
+  interior: { problemPrefix: 'An interior page issue was detected.', whyItMatters: 'This may affect the quality, readability, or printability of your book.', fixHint: 'Review the page and make adjustments as needed.', icon: FileText },
+  cover: { problemPrefix: 'A cover issue was detected.', whyItMatters: 'Cover problems may cause your book to be rejected by KDP or result in printing quality issues.', fixHint: 'Review the cover file and ensure it meets KDP specifications for size, bleed, and resolution.', icon: AlertTriangle },
 };
 
 function getSeverityIcon(severity: CheckStatus) {
@@ -945,8 +945,8 @@ function getSeverityLabel(severity: CheckStatus) {
     case 'pass': return 'OK';
     case 'safe': return 'OK';
     case 'warning': return 'WARNING';
-    case 'risk': return 'CRITICAL';
-    case 'fail': return 'CRITICAL';
+    case 'risk': return 'REJECT RISK';
+    case 'fail': return 'REJECT RISK';
     default: return severity.toUpperCase();
   }
 }
@@ -1027,7 +1027,7 @@ function FriendlyIssueCard({
           </div>
         </div>
 
-        {/* BOTTOM SECTION: Technical details (collapsible) */}
+        {/* BOTTOM SECTION: Actual vs Expected comparison table */}
         {(issue.actual || issue.expected) && (
           <div className="mt-2.5 ml-6">
             <div
@@ -1038,7 +1038,7 @@ function FriendlyIssueCard({
               className="flex items-center gap-1 text-[11px] text-white/25 hover:text-white/40 transition-colors cursor-pointer py-1"
             >
               <ChevronDown className={`w-2.5 h-2.5 transition-transform ${showTechnical ? 'rotate-180' : ''}`} />
-              Technical Details
+              Dimensions Comparison
             </div>
             <AnimatePresence>
               {showTechnical && (
@@ -1049,34 +1049,57 @@ function FriendlyIssueCard({
                   transition={{ duration: 0.15 }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-1.5 space-y-0.5 bg-white/[0.02] rounded-md p-2">
-                    {issue.actual && (
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-[10px] text-white/25 shrink-0 w-20">Actual:</span>
-                        <span className="text-[11px] text-white/35 font-mono">{issue.actual}</span>
-                      </div>
-                    )}
-                    {issue.expected && (
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-[10px] text-white/25 shrink-0 w-20">Recommended:</span>
-                        <span className="text-[11px] text-white/35 font-mono">{issue.expected}</span>
-                      </div>
-                    )}
-                    {issue.actual && issue.expected && (
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-[8px] text-white/15 shrink-0 w-16">Difference:</span>
-                        <span className="text-[9px] text-amber-400/30 font-mono">
-                          {(() => {
-                            const actNum = parseFloat(issue.actual);
-                            const expNum = parseFloat(issue.expected);
-                            if (!isNaN(actNum) && !isNaN(expNum)) {
-                              return `${Math.abs(actNum - expNum).toFixed(3)}"`;
-                            }
-                            return '—';
-                          })()}
-                        </span>
-                      </div>
-                    )}
+                  <div className="mt-1.5 bg-white/[0.02] rounded-md overflow-hidden">
+                    {/* Table header */}
+                    <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[9px] font-semibold text-white/30 uppercase tracking-wider border-b border-white/[0.04] px-2 py-1">
+                      <span>Metric</span>
+                      <span>Actual</span>
+                      <span>Expected</span>
+                      <span className="text-center">✓</span>
+                    </div>
+                    {/* Parse dimensions from actual/expected strings */}
+                    {(() => {
+                      // Try to parse "8.75" × 11.25"" format
+                      const dimRegex = /([\d.]+)"\s*×\s*([\d.]+)"/;
+                      const actMatch = issue.actual?.match(dimRegex);
+                      const expMatch = issue.expected?.match(dimRegex);
+
+                      if (actMatch && expMatch) {
+                        const actW = parseFloat(actMatch[1]);
+                        const actH = parseFloat(actMatch[2]);
+                        const expW = parseFloat(expMatch[1]);
+                        const expH = parseFloat(expMatch[2]);
+                        const wOk = Math.abs(actW - expW) <= 0.02;
+                        const hOk = Math.abs(actH - expH) <= 0.02;
+
+                        return (
+                          <>
+                            <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1 border-b border-white/[0.02]">
+                              <span className="text-white/25">Width</span>
+                              <span className={`font-mono ${wOk ? 'text-green-400/50' : 'text-red-400/60'}`}>{actW.toFixed(3)}"</span>
+                              <span className="font-mono text-white/30">{expW.toFixed(3)}"</span>
+                              <span className="text-center">{wOk ? '🟢' : '🔴'}</span>
+                            </div>
+                            <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1">
+                              <span className="text-white/25">Height</span>
+                              <span className={`font-mono ${hOk ? 'text-green-400/50' : 'text-red-400/60'}`}>{actH.toFixed(3)}"</span>
+                              <span className="font-mono text-white/30">{expH.toFixed(3)}"</span>
+                              <span className="text-center">{hOk ? '🟢' : '🔴'}</span>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      // Fallback: just show raw values
+                      return (
+                        <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1">
+                          <span className="text-white/25">Value</span>
+                          <span className="font-mono text-white/35">{issue.actual}</span>
+                          <span className="font-mono text-white/30">{issue.expected}</span>
+                          <span></span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </motion.div>
               )}
@@ -1818,6 +1841,9 @@ export default function PreviewStep() {
     setSidebarCollapsed,
     dismissHint,
     isHintDismissed,
+    pdfAnalysis,
+    setPdfAnalysis,
+    setPageIssuesExtended,
   } = useAppStore();
 
   // --- Local state ---
@@ -1965,6 +1991,24 @@ export default function PreviewStep() {
   const validationSummary = useMemo(() => {
     return computeValidationSummary(pageIssuesExtended);
   }, [pageIssuesExtended]);
+
+  // -------------------------------------------------------------------------
+  // Re-validate when bookConfig or measurements change
+  // This is CRITICAL: the validator must ALWAYS use the active config.
+  // Previously, issues were only computed once during import (with stale 6×9 defaults)
+  // and never updated when the user changed trim size, bleed, etc.
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    if (!pdfAnalysis) return;
+    if (bookPages.length === 0) return;
+
+    const revalidatedIssues = analyzePagesForIssues(
+      pdfAnalysis,
+      bookConfig,
+      measurements,
+    );
+    setPageIssuesExtended(revalidatedIssues);
+  }, [bookConfig, measurements, pdfAnalysis, bookPages.length, setPageIssuesExtended]);
 
   // -------------------------------------------------------------------------
   // Find the selected issue's highlight region for current page

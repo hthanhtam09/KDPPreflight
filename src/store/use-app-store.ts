@@ -7,6 +7,7 @@ import {
   IssueFilter, SpreadModel, ValidationSummary, CheckStatus,
 } from '@/types/kdp';
 import { DEFAULT_BOOK_CONFIG, calculateMeasurements } from '@/engine/kdp-constants';
+import type { PDFAnalysisResult } from '@/engine/validator';
 import type { SaveStatus } from '@/lib/persistence';
 
 interface AppStore {
@@ -123,6 +124,10 @@ interface AppStore {
   // Sidebar collapsed state
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
+
+  // PDF analysis result (stored for re-validation when config changes)
+  pdfAnalysis: PDFAnalysisResult | null;
+  setPdfAnalysis: (analysis: PDFAnalysisResult | null) => void;
 
   // Reset
   reset: () => void;
@@ -297,6 +302,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
   sidebarCollapsed: false,
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 
+  // PDF analysis result
+  pdfAnalysis: null,
+  setPdfAnalysis: (analysis) => set({ pdfAnalysis: analysis }),
+
   // Reset
   reset: () =>
     set({
@@ -331,5 +340,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
       saveStatus: 'idle',
       hasRestoredSession: false,
       sidebarCollapsed: false,
+      pdfAnalysis: null,
     }),
 }));

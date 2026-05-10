@@ -489,6 +489,7 @@ export default function ImportStep() {
     setPreviewReady,
     setPageIssues,
     setPageIssuesExtended,
+    setPdfAnalysis,
     setCoverDataUrl,
     setPdfPageDataUrl,
     setBookPages,
@@ -785,6 +786,7 @@ export default function ImportStep() {
         );
         setPageIssues(pageIssues);
         setPageIssuesExtended(pageIssues);
+        setPdfAnalysis(pdfAnalysis);
 
         // Step 5: Build book sequence (Cover → Blank → Interior)
         const bookPagesArr = buildBookSequence(
