@@ -2067,11 +2067,15 @@ export default function PreviewStep() {
       switch (e.key) {
         case 'ArrowRight':
         case 'ArrowDown':
+        case 'd':
+        case 'D':
           e.preventDefault();
           goNext();
           break;
         case 'ArrowLeft':
         case 'ArrowUp':
+        case 'a':
+        case 'A':
           e.preventDefault();
           goPrev();
           break;
@@ -2284,14 +2288,17 @@ export default function PreviewStep() {
       return {
         label: spread?.label ?? pageLabel,
         pageLabel,
-        spreadLabel: `Spread ${currentSpreadIdx + 1} of ${spreads.length}`,
+        spreadLabel: `Spread ${currentSpreadIdx + 1} / ${spreads.length}`,
       };
     }
 
+    // For single mode, show manuscript page index if available
+    const displayIndex = page.manuscriptIndex ?? (currentPage + 1);
+    const totalPages = bookPages.filter(p => p.manuscriptIndex).length || bookPages.length;
     return {
       label: pageLabel,
       pageLabel,
-      spreadLabel: `${currentPage + 1} of ${bookPages.length}`,
+      spreadLabel: `Page ${displayIndex} / ${totalPages}`,
     };
   }, [bookPages, currentPage, previewViewMode, bookType, currentSpreadIdx, spreads]);
 
@@ -2405,76 +2412,45 @@ export default function PreviewStep() {
   return (
     <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-[#1e1f22]">
       {/* ================================================================== */}
-      {/* TOOLBAR (top, ~48px) — Mode switcher prominent at center          */}
+      {/* PRIMARY TOOLBAR (top, ~52px) — Core Navigation Controls            */}
+      {/* LEFT: ← Back to Config                                             */}
+      {/* CENTER: 📄 Single View | 📖 Spread View                           */}
+      {/* RIGHT: ◀ Previous | Page X / Y | Next ▶                          */}
       {/* ================================================================== */}
-      <div className="shrink-0 h-12 flex items-center justify-between px-3 border-b border-white/[0.06] bg-[#232529]">
-        {/* Left: Back + Page nav */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCheckerStep('config')}
-            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] text-white/35 hover:text-white/60 hover:bg-white/[0.04] transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Back</span>
-          </button>
+      <div className="shrink-0 h-[52px] flex items-center justify-between px-3 border-b border-white/[0.06] bg-[#232529]">
+        {/* LEFT: Back to Config — prominent, safe-feeling */}
+        <button
+          onClick={() => setCheckerStep('config')}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium text-white/45 hover:text-white/75 hover:bg-white/[0.06] transition-all duration-200 border border-white/[0.08] hover:border-white/[0.15] min-h-[36px]"
+          title="Return to Configuration (preserves all progress)"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Back to Config</span>
+        </button>
 
-          <div className="w-px h-5 bg-white/[0.06]" />
-
-          {/* Page navigation */}
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={goPrev}
-              disabled={currentPage <= 0 && currentSpreadIdx <= 0}
-              className="p-1.5 rounded-lg text-white/35 hover:text-white/60 hover:bg-white/[0.04] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setJumpModalOpen(true)}
-              className="px-2.5 py-1 rounded-lg text-[11px] text-white/40 hover:text-white/60 hover:bg-white/[0.04] transition-colors min-w-[90px] text-center font-medium"
-            >
-              {currentPageInfo.spreadLabel}
-            </button>
-            <button
-              onClick={goNext}
-              disabled={
-                previewViewMode === 'spread'
-                  ? currentSpreadIdx >= spreads.length - 1
-                  : currentPage >= bookPages.length - 1
-              }
-              className="p-1.5 rounded-lg text-white/35 hover:text-white/60 hover:bg-white/[0.04] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Save status */}
-          <SaveStatusIndicator status={saveStatus} />
-        </div>
-
-        {/* Center: MODE SWITCHER — Always visible, prominent segmented control */}
+        {/* CENTER: MODE SWITCHER — Most prominent control */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-white/[0.04] rounded-xl p-1 border border-white/[0.10] shadow-inner">
+          <div className="flex items-center bg-white/[0.06] rounded-xl p-1.5 border border-white/[0.12] shadow-lg shadow-black/20">
             <button
               onClick={() => bookType !== 'kindle' && setPreviewViewMode('single')}
               disabled={bookType === 'kindle'}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 min-h-[40px] ${
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-[14px] font-semibold transition-all duration-250 min-h-[38px] ${
                 previewViewMode === 'single'
-                  ? 'bg-emerald-500/25 text-emerald-200 shadow-sm border border-emerald-400/40'
+                  ? 'bg-emerald-500/30 text-emerald-100 shadow-md shadow-emerald-500/10 border border-emerald-400/50 ring-1 ring-emerald-400/20'
                   : 'text-white/35 hover:text-white/55 hover:bg-white/[0.06]'
               }`}
               aria-label="Single Page View"
               aria-pressed={previewViewMode === 'single'}
             >
-              <span className="text-[15px] leading-none">📄</span>
-              <span>Single</span>
+              <span className="text-[16px] leading-none">📄</span>
+              <span>Single View</span>
             </button>
             <button
               onClick={() => bookType !== 'kindle' && setPreviewViewMode('spread')}
               disabled={bookType === 'kindle'}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 min-h-[40px] ${
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-[14px] font-semibold transition-all duration-250 min-h-[38px] ${
                 previewViewMode === 'spread'
-                  ? 'bg-emerald-500/25 text-emerald-200 shadow-sm border border-emerald-400/40'
+                  ? 'bg-emerald-500/30 text-emerald-100 shadow-md shadow-emerald-500/10 border border-emerald-400/50 ring-1 ring-emerald-400/20'
                   : bookType === 'kindle'
                     ? 'text-white/10 cursor-not-allowed'
                     : 'text-white/35 hover:text-white/55 hover:bg-white/[0.06]'
@@ -2482,8 +2458,8 @@ export default function PreviewStep() {
               aria-label="Spread View"
               aria-pressed={previewViewMode === 'spread'}
             >
-              <span className="text-[15px] leading-none">📖</span>
-              <span>Spread</span>
+              <span className="text-[16px] leading-none">📖</span>
+              <span>Spread View</span>
             </button>
           </div>
 
@@ -2495,33 +2471,75 @@ export default function PreviewStep() {
               </OnboardingHint>
             )}
           </AnimatePresence>
+        </div>
 
-          {/* Overlay toggles */}
+        {/* RIGHT: ◀ Previous | Page position | Next ▶ */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={goPrev}
+            disabled={currentPage <= 0 && currentSpreadIdx <= 0}
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200 min-h-[36px] disabled:opacity-15 disabled:cursor-not-allowed border border-transparent hover:border-white/[0.08]"
+            title="Previous (← / A)"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Previous</span>
+          </button>
+
+          <button
+            onClick={() => setJumpModalOpen(true)}
+            className="px-3 py-1.5 rounded-lg text-[12px] text-white/50 hover:text-white/75 hover:bg-white/[0.06] transition-colors min-w-[110px] text-center font-medium border border-white/[0.06] hover:border-white/[0.12]"
+            title="Click to jump to page"
+          >
+            {currentPageInfo.spreadLabel}
+          </button>
+
+          <button
+            onClick={goNext}
+            disabled={
+              previewViewMode === 'spread'
+                ? currentSpreadIdx >= spreads.length - 1
+                : currentPage >= bookPages.length - 1
+            }
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200 min-h-[36px] disabled:opacity-15 disabled:cursor-not-allowed border border-transparent hover:border-white/[0.08]"
+            title="Next (→ / D)"
+          >
+            <span className="hidden sm:inline">Next</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+
+          {/* Save status */}
+          <SaveStatusIndicator status={saveStatus} />
+        </div>
+      </div>
+
+      {/* ================================================================== */}
+      {/* SECONDARY TOOLBAR — Overlays + Zoom Controls                       */}
+      {/* ================================================================== */}
+      <div className="shrink-0 h-9 flex items-center justify-between px-3 border-b border-white/[0.04] bg-[#1e1f22]/80">
+        {/* Left: Overlay toggles */}
+        <div className="flex items-center gap-1">
           {allowedOverlays.length > 0 && (
-            <>
-              <div className="w-px h-5 bg-white/[0.06] hidden md:block" />
-              <div className="hidden md:flex items-center gap-0.5">
-                {allowedOverlays.map((ov) => {
-                  const cfg = OVERLAY_CONFIG[ov];
-                  const isActive = activeOverlays.includes(ov);
-                  return (
-                    <button
-                      key={ov}
-                      onClick={() => toggleOverlay(ov)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 ${
-                        isActive
-                          ? `${cfg.bg} ${cfg.color} border ${cfg.border}`
-                          : 'text-white/20 hover:text-white/35'
-                      }`}
-                      title={cfg.label}
-                    >
-                      {isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                      <span className="hidden lg:inline">{cfg.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </>
+            <div className="flex items-center gap-0.5">
+              {allowedOverlays.map((ov) => {
+                const cfg = OVERLAY_CONFIG[ov];
+                const isActive = activeOverlays.includes(ov);
+                return (
+                  <button
+                    key={ov}
+                    onClick={() => toggleOverlay(ov)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 ${
+                      isActive
+                        ? `${cfg.bg} ${cfg.color} border ${cfg.border}`
+                        : 'text-white/20 hover:text-white/35'
+                    }`}
+                    title={cfg.label}
+                  >
+                    {isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    <span className="hidden lg:inline">{cfg.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
 
@@ -2529,27 +2547,27 @@ export default function PreviewStep() {
         <div className="flex items-center gap-0.5">
           <button
             onClick={zoomOut}
-            className="p-1.5 rounded-lg text-white/35 hover:text-white/60 hover:bg-white/[0.04] transition-colors"
+            className="p-1 rounded-md text-white/30 hover:text-white/55 hover:bg-white/[0.04] transition-colors"
             title="Zoom Out (-)"
           >
-            <Minus className="w-3.5 h-3.5" />
+            <Minus className="w-3 h-3" />
           </button>
           <button
             onClick={() => setJumpModalOpen(true)}
-            className="px-2 py-1 rounded-lg text-[11px] text-white/40 hover:text-white/60 hover:bg-white/[0.04] transition-colors min-w-[48px] text-center font-mono"
+            className="px-2 py-0.5 rounded-md text-[10px] text-white/35 hover:text-white/55 hover:bg-white/[0.04] transition-colors min-w-[44px] text-center font-mono"
             title="Click to jump to page"
           >
             {zoomPct}%
           </button>
           <button
             onClick={zoomIn}
-            className="p-1.5 rounded-lg text-white/35 hover:text-white/60 hover:bg-white/[0.04] transition-colors"
+            className="p-1 rounded-md text-white/30 hover:text-white/55 hover:bg-white/[0.04] transition-colors"
             title="Zoom In (+)"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3 h-3" />
           </button>
 
-          <div className="w-px h-5 bg-white/[0.06] mx-0.5" />
+          <div className="w-px h-4 bg-white/[0.06] mx-0.5" />
 
           <FitDropdown fitMode={fitMode} onFitSelect={applyFitMode} />
         </div>
