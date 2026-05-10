@@ -612,19 +612,19 @@ function SaveStatusIndicator({ status }: { status: SaveStatus }) {
       {status === 'saving' && (
         <>
           <Loader2 className="w-3 h-3 text-white/20 animate-spin" />
-          <span className="text-[9px] text-white/20">Saving...</span>
+          <span className="text-[10px] text-white/30">Saving...</span>
         </>
       )}
       {status === 'saved' && (
         <>
           <CheckCircle2 className="w-3 h-3 text-emerald-400/40" />
-          <span className="text-[9px] text-emerald-400/40">Saved</span>
+          <span className="text-[10px] text-emerald-400/50">Saved</span>
         </>
       )}
       {status === 'error' && (
         <>
           <AlertCircle className="w-3 h-3 text-red-400/40" />
-          <span className="text-[9px] text-red-400/40">Save failed</span>
+          <span className="text-[10px] text-red-400/50">Save failed</span>
         </>
       )}
     </div>
@@ -762,7 +762,7 @@ function ThumbnailSidebar({
   }
 
   return (
-    <div className="w-[18%] min-w-[140px] max-w-[220px] shrink-0 border-r border-white/[0.06] bg-[#1a1b1e] flex flex-col">
+    <div className="w-[170px] min-w-[120px] max-w-[190px] shrink-0 border-r border-white/[0.06] bg-[#1a1b1e] flex flex-col">
       {/* Header */}
       <div className="shrink-0 px-3 py-2 border-b border-white/[0.06] flex items-center justify-between">
         <span className="text-[10px] font-semibold text-white/25 uppercase tracking-wider">Pages</span>
@@ -798,7 +798,7 @@ function ThumbnailSidebar({
                 }`}
               >
                 {/* Preview image */}
-                <div className="relative bg-white/[0.03] h-20 flex items-center justify-center">
+                <div className="relative bg-white/[0.03] h-28 flex items-center justify-center">
                   {spread.isSingle ? (
                     leftPage ? <SingleThumb page={leftPage} /> : null
                   ) : (
@@ -856,7 +856,7 @@ function ThumbnailSidebar({
                 }`}
               >
                 {/* Preview image */}
-                <div className="relative bg-white/[0.03] h-16 flex items-center justify-center">
+                <div className="relative bg-white/[0.03] h-24 flex items-center justify-center">
                   <SingleThumb page={page} />
                   {worstIssue && worstIssue !== 'pass' && worstIssue !== 'safe' && (
                     <div className="absolute top-1 right-1">
@@ -977,7 +977,7 @@ function FriendlyIssueCard({
       }`}
       layout
     >
-      <div className="p-3">
+      <div className="p-4">
         {/* TOP ROW: Severity badge + title + affected page */}
         <div className="flex items-start gap-2">
           <span className={`shrink-0 mt-0.5 ${colors.text}`}>
@@ -985,38 +985,38 @@ function FriendlyIssueCard({
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${colors.bg} ${colors.text}`}>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${colors.bg} ${colors.text}`}>
                 {getSeverityLabel(issue.severity)}
               </span>
               {pageLabel && (
-                <span className="text-[9px] text-white/20 font-medium">
+                <span className="text-[11px] text-white/30 font-medium">
                   {pageLabel}
                 </span>
               )}
             </div>
-            <p className={`text-[11px] font-medium leading-snug ${isSelected ? 'text-white/70' : 'text-white/50'}`}>
+            <p className={`text-[14px] font-medium leading-relaxed ${isSelected ? 'text-white/80' : 'text-white/60'}`}>
               {issue.message}
             </p>
           </div>
         </div>
 
         {/* MIDDLE SECTION: Beginner-friendly Problem / Why / Fix */}
-        <div className="mt-2.5 ml-6 space-y-2">
+        <div className="mt-3 ml-7 space-y-3">
           <div>
-            <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wider">Problem</span>
-            <p className="text-[10px] text-white/35 leading-relaxed mt-0.5">
+            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Problem</span>
+            <p className="text-[13px] text-white/45 leading-relaxed mt-0.5">
               {friendlyInfo.problemPrefix}
             </p>
           </div>
           <div>
-            <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wider">Why it matters</span>
-            <p className="text-[10px] text-white/35 leading-relaxed mt-0.5">
+            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Why it matters</span>
+            <p className="text-[13px] text-white/45 leading-relaxed mt-0.5">
               {friendlyInfo.whyItMatters}
             </p>
           </div>
           <div>
             <span className="text-[9px] font-semibold text-emerald-400/40 uppercase tracking-wider">Recommended fix</span>
-            <p className="text-[10px] text-emerald-400/30 leading-relaxed mt-0.5">
+            <p className="text-[13px] text-emerald-400/40 leading-relaxed mt-0.5">
               {issue.suggestion || friendlyInfo.fixHint}
             </p>
           </div>
@@ -1030,7 +1030,7 @@ function FriendlyIssueCard({
               role="button"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setShowTechnical(!showTechnical); } }}
-              className="flex items-center gap-1 text-[9px] text-white/15 hover:text-white/30 transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-[11px] text-white/25 hover:text-white/40 transition-colors cursor-pointer py-1"
             >
               <ChevronDown className={`w-2.5 h-2.5 transition-transform ${showTechnical ? 'rotate-180' : ''}`} />
               Technical Details
@@ -1047,14 +1047,14 @@ function FriendlyIssueCard({
                   <div className="mt-1.5 space-y-0.5 bg-white/[0.02] rounded-md p-2">
                     {issue.actual && (
                       <div className="flex items-baseline gap-2">
-                        <span className="text-[8px] text-white/15 shrink-0 w-16">Actual:</span>
-                        <span className="text-[9px] text-white/25 font-mono">{issue.actual}</span>
+                        <span className="text-[10px] text-white/25 shrink-0 w-20">Actual:</span>
+                        <span className="text-[11px] text-white/35 font-mono">{issue.actual}</span>
                       </div>
                     )}
                     {issue.expected && (
                       <div className="flex items-baseline gap-2">
-                        <span className="text-[8px] text-white/15 shrink-0 w-16">Recommended:</span>
-                        <span className="text-[9px] text-white/25 font-mono">{issue.expected}</span>
+                        <span className="text-[10px] text-white/25 shrink-0 w-20">Recommended:</span>
+                        <span className="text-[11px] text-white/35 font-mono">{issue.expected}</span>
                       </div>
                     )}
                     {issue.actual && issue.expected && (
@@ -1232,7 +1232,7 @@ function ValidationPanel({
       {/* ---- Section 1: Validation Status ---- */}
       <div className="shrink-0 border-b border-white/[0.06] px-4 py-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-[10px] font-semibold text-white/25 uppercase tracking-wider">Validation</h3>
+          <h3 className="text-[11px] font-semibold text-white/35 uppercase tracking-wider">Validation</h3>
           <div className="flex items-center gap-1">
             {validationSummary.isReady ? (
               <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
@@ -1288,7 +1288,7 @@ function ValidationPanel({
             <button
               key={f.key}
               onClick={() => setBeginnerFilter(f.key)}
-              className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors min-h-[32px] ${
+              className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-colors min-h-[32px] ${
                 beginnerFilter === f.key
                   ? f.key === 'important' ? 'bg-orange-500/15 text-orange-400'
                     : f.key === 'needs-fix' ? 'bg-amber-500/15 text-amber-400'
@@ -1364,7 +1364,7 @@ function ValidationPanel({
               return (
                 <div key={cat}>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-[9px] font-semibold text-white/20 uppercase tracking-wider">
+                    <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">
                       {categoryLabels[cat] || cat}
                     </span>
                     <span className="text-[8px] px-1 py-0.5 rounded bg-white/[0.04] text-white/15">
@@ -1730,6 +1730,18 @@ export default function PreviewStep() {
       triggerAutoSave();
     }
   }, [currentPage, previewViewMode, activeOverlays, selectedIssueId, issueFilter, bookPages.length, hasRestoredSession, triggerAutoSave]);
+
+  // -------------------------------------------------------------------------
+  // Refresh protection — warn before leaving if session is active
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    if (bookPages.length === 0) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [bookPages.length]);
 
   // -------------------------------------------------------------------------
   // Compute validation summary
@@ -2417,30 +2429,32 @@ export default function PreviewStep() {
         {/* Center: MODE SWITCHER — Large, prominent, top center */}
         <div className="flex items-center gap-3">
           {bookType !== 'kindle' && (
-            <div className="flex items-center bg-white/[0.06] rounded-xl p-1 border border-white/[0.08] shadow-sm">
+            <div className="flex items-center bg-white/[0.04] rounded-xl p-1 border border-white/[0.08]">
               <button
                 onClick={() => setPreviewViewMode('single')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-medium transition-all duration-200 min-h-[44px] ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 min-h-[40px] ${
                   previewViewMode === 'single'
-                    ? 'bg-white/[0.12] text-white/90 shadow-sm'
-                    : 'text-white/30 hover:text-white/50'
+                    ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30'
+                    : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
                 }`}
                 aria-label="Single Page View"
+                aria-pressed={previewViewMode === 'single'}
               >
-                <Rows3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Single Page</span>
+                <span className="text-base">📄</span>
+                <span>Single</span>
               </button>
               <button
                 onClick={() => setPreviewViewMode('spread')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-medium transition-all duration-200 min-h-[44px] ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 min-h-[40px] ${
                   previewViewMode === 'spread'
-                    ? 'bg-white/[0.12] text-white/90 shadow-sm'
-                    : 'text-white/30 hover:text-white/50'
+                    ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30'
+                    : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
                 }`}
                 aria-label="Spread View"
+                aria-pressed={previewViewMode === 'spread'}
               >
-                <Columns2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Spread View</span>
+                <span className="text-base">📖</span>
+                <span>Spread</span>
               </button>
             </div>
           )}
@@ -2532,7 +2546,7 @@ export default function PreviewStep() {
 
         {/* Onboarding hint: sidebar */}
         {!sidebarCollapsed && !isHintDismissed('hint-sidebar') && (
-          <div className="absolute left-[18%] top-14 z-30">
+          <div className="absolute left-[170px] top-14 z-30">
             <OnboardingHint id="hint-sidebar" onDismiss={handleDismissHint}>
               Click a page to preview it
             </OnboardingHint>
