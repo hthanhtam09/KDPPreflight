@@ -93,6 +93,9 @@ export interface TrimSize {
   heightPx: number;
 }
 
+export type ReadingDirection = 'ltr' | 'rtl';
+export type CoverFinish = 'matte' | 'glossy';
+
 export interface BookConfig {
   trimSize: TrimSizeKey;
   customWidth?: number;
@@ -103,6 +106,8 @@ export interface BookConfig {
   pageCount: number;
   binding: BindingType;
   bookType: BookType;
+  readingDirection?: ReadingDirection;
+  coverFinish?: CoverFinish;
 }
 
 export interface CalculatedMeasurements {

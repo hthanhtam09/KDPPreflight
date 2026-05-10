@@ -176,8 +176,8 @@ export default function LandingPage() {
         >
           <FeatureCard
             icon={BookOpen}
-            title="Book Setup"
-            description="Configure trim size, bleed, paper type, and page count. Get instant spine width calculations and visual cover layout."
+            title="Smart Book Setup"
+            description="Guided setup with live KDP specs, export tips, and file preparation guides. Know exactly how to build your files correctly."
             href="/setup"
           />
           <FeatureCard

@@ -6,7 +6,7 @@ import { BookOpen, Shield, Box, HomeIcon } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Home', icon: HomeIcon },
-  { href: '/setup', label: 'Setup', icon: BookOpen },
+  { href: '/setup', label: 'Smart Setup', icon: BookOpen },
   { href: '/checker', label: 'Checker', icon: Shield },
   { href: '/preview', label: '3D Preview', icon: Box },
 ] as const;
