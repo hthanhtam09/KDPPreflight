@@ -2410,7 +2410,7 @@ export default function PreviewStep() {
   const isSpreadView = previewViewMode === 'spread' && bookType !== 'kindle';
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-[#1e1f22]">
+    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#1e1f22]">
       {/* ================================================================== */}
       {/* PRIMARY TOOLBAR (top, ~52px) — Core Navigation Controls            */}
       {/* LEFT: ← Back to Config                                             */}
