@@ -1,10 +1,25 @@
 #!/bin/bash
-# Auto-restarting dev server
 cd /home/z/my-project
-while true; do
-  echo "[$(date)] Starting dev server..." >> /home/z/my-project/dev.log
-  node node_modules/.bin/next dev -p 3000 >> /home/z/my-project/dev.log 2>&1
-  EXIT_CODE=$?
-  echo "[$(date)] Server exited with code $EXIT_CODE, restarting in 3s..." >> /home/z/my-project/dev.log
-  sleep 3
+exec >> /home/z/my-project/dev.log 2>&1
+echo "[$(date)] === Starting dev server ==="
+
+# Start the server
+bun run dev &
+SERVER_PID=$!
+
+# Wait for readiness
+for i in $(seq 1 10); do
+  if curl -s -o /dev/null http://localhost:3000 2>/dev/null; then
+    echo "[$(date)] Server ready"
+    break
+  fi
+  sleep 1
 done
+
+# Keep the process alive by pinging it periodically
+while kill -0 $SERVER_PID 2>/dev/null; do
+  curl -s -o /dev/null http://localhost:3000 2>/dev/null || true
+  sleep 10
+done
+
+echo "[$(date)] Server process died"
