@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import { BookType } from '@/types/kdp';
-import { loadImage } from '@/engine/pdf-processor';
+import { loadImage, loadPDF } from '@/engine/pdf-processor';
 import dynamic from 'next/dynamic';
 import PreviewToolbar from './PreviewToolbar';
 import type { Preview3DState, Preview3DActions } from './BookPreview3D';
@@ -77,16 +77,36 @@ export default function PreviewFeature() {
     if (!file.type.startsWith('image/') && file.type !== 'application/pdf') return;
     setProcessing(true, 'Processing cover image...');
     try {
-      const result = await loadImage(file);
-      setCoverUrl(result.dataUrl);
+      let dataUrl: string;
+      let width: number;
+      let height: number;
+
+      if (file.type === 'application/pdf') {
+        // PDF: render first page as image using PDF.js
+        const result = await loadPDF(file, { maxPages: 1, renderScale: 2.0 });
+        if (result.pages.length === 0 || !result.pages[0].dataUrl) {
+          throw new Error('PDF has no renderable pages');
+        }
+        dataUrl = result.pages[0].dataUrl;
+        width = result.widthIn;
+        height = result.heightIn;
+      } else {
+        // Image file: load directly
+        const result = await loadImage(file);
+        dataUrl = result.dataUrl;
+        width = result.width;
+        height = result.height;
+      }
+
+      setCoverUrl(dataUrl);
       setUploadedCover({
         id: crypto.randomUUID(),
         name: file.name,
         size: file.size,
         type: file.type,
         file,
-        dimensions: { width: result.width, height: result.height },
-        dataUrl: result.dataUrl,
+        dimensions: { width, height },
+        dataUrl,
       });
     } catch (err) {
       console.error('Error loading cover:', err);
