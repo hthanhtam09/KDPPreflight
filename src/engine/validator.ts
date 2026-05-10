@@ -1,4 +1,4 @@
-import { BookConfig, CalculatedMeasurements, ValidationCheck, CheckStatus } from '@/types/kdp';
+import { BookConfig, CalculatedMeasurements, ValidationCheck, CheckStatus, PageIssue, PageIssueExtended, ValidationSummary, IssueCategory } from '@/types/kdp';
 import { DIMENSION_TOLERANCE_IN, SPINE_TOLERANCE_IN, MIN_COVER_DPI, SAFE_AREA_IN, BARCODE_AREA } from './kdp-constants';
 
 // Determine check status based on deviation from expected value
@@ -335,6 +335,277 @@ export function getOverallStatus(checks: ValidationCheck[]): CheckStatus {
     if (checks.some(c => c.status === status)) return status;
   }
   return 'pass';
+}
+
+/**
+ * Analyze pages and generate per-page issues for the preview UX.
+ * This provides the data that shows issue markers on thumbnails and overlays.
+ * Returns PageIssueExtended[] with actual/expected values, suggestion, category, and region info.
+ */
+export function analyzePagesForIssues(
+  pdfAnalysis: PDFAnalysisResult,
+  config: BookConfig,
+  measurements: CalculatedMeasurements
+): PageIssueExtended[] {
+  const issues: PageIssueExtended[] = [];
+  const { trimWidthIn, trimHeightIn, bleedIn, safeAreaIn, gutterIn } = measurements;
+
+  // Check each page for potential issues
+  for (let i = 0; i < pdfAnalysis.pageCount; i++) {
+    const pageNum = i + 1;
+
+    // 1. Page size mismatch — category: 'size', region: full page
+    const pageW = pdfAnalysis.pageWidths[i] ?? trimWidthIn;
+    const pageH = pdfAnalysis.pageHeights[i] ?? trimHeightIn;
+    const widthDiff = Math.abs(pageW - trimWidthIn);
+    const heightDiff = Math.abs(pageH - trimHeightIn);
+
+    if (widthDiff > DIMENSION_TOLERANCE_IN || heightDiff > DIMENSION_TOLERANCE_IN) {
+      const severity: CheckStatus =
+        widthDiff > DIMENSION_TOLERANCE_IN * 3 || heightDiff > DIMENSION_TOLERANCE_IN * 3
+          ? 'risk'
+          : 'warning';
+      issues.push({
+        id: `page-${pageNum}-size`,
+        page: pageNum,
+        type: 'inconsistent-size',
+        severity,
+        message: `Page ${pageNum} size (${pageW.toFixed(2)}" × ${pageH.toFixed(2)}") doesn't match trim size`,
+        description: `Expected ${trimWidthIn.toFixed(2)}" × ${trimHeightIn.toFixed(2)}"`,
+        category: 'size',
+        actual: `${pageW.toFixed(2)}" × ${pageH.toFixed(2)}"`,
+        expected: `${trimWidthIn.toFixed(2)}" × ${trimHeightIn.toFixed(2)}"`,
+        region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
+        suggestion: `Resize page ${pageNum} to ${trimWidthIn.toFixed(2)}" × ${trimHeightIn.toFixed(2)}" to match the KDP trim size for ${config.trimSize}.`,
+      });
+    }
+
+    // 2. Blank page detection — category: 'interior'
+    if (pdfAnalysis.blankPages.includes(pageNum)) {
+      const isFrontMatter = pageNum <= 2;
+      issues.push({
+        id: `page-${pageNum}-blank`,
+        page: pageNum,
+        type: 'blank-page',
+        severity: isFrontMatter ? 'safe' : 'warning',
+        message: `Page ${pageNum} appears to be blank`,
+        description: isFrontMatter
+          ? 'Front matter blank pages are normal'
+          : 'Unexpected blank page may indicate missing content',
+        category: 'interior',
+        actual: 'No content detected on this page',
+        expected: isFrontMatter
+          ? 'Blank front matter pages are acceptable'
+          : 'Content should be present on interior pages',
+        region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
+        suggestion: isFrontMatter
+          ? 'This blank page is typical for front matter and is acceptable for KDP.'
+          : 'Review this page — if intentionally blank (e.g., chapter starts on a right-hand page), this is fine. Otherwise, add content.',
+      });
+    }
+
+    // 3. Low resolution images — category: 'dpi', region: estimated image area
+    const lowRes = pdfAnalysis.imageResolutions.find(r => r.page === pageNum);
+    if (lowRes && lowRes.dpi < MIN_COVER_DPI) {
+      const severity: CheckStatus =
+        lowRes.dpi < 150 ? 'fail' : lowRes.dpi < 200 ? 'risk' : 'warning';
+      // Estimate the image occupies the center 60% of the page
+      const imgW = pageW * 0.6;
+      const imgH = pageH * 0.6;
+      const imgX = pageW * 0.2;
+      const imgY = pageH * 0.2;
+      issues.push({
+        id: `page-${pageNum}-lowdpi`,
+        page: pageNum,
+        type: 'low-dpi',
+        severity,
+        message: `Page ${pageNum} has low resolution images (${lowRes.dpi} DPI)`,
+        description: 'Images below 300 DPI may appear blurry in print',
+        category: 'dpi',
+        actual: `${lowRes.dpi} DPI`,
+        expected: '300 DPI minimum',
+        region: { xIn: imgX, yIn: imgY, widthIn: imgW, heightIn: imgH },
+        suggestion:
+          severity === 'fail'
+            ? `Replace the image on page ${pageNum} with a version at 300 DPI or higher. Current ${lowRes.dpi} DPI will produce visibly blurry printing.`
+            : `Consider replacing the image on page ${pageNum} with a higher resolution version. At ${lowRes.dpi} DPI, printed quality may be noticeably degraded.`,
+      });
+    }
+
+    // 4. Bleed issues — category: 'bleed', region: edge strips
+    if (config.bleed === 'bleed') {
+      const hasBleedArea = pdfAnalysis.hasBleed;
+      if (!hasBleedArea && pageNum > 2) {
+        // No bleed detected on a page that should have bleed
+        issues.push({
+          id: `page-${pageNum}-bleed`,
+          page: pageNum,
+          type: 'bleed-problem',
+          severity: 'warning',
+          message: `Page ${pageNum}: No bleed area detected — artwork may not extend to bleed edge`,
+          description: `Content should extend ${bleedIn}" beyond trim on all sides`,
+          category: 'bleed',
+          actual: 'No bleed area detected',
+          expected: `${bleedIn}" bleed on all sides`,
+          // Region: the outer bleed strip around the page edges
+          region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
+          suggestion: `Extend artwork on page ${pageNum} by ${bleedIn}" beyond the trim line on all sides so background colors/images bleed off the page edge.`,
+        });
+      } else if (hasBleedArea && pageNum > 2) {
+        // Bleed is present — informational
+        issues.push({
+          id: `page-${pageNum}-bleed-ok`,
+          page: pageNum,
+          type: 'bleed-problem',
+          severity: 'safe',
+          message: `Page ${pageNum}: Verify artwork extends into bleed area`,
+          description: `Content should extend ${bleedIn}" beyond trim on all sides`,
+          category: 'bleed',
+          actual: `${bleedIn}" bleed area present`,
+          expected: `${bleedIn}" bleed on all sides`,
+          region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
+          suggestion: `Confirm that page ${pageNum} background extends fully into the ${bleedIn}" bleed zone on all sides.`,
+        });
+      }
+    }
+
+    // 5. Margin safety — category: 'margin', region: near edge
+    // Check content proximity to the outer trim edges
+    const estimatedMarginSafety = safeAreaIn; // Estimated distance from edge
+    const marginDanger = estimatedMarginSafety < 0.125; // Content closer than 0.125" to edge
+    if (marginDanger) {
+      issues.push({
+        id: `page-${pageNum}-margin`,
+        page: pageNum,
+        type: 'margin-danger',
+        severity: 'warning',
+        message: `Page ${pageNum}: Content may be too close to the trim edge`,
+        description: `Content is approximately ${(estimatedMarginSafety * 100).toFixed(0)} mils from trim edge`,
+        category: 'margin',
+        actual: `${estimatedMarginSafety.toFixed(3)}" from trim edge`,
+        expected: `Minimum ${SAFE_AREA_IN}"`,
+        // Region: a narrow strip along all four edges
+        region: {
+          xIn: safeAreaIn,
+          yIn: safeAreaIn,
+          widthIn: pageW - safeAreaIn * 2,
+          heightIn: pageH - safeAreaIn * 2,
+        },
+        suggestion: `Move content on page ${pageNum} at least ${SAFE_AREA_IN}" inward from all page edges to avoid being trimmed during printing.`,
+      });
+    }
+
+    // 6. Gutter tightness — category: 'gutter', region: gutter area
+    const isLeftPage = pageNum % 2 === 0;
+    const isRightPage = !isLeftPage;
+    if (gutterIn > 0 && (isLeftPage || isRightPage)) {
+      // Content near the gutter/binding edge
+      const gutterSide = isLeftPage ? 'left' : 'right'; // left page has gutter on right, right page on left
+      const gutterEdgeX = isLeftPage ? pageW - gutterIn : 0;
+      const isTight = gutterIn < 0.1; // Gutter clearance is tight
+      issues.push({
+        id: `page-${pageNum}-gutter`,
+        page: pageNum,
+        type: 'margin-danger',
+        severity: isTight ? 'warning' : 'safe',
+        message: `Page ${pageNum}: ${isTight ? 'Content within gutter clearance area' : 'Verify inner margin content is clear of gutter area'}`,
+        description: `Gutter margin is ${gutterIn}" — text too close to spine may be hidden`,
+        category: 'gutter',
+        actual: isTight
+          ? `Content within ${(gutterIn * 100).toFixed(0)} mils of gutter`
+          : `${gutterIn}" gutter clearance`,
+        expected: '0.1" minimum gutter clearance',
+        region: {
+          xIn: gutterEdgeX,
+          yIn: 0,
+          widthIn: gutterIn,
+          heightIn: pageH,
+        },
+        suggestion: isTight
+          ? `Increase the inner margin on page ${pageNum} so text is at least 0.1" away from the ${gutterSide} (gutter) edge. Content in the gutter can be hidden by the binding.`
+          : `Ensure important content on page ${pageNum} stays out of the ${gutterIn}" gutter zone on the ${gutterSide} edge.`,
+      });
+    }
+
+    // 7. Trim danger — category: 'margin', region: edge strip
+    issues.push({
+      id: `page-${pageNum}-trim`,
+      page: pageNum,
+      type: 'trim-risk',
+      severity: 'safe',
+      message: `Page ${pageNum}: Verify content stays within ${safeAreaIn}" safe area`,
+      description: 'Content near the trim edge may be cut during printing',
+      category: 'margin',
+      actual: `Safe area is ${safeAreaIn}" from trim`,
+      expected: `Minimum ${SAFE_AREA_IN}" safe area from all edges`,
+      region: {
+        xIn: safeAreaIn,
+        yIn: safeAreaIn,
+        widthIn: pageW - safeAreaIn * 2,
+        heightIn: pageH - safeAreaIn * 2,
+      },
+      suggestion: `Keep all important text and images on page ${pageNum} at least ${safeAreaIn}" from every edge. The outer ${safeAreaIn}" strip may be trimmed during production.`,
+    });
+  }
+
+  return issues;
+}
+
+/**
+ * Compute a validation summary from a list of extended page issues.
+ * Aggregates counts by severity and category, determines overall status,
+ * and provides a ready flag.
+ */
+export function computeValidationSummary(issues: PageIssueExtended[]): ValidationSummary {
+  const categories: IssueCategory[] = ['cover', 'interior', 'bleed', 'dpi', 'font', 'gutter', 'margin', 'size'];
+  const byCategory: Record<IssueCategory, number> = {} as Record<IssueCategory, number>;
+  for (const cat of categories) {
+    byCategory[cat] = 0;
+  }
+
+  let fail = 0;
+  let risk = 0;
+  let warning = 0;
+  let safe = 0;
+  let pass = 0;
+
+  for (const issue of issues) {
+    // Count by severity
+    switch (issue.severity) {
+      case 'fail': fail++; break;
+      case 'risk': risk++; break;
+      case 'warning': warning++; break;
+      case 'safe': safe++; break;
+      case 'pass': pass++; break;
+    }
+    // Count by category
+    if (byCategory[issue.category] !== undefined) {
+      byCategory[issue.category]++;
+    }
+  }
+
+  const total = issues.length;
+
+  // Determine overall status (worst severity wins)
+  let overallStatus: CheckStatus = 'pass';
+  if (fail > 0) overallStatus = 'fail';
+  else if (risk > 0) overallStatus = 'risk';
+  else if (warning > 0) overallStatus = 'warning';
+  else if (safe > 0) overallStatus = 'safe';
+
+  const isReady = fail === 0 && risk === 0;
+
+  return {
+    total,
+    fail,
+    risk,
+    warning,
+    safe,
+    pass,
+    byCategory,
+    overallStatus,
+    isReady,
+  };
 }
 
 // Generate summary text

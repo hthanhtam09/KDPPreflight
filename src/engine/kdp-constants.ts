@@ -1,4 +1,4 @@
-import { TrimSize, TrimSizeKey, BleedType, PaperType, InteriorType, BookConfig, CalculatedMeasurements } from '@/types/kdp';
+import { TrimSize, TrimSizeKey, BleedType, PaperType, InteriorType, BookConfig, CalculatedMeasurements, BookType } from '@/types/kdp';
 
 // KDP Standard Trim Sizes
 export const TRIM_SIZES: Record<TrimSizeKey, TrimSize> = {
@@ -57,6 +57,11 @@ export const SUPPORTED_COVER_TYPES = ['application/pdf', 'image/png', 'image/jpe
 export const SUPPORTED_MANUSCRIPT_TYPES = ['application/pdf'];
 export const SUPPORTED_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg'];
 
+// Hardcover hinge and wrap settings
+export const HARDCOVER_HINGE_IN = 0.375; // 3/8 inch hinge
+export const HARDCOVER_WRAP_IN = 0.625; // 5/8 inch wrap
+export const GUTTER_IN = 0.1; // inner gutter spacing per page
+
 // Default book config
 export const DEFAULT_BOOK_CONFIG: BookConfig = {
   trimSize: '6x9',
@@ -65,6 +70,7 @@ export const DEFAULT_BOOK_CONFIG: BookConfig = {
   interior: 'black-white',
   pageCount: 100,
   binding: 'paperback',
+  bookType: 'paperback',
 };
 
 // Calculate all measurements from config
@@ -79,12 +85,16 @@ export function calculateMeasurements(config: BookConfig): CalculatedMeasurement
   const fullCoverWidthIn = trimWidthIn + bleedIn + spineWidthIn + bleedIn + trimWidthIn + (WRAP_AROUND_IN * 2);
   const fullCoverHeightIn = trimHeightIn + (bleedIn * 2) + (WRAP_AROUND_IN * 2);
   
-  const barcodeAreaIn = {
+  const barcodeArea = {
     x: trimWidthIn - BARCODE_AREA.width - SAFE_AREA_IN,
     y: trimHeightIn - BARCODE_AREA.height - SAFE_AREA_IN,
     width: BARCODE_AREA.width,
     height: BARCODE_AREA.height,
   };
+
+  const isHardcover = config.binding === 'hardcover' || config.bookType === 'hardcover';
+  const hingeIn = isHardcover ? HARDCOVER_HINGE_IN : 0;
+  const gutterIn = GUTTER_IN;
 
   return {
     trimWidthIn,
@@ -94,8 +104,10 @@ export function calculateMeasurements(config: BookConfig): CalculatedMeasurement
     fullCoverWidthIn: Math.round(fullCoverWidthIn * 1000) / 1000,
     fullCoverHeightIn: Math.round(fullCoverHeightIn * 1000) / 1000,
     safeAreaIn: SAFE_AREA_IN,
-    barcodeAreaIn,
+    barcodeAreaIn: barcodeArea,
     wrapAroundIn: WRAP_AROUND_IN,
+    gutterIn,
+    hingeIn,
   };
 }
 

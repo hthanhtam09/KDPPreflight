@@ -1,1520 +1,1109 @@
 'use client';
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
-  Settings,
-  BookOpen,
-  Ruler,
-  FileText,
-  Layers,
-  ArrowLeft,
-  ArrowRight,
-  Info,
-  RotateCcw,
-  Package,
-  BookMarked,
-  Grid3X3,
-  Shield,
-  type LucideIcon,
+  Ruler, BookOpen, ArrowLeft, ArrowRight, Layers, Type,
+  Image as ImageIcon, ScanLine, BookMarked, ShieldCheck, FileText,
+  ChevronDown, ChevronUp, Info, Minus, Plus, Lock,
+  Maximize2, Box, Monitor, Palette, Grid3x3,
+  Move, RotateCcw, Check
 } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import {
-  BookConfig,
-  TrimSizeKey,
-  CalculatedMeasurements,
-  KDPFormat,
-  PaperType,
-  InteriorType,
-  DetectedMetadata,
-} from '@/types/kdp';
-import {
-  TRIM_SIZES,
-  WRAP_AROUND_IN,
-  SAFE_AREA_IN,
-  BARCODE_AREA,
+  TRIM_SIZES, BLEED_SIZE_IN, formatInches, inchesToMm, inchesToPixels,
+  HARDCOVER_HINGE_IN, HARDCOVER_WRAP_IN, GUTTER_IN,
+  SAFE_AREA_IN, BARCODE_AREA,
 } from '@/engine/kdp-constants';
-import { Switch } from '@/components/ui/switch';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+  TrimSizeKey, BleedType, PaperType, InteriorType, BookType as BookTypeEnum,
+  BookConfig,
+} from '@/types/kdp';
 
-// ─── Animation Variants ───────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 16, scale: 0.97 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      delay: i * 0.06,
-      duration: 0.45,
-      ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number],
-    },
-  }),
-  exit: {
-    opacity: 0,
-    y: -8,
-    scale: 0.97,
-    transition: { duration: 0.25 },
-  },
-};
+const PAPERBACK_TRIM_KEYS: TrimSizeKey[] = [
+  '5x8', '5.25x8', '5.5x8.5', '6x9', '7x10', '7.44x9.69',
+  '8x10', '8.25x6', '8.25x8.25', '8.5x8.5', '8.5x11',
+];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-  exit: { opacity: 0 },
-};
+const HARDCOVER_TRIM_KEYS: TrimSizeKey[] = [
+  '5.5x8.5', '6x9', '7x10', '8.25x8.25', '8.5x11',
+];
 
-// ─── Config Card Component ────────────────────
+// ─── Config Card Wrapper ────────────────────────────────────────────────────
 
 interface ConfigCardProps {
-  icon: LucideIcon;
+  icon: React.ReactNode;
   label: string;
-  value: string;
-  helpText: string;
-  children?: React.ReactNode;
-  index?: number;
+  helpText?: string;
+  children: React.ReactNode;
+  accent?: boolean;
 }
 
-function ConfigCard({ icon: Icon, label, value, helpText, children, index = 0 }: ConfigCardProps) {
+function ConfigCard({ icon, label, helpText, children, accent }: ConfigCardProps) {
+  const [showHelp, setShowHelp] = useState(false);
+
   return (
-    <motion.div
-      custom={index}
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
-      className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 hover:bg-white/[0.05] hover:border-white/[0.1] transition-colors duration-300"
+    <div
+      className={`group rounded-xl border transition-all duration-300 ${
+        accent
+          ? 'bg-emerald-500/[0.06] border-emerald-500/20'
+          : 'bg-white/[0.03] border-white/[0.06] hover:border-white/[0.12]'
+      }`}
     >
-      <div className="flex items-start gap-3">
-        <div className="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center shrink-0 mt-0.5">
-          <Icon className="w-4 h-4 text-white/50" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-1">
+      <div className="p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+              accent ? 'bg-emerald-500/20' : 'bg-white/[0.06]'
+            }`}>
+              {icon}
+            </div>
             <span className="text-sm font-medium text-white/80">{label}</span>
-            <span className="text-xs text-white/40 truncate">{value}</span>
           </div>
-          {children && <div className="mt-2">{children}</div>}
-          <div className="flex items-start gap-1.5 mt-2.5">
-            <Info className="w-3 h-3 text-white/20 mt-0.5 shrink-0" />
-            <p className="text-[11px] text-white/30 leading-relaxed">{helpText}</p>
+          {helpText && (
+            <button
+              onClick={() => setShowHelp(!showHelp)}
+              className="w-5 h-5 rounded-full flex items-center justify-center text-white/20 hover:text-white/50 hover:bg-white/[0.06] transition-colors"
+              title="Toggle help"
+            >
+              <Info className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Content */}
+        {children}
+
+        {/* Help Text */}
+        {helpText && showHelp && (
+          <div className="mt-3 flex gap-2 items-start bg-white/[0.03] rounded-lg p-2.5 transition-all duration-200">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
+            <p className="text-[11px] text-white/50 leading-relaxed">{helpText}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom help (always visible) */}
+      {helpText && !showHelp && (
+        <div className="px-4 pb-3">
+          <p className="text-[10px] text-white/25 truncate">{helpText}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Option Button ──────────────────────────────────────────────────────────
+
+interface OptionBtnProps {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  className?: string;
+}
+
+function OptionBtn({ label, active, onClick, className = '' }: OptionBtnProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+        active
+          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
+          : 'bg-white/[0.04] text-white/45 border border-transparent hover:bg-white/[0.08] hover:text-white/65'
+      } ${className}`}
+    >
+      {active && <Check className="w-3 h-3 inline mr-1 -mt-0.5" />}
+      {label}
+    </button>
+  );
+}
+
+// ─── Kindle Config Cards ────────────────────────────────────────────────────
+
+function KindleConfigCards() {
+  const { bookConfig, updateBookConfig } = useAppStore();
+  const [fontEmbed, setFontEmbed] = useState(true);
+  const [tocValidation, setTocValidation] = useState(true);
+  const [reflowTesting, setReflowTesting] = useState(true);
+  const [imageScaling, setImageScaling] = useState<'default' | 'optimized' | 'none'>('default');
+  const [readabilityMode, setReadabilityMode] = useState<'default' | 'large-print' | 'dyslexia'>('default');
+
+  return (
+    <div className="space-y-3">
+      {/* Font Embedding */}
+      <ConfigCard
+        icon={<Type className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Font Embedding"
+        helpText="Embedded fonts ensure your book displays consistently across all Kindle devices and apps. Without embedding, Kindle may substitute fonts."
+      >
+        <div className="flex gap-2">
+          <OptionBtn label="Enabled" active={fontEmbed} onClick={() => setFontEmbed(true)} />
+          <OptionBtn label="Disabled" active={!fontEmbed} onClick={() => setFontEmbed(false)} />
+        </div>
+      </ConfigCard>
+
+      {/* TOC Validation */}
+      <ConfigCard
+        icon={<BookMarked className="w-3.5 h-3.5 text-emerald-400" />}
+        label="TOC Validation"
+        helpText="Validates your Table of Contents has proper NCX and HTML navigation. KDP requires a functional TOC for Kindle books."
+      >
+        <div className="flex gap-2">
+          <OptionBtn label="Enabled" active={tocValidation} onClick={() => setTocValidation(true)} />
+          <OptionBtn label="Disabled" active={!tocValidation} onClick={() => setTocValidation(false)} />
+        </div>
+      </ConfigCard>
+
+      {/* Reflow Testing */}
+      <ConfigCard
+        icon={<Move className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Reflow Testing"
+        helpText="Tests how your content reflows across different font sizes and device orientations. Critical for a good reading experience."
+      >
+        <div className="flex gap-2">
+          <OptionBtn label="Enabled" active={reflowTesting} onClick={() => setReflowTesting(true)} />
+          <OptionBtn label="Disabled" active={!reflowTesting} onClick={() => setReflowTesting(false)} />
+        </div>
+      </ConfigCard>
+
+      {/* Image Scaling */}
+      <ConfigCard
+        icon={<ImageIcon className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Image Scaling"
+        helpText="Controls how images are processed. 'Optimized' resizes for Kindle screens while maintaining quality. 'None' keeps original sizes."
+      >
+        <div className="flex gap-2">
+          <OptionBtn label="Default" active={imageScaling === 'default'} onClick={() => setImageScaling('default')} />
+          <OptionBtn label="Optimized" active={imageScaling === 'optimized'} onClick={() => setImageScaling('optimized')} />
+          <OptionBtn label="None" active={imageScaling === 'none'} onClick={() => setImageScaling('none')} />
+        </div>
+      </ConfigCard>
+
+      {/* Readability Mode */}
+      <ConfigCard
+        icon={<Palette className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Readability Mode"
+        helpText="Large Print increases font size for accessibility. Dyslexia-friendly uses specialized fonts and spacing recommended for readers with dyslexia."
+      >
+        <div className="flex gap-2">
+          <OptionBtn label="Default" active={readabilityMode === 'default'} onClick={() => setReadabilityMode('default')} />
+          <OptionBtn label="Large Print" active={readabilityMode === 'large-print'} onClick={() => setReadabilityMode('large-print')} />
+          <OptionBtn label="Dyslexia" active={readabilityMode === 'dyslexia'} onClick={() => setReadabilityMode('dyslexia')} />
+        </div>
+      </ConfigCard>
+    </div>
+  );
+}
+
+// ─── Print Config Cards (shared by paperback & hardcover) ───────────────────
+
+function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
+  const { bookConfig, updateBookConfig, measurements, uploadedManuscript } = useAppStore();
+  const [customWidth, setCustomWidth] = useState(bookConfig.customWidth?.toString() || '');
+  const [customHeight, setCustomHeight] = useState(bookConfig.customHeight?.toString() || '');
+
+  const trimKeys = isHardcover ? HARDCOVER_TRIM_KEYS : PAPERBACK_TRIM_KEYS;
+
+  const handleTrimSizeChange = useCallback((key: TrimSizeKey) => {
+    if (key === 'custom') {
+      const w = parseFloat(customWidth) || 6;
+      const h = parseFloat(customHeight) || 9;
+      updateBookConfig({ trimSize: 'custom', customWidth: w, customHeight: h });
+    } else {
+      updateBookConfig({ trimSize: key });
+    }
+  }, [customWidth, customHeight, updateBookConfig]);
+
+  const handlePageCountChange = useCallback((value: string) => {
+    let num = parseInt(value) || 24;
+    // Ensure even number
+    if (num % 2 !== 0) num += 1;
+    num = Math.max(24, Math.min(isHardcover ? 550 : 828, num));
+    updateBookConfig({ pageCount: num });
+  }, [isHardcover, updateBookConfig]);
+
+  // Auto-detect page count from uploaded manuscript
+  const autoPageCount = uploadedManuscript?.pageCount;
+
+  const handleCustomWidthChange = useCallback((value: string) => {
+    setCustomWidth(value);
+    const w = parseFloat(value) || 0;
+    updateBookConfig({ customWidth: w });
+  }, [updateBookConfig]);
+
+  const handleCustomHeightChange = useCallback((value: string) => {
+    setCustomHeight(value);
+    const h = parseFloat(value) || 0;
+    updateBookConfig({ customHeight: h });
+  }, [updateBookConfig]);
+
+  return (
+    <div className="space-y-3">
+      {/* Trim Size */}
+      <ConfigCard
+        icon={<Maximize2 className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Trim Size"
+        helpText="Select a KDP-approved trim size. This determines your book's final printed dimensions and affects spine width calculation."
+      >
+        <div className="grid grid-cols-3 gap-1.5">
+          {trimKeys.map((key) => {
+            const size = TRIM_SIZES[key];
+            return (
+              <OptionBtn
+                key={key}
+                label={size.label}
+                active={bookConfig.trimSize === key}
+                onClick={() => handleTrimSizeChange(key)}
+              />
+            );
+          })}
+          {!isHardcover && (
+            <OptionBtn
+              label="Custom"
+              active={bookConfig.trimSize === 'custom'}
+              onClick={() => handleTrimSizeChange('custom')}
+            />
+          )}
+        </div>
+        {bookConfig.trimSize === 'custom' && !isHardcover && (
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <div>
+              <label className="text-[10px] text-white/30 mb-1 block">Width (inches)</label>
+              <input
+                type="number"
+                value={customWidth}
+                onChange={(e) => handleCustomWidthChange(e.target.value)}
+                step="0.01"
+                min="5"
+                max="8.5"
+                className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 focus:outline-none focus:border-emerald-500/40 transition-colors"
+                placeholder="6.0"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-white/30 mb-1 block">Height (inches)</label>
+              <input
+                type="number"
+                value={customHeight}
+                onChange={(e) => handleCustomHeightChange(e.target.value)}
+                step="0.01"
+                min="5"
+                max="11"
+                className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 focus:outline-none focus:border-emerald-500/40 transition-colors"
+                placeholder="9.0"
+              />
+            </div>
+          </div>
+        )}
+      </ConfigCard>
+
+      {/* Bleed */}
+      <ConfigCard
+        icon={<ScanLine className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Bleed"
+        helpText={
+          bookConfig.bleed === 'bleed'
+            ? 'Recommended when artwork reaches page edges. Adds 0.125" on each side for printing tolerance.'
+            : 'White border around content. Choose this if your artwork does not extend to the page edges.'
+        }
+      >
+        <div className="flex gap-2">
+          <OptionBtn label="No Bleed" active={bookConfig.bleed === 'no-bleed'} onClick={() => updateBookConfig({ bleed: 'no-bleed' })} />
+          <OptionBtn label="With Bleed" active={bookConfig.bleed === 'bleed'} onClick={() => updateBookConfig({ bleed: 'bleed' })} />
+        </div>
+      </ConfigCard>
+
+      {/* Paper Type */}
+      <ConfigCard
+        icon={<Layers className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Paper Type"
+        helpText="Paper type affects spine width calculation. Cream and premium paper are thicker per page, resulting in a wider spine."
+      >
+        <div className="flex gap-2">
+          {(['white', 'cream', 'premium-color'] as PaperType[]).map((paper) => (
+            <OptionBtn
+              key={paper}
+              label={paper === 'premium-color' ? 'Premium' : paper.charAt(0).toUpperCase() + paper.slice(1)}
+              active={bookConfig.paper === paper}
+              onClick={() => updateBookConfig({ paper })}
+            />
+          ))}
+        </div>
+      </ConfigCard>
+
+      {/* Interior Type */}
+      <ConfigCard
+        icon={<Palette className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Interior Type"
+        helpText="Interior type determines printing method. B&W is most cost-effective. Color options use higher quality printing processes."
+      >
+        <div className="flex gap-2">
+          {(['black-white', 'standard-color', 'premium-color'] as InteriorType[]).map((interior) => (
+            <OptionBtn
+              key={interior}
+              label={interior === 'black-white' ? 'B&W' : interior === 'standard-color' ? 'Standard' : 'Premium'}
+              active={bookConfig.interior === interior}
+              onClick={() => updateBookConfig({ interior })}
+            />
+          ))}
+        </div>
+      </ConfigCard>
+
+      {/* Page Count */}
+      <ConfigCard
+        icon={<FileText className="w-3.5 h-3.5 text-emerald-400" />}
+        label="Page Count"
+        helpText="Spine width is automatically calculated from page count and paper type. KDP requires even page numbers within the valid range."
+        accent
+      >
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => handlePageCountChange(String(bookConfig.pageCount - 2))}
+            className="w-8 h-8 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center text-white/50 hover:text-white/80 transition-colors"
+          >
+            <Minus className="w-3.5 h-3.5" />
+          </button>
+          <input
+            type="number"
+            value={bookConfig.pageCount}
+            onChange={(e) => handlePageCountChange(e.target.value)}
+            min={24}
+            max={isHardcover ? 550 : 828}
+            step={2}
+            className="flex-1 bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2 text-center text-sm font-mono text-white/80 focus:outline-none focus:border-emerald-500/40 transition-colors"
+          />
+          <button
+            onClick={() => handlePageCountChange(String(bookConfig.pageCount + 2))}
+            className="w-8 h-8 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center text-white/50 hover:text-white/80 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        {autoPageCount && autoPageCount !== bookConfig.pageCount && (
+          <button
+            onClick={() => handlePageCountChange(String(autoPageCount))}
+            className="mt-2 text-[10px] text-emerald-400/60 hover:text-emerald-400 transition-colors flex items-center gap-1"
+          >
+            <RotateCcw className="w-3 h-3" />
+            Auto-fill from manuscript: {autoPageCount} pages
+          </button>
+        )}
+        <p className="text-[10px] text-white/25 mt-2">
+          Range: 24–{isHardcover ? '550' : '828'} pages • Spine: {formatInches(measurements.spineWidthIn)}
+        </p>
+      </ConfigCard>
+
+      {/* Binding */}
+      <ConfigCard
+        icon={<BookOpen className="w-3.5 h-3.5 text-white/30" />}
+        label={`Binding: ${isHardcover ? 'Hardcover' : 'Paperback'}`}
+        helpText={isHardcover
+          ? 'Hardcover binding includes a rigid case wrap with hinge and wrap zones for proper folding.'
+          : 'Perfect binding with a glued spine. The most common and cost-effective binding for KDP.'
+        }
+      >
+        <div className="flex items-center gap-2 bg-white/[0.03] rounded-lg px-3 py-2">
+          <Lock className="w-3.5 h-3.5 text-white/20" />
+          <span className="text-xs text-white/30">{isHardcover ? 'Hardcover' : 'Paperback'} — set during import</span>
+        </div>
+      </ConfigCard>
+
+      {/* Hardcover Extras */}
+      {isHardcover && (
+        <>
+          <ConfigCard
+            icon={<Grid3x3 className="w-3.5 h-3.5 text-amber-400" />}
+            label="Hinge Area"
+            helpText="Required folding area for hardcover binding. The hinge allows the cover to open smoothly without damaging the spine."
+          >
+            <div className="flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2.5">
+              <span className="text-xs text-white/40">Hinge width</span>
+              <span className="text-sm font-mono text-amber-400">{formatInches(HARDCOVER_HINGE_IN)}</span>
+            </div>
+            <p className="text-[10px] text-white/25 mt-1.5">0.375" on each side — auto-calculated for hardcover</p>
+          </ConfigCard>
+
+          <ConfigCard
+            icon={<Box className="w-3.5 h-3.5 text-amber-400" />}
+            label="Wrap Zone"
+            helpText="The wrap zone extends the cover around the hardcover case. This area wraps around the board edges and onto the inside."
+          >
+            <div className="flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2.5">
+              <span className="text-xs text-white/40">Wrap width</span>
+              <span className="text-sm font-mono text-amber-400">{formatInches(HARDCOVER_WRAP_IN)}</span>
+            </div>
+            <p className="text-[10px] text-white/25 mt-1.5">0.625" on each side — auto-calculated for hardcover</p>
+          </ConfigCard>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Measurements Display ───────────────────────────────────────────────────
+
+function MeasurementsDisplay() {
+  const { measurements, bookType, bookConfig } = useAppStore();
+  const isHardcover = bookType === 'hardcover';
+
+  const items = useMemo(() => {
+    const base = [
+      {
+        label: 'Trim Size',
+        value: `${formatInches(measurements.trimWidthIn)} × ${formatInches(measurements.trimHeightIn)}`,
+        sub: `${inchesToMm(measurements.trimWidthIn).toFixed(1)} × ${inchesToMm(measurements.trimHeightIn).toFixed(1)} mm`,
+      },
+      {
+        label: 'Spine Width',
+        value: formatInches(measurements.spineWidthIn),
+        sub: `${inchesToMm(measurements.spineWidthIn).toFixed(2)} mm`,
+        highlight: true,
+      },
+      {
+        label: 'Full Cover',
+        value: `${formatInches(measurements.fullCoverWidthIn)} × ${formatInches(measurements.fullCoverHeightIn)}`,
+        sub: `${inchesToPixels(measurements.fullCoverWidthIn)} × ${inchesToPixels(measurements.fullCoverHeightIn)} px`,
+      },
+      {
+        label: 'Bleed',
+        value: measurements.bleedIn > 0 ? `${formatInches(measurements.bleedIn)} per edge` : 'None',
+        sub: measurements.bleedIn > 0 ? `${formatInches(BLEED_SIZE_IN)} on each side` : 'No bleed selected',
+      },
+      {
+        label: 'Safe Area',
+        value: `${formatInches(measurements.safeAreaIn)} from each edge`,
+        sub: 'Keep content inside',
+      },
+      {
+        label: 'Gutter',
+        value: `${formatInches(measurements.gutterIn)} inner margin`,
+        sub: 'Extra inner spacing improves readability near the spine',
+      },
+    ];
+
+    if (isHardcover) {
+      base.push(
+        {
+          label: 'Hinge',
+          value: formatInches(measurements.hingeIn),
+          sub: 'Required folding area for hardcover binding',
+          highlight: true,
+        },
+        {
+          label: 'Wrap',
+          value: formatInches(HARDCOVER_WRAP_IN),
+          sub: 'Cover wrap around case board',
+        }
+      );
+    }
+
+    if (bookType === 'paperback') {
+      base.push({
+        label: 'Barcode Safe Area',
+        value: `2.000" × 1.200"`,
+        sub: 'Bottom-right of back cover',
+      });
+    }
+
+    return base;
+  }, [measurements, bookType, isHardcover]);
+
+  if (bookType === 'kindle') {
+    return (
+      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+        <h4 className="text-xs text-white/50 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Monitor className="w-3.5 h-3.5" />
+          Kindle Format
+        </h4>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg">
+            <span className="text-xs text-white/40">Format</span>
+            <span className="text-xs text-white/70">KFX / MOBI / EPUB</span>
+          </div>
+          <div className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg">
+            <span className="text-xs text-white/40">Reflowable</span>
+            <span className="text-xs text-emerald-400">Yes</span>
+          </div>
+          <div className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg">
+            <span className="text-xs text-white/40">Max File Size</span>
+            <span className="text-xs text-white/70">650 MB</span>
           </div>
         </div>
       </div>
-    </motion.div>
-  );
-}
-
-// ─── Toggle Control ───────────────────────────
-
-interface ToggleControlProps {
-  enabled: boolean;
-  onToggle: (enabled: boolean) => void;
-  labels?: [string, string];
-}
-
-function ToggleControl({ enabled, onToggle, labels = ['No', 'Yes'] }: ToggleControlProps) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className={`text-xs ${!enabled ? 'text-white/50' : 'text-white/25'}`}>
-        {labels[0]}
-      </span>
-      <Switch
-        checked={enabled}
-        onCheckedChange={onToggle}
-        className="data-[state=checked]:bg-emerald-500/70 data-[state=unchecked]:bg-white/10"
-      />
-      <span className={`text-xs ${enabled ? 'text-white/50' : 'text-white/25'}`}>
-        {labels[1]}
-      </span>
-    </div>
-  );
-}
-
-// ─── Segmented Selector ───────────────────────
-
-interface SegmentedSelectorProps<T extends string> {
-  options: { value: T; label: string }[];
-  selected: T;
-  onSelect: (value: T) => void;
-}
-
-function SegmentedSelector<T extends string>({
-  options,
-  selected,
-  onSelect,
-}: SegmentedSelectorProps<T>) {
-  return (
-    <div className="flex rounded-lg bg-white/[0.04] border border-white/[0.06] p-0.5 gap-0.5">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => onSelect(opt.value)}
-          className={`relative px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
-            selected === opt.value
-              ? 'bg-white/[0.1] text-white/80 shadow-sm'
-              : 'text-white/30 hover:text-white/50'
-          }`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// ─── Kindle Config ────────────────────────────
-
-function KindleConfig({
-  bookConfig,
-  updateBookConfig,
-  detectedMetadata,
-}: {
-  bookConfig: BookConfig;
-  updateBookConfig: (updates: Partial<BookConfig>) => void;
-  detectedMetadata: DetectedMetadata | null;
-}) {
-  const [layoutType, setLayoutType] = React.useState<'reflowable' | 'fixed'>('reflowable');
-  const [embeddedFonts, setEmbeddedFonts] = React.useState(true);
-  const [imageScaling, setImageScaling] = React.useState<'fit' | 'original'>('fit');
-  const [tocIncluded, setTocIncluded] = React.useState(true);
+    );
+  }
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="space-y-3"
-    >
-      <ConfigCard
-        icon={Layers}
-        label="Layout Type"
-        value={layoutType === 'reflowable' ? 'Reflowable' : 'Fixed Layout'}
-        helpText="Reflowable text adjusts to the reader's device. Fixed layout preserves exact positioning — best for illustrated books."
-        index={0}
-      >
-        <SegmentedSelector
-          options={[
-            { value: 'reflowable' as const, label: 'Reflowable' },
-            { value: 'fixed' as const, label: 'Fixed Layout' },
-          ]}
-          selected={layoutType}
-          onSelect={setLayoutType}
-        />
-      </ConfigCard>
-
-      <ConfigCard
-        icon={BookOpen}
-        label="Embedded Fonts"
-        value={embeddedFonts ? 'Included' : 'Not included'}
-        helpText="Embedded fonts ensure your book looks the same on every device. Without them, Kindle substitutes default fonts."
-        index={1}
-      >
-        <ToggleControl
-          enabled={embeddedFonts}
-          onToggle={setEmbeddedFonts}
-          labels={['None', 'Embedded']}
-        />
-      </ConfigCard>
-
-      <ConfigCard
-        icon={Grid3X3}
-        label="Image Scaling"
-        value={imageScaling === 'fit' ? 'Fit to Screen' : 'Original Size'}
-        helpText="Fit-to-screen scales images to the reader's display. Original preserves exact dimensions but may require scrolling."
-        index={2}
-      >
-        <SegmentedSelector
-          options={[
-            { value: 'fit' as const, label: 'Fit to Screen' },
-            { value: 'original' as const, label: 'Original' },
-          ]}
-          selected={imageScaling}
-          onSelect={setImageScaling}
-        />
-      </ConfigCard>
-
-      <ConfigCard
-        icon={FileText}
-        label="Navigation / TOC"
-        value={tocIncluded ? 'Included' : 'Missing'}
-        helpText="A Table of Contents helps readers navigate. Kindle requires a logical TOC for most books."
-        index={3}
-      >
-        <ToggleControl
-          enabled={tocIncluded}
-          onToggle={setTocIncluded}
-          labels={['Missing', 'Included']}
-        />
-      </ConfigCard>
-    </motion.div>
-  );
-}
-
-// ─── Paperback Config ─────────────────────────
-
-function PaperbackConfig({
-  bookConfig,
-  updateBookConfig,
-  measurements,
-  detectedMetadata,
-}: {
-  bookConfig: BookConfig;
-  updateBookConfig: (updates: Partial<BookConfig>) => void;
-  measurements: CalculatedMeasurements;
-  detectedMetadata: DetectedMetadata | null;
-}) {
-  const trimOptions = Object.entries(TRIM_SIZES)
-    .filter(([key]) => key !== 'custom')
-    .map(([key, ts]) => ({
-      value: key as TrimSizeKey,
-      label: ts.label,
-    }));
-
-  return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="space-y-3"
-    >
-      {/* Trim Size */}
-      <ConfigCard
-        icon={Ruler}
-        label="Trim Size"
-        value={TRIM_SIZES[bookConfig.trimSize]?.label || 'Custom'}
-        helpText="Must match your manuscript's page dimensions exactly. KDP uses this for printing and cover templates."
-        index={0}
-      >
-        <Select
-          value={bookConfig.trimSize}
-          onValueChange={(val) => updateBookConfig({ trimSize: val as TrimSizeKey })}
-        >
-          <SelectTrigger className="w-full h-8 text-xs bg-white/[0.04] border-white/[0.08] text-white/70 hover:bg-white/[0.06]">
-            <SelectValue placeholder="Select trim size" />
-          </SelectTrigger>
-          <SelectContent className="bg-[#111] border-white/[0.08]">
-            {trimOptions.map((opt) => (
-              <SelectItem
-                key={opt.value}
-                value={opt.value}
-                className="text-xs text-white/70 focus:bg-white/[0.08] focus:text-white/90"
-              >
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </ConfigCard>
-
-      {/* Bleed */}
-      <ConfigCard
-        icon={Layers}
-        label="Bleed"
-        value={bookConfig.bleed === 'bleed' ? 'Enabled' : 'Disabled'}
-        helpText={
-          bookConfig.bleed === 'bleed'
-            ? 'Recommended if artwork touches the edge of the page. Adds 0.125" on each side.'
-            : 'Enable bleed if your artwork extends to the page edge. Without bleed, white borders may appear.'
-        }
-        index={1}
-      >
-        <ToggleControl
-          enabled={bookConfig.bleed === 'bleed'}
-          onToggle={(enabled) =>
-            updateBookConfig({ bleed: enabled ? 'bleed' : 'no-bleed' })
-          }
-          labels={['No Bleed', 'Bleed']}
-        />
-      </ConfigCard>
-
-      {/* Spine Width */}
-      <ConfigCard
-        icon={BookMarked}
-        label="Spine Width"
-        value={`${measurements.spineWidthIn.toFixed(3)}"`}
-        helpText="Calculated automatically based on page count and paper type. This determines your cover's center strip width."
-        index={2}
-      >
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-          <span className="text-sm text-white/60 font-mono">
-            {measurements.spineWidthIn.toFixed(3)}"
-          </span>
-          <span className="text-[10px] text-white/20 ml-auto">Auto-calculated</span>
-        </div>
-      </ConfigCard>
-
-      {/* Paper Type */}
-      <ConfigCard
-        icon={Package}
-        label="Paper Type"
-        value={
-          bookConfig.paper === 'white'
-            ? 'White'
-            : bookConfig.paper === 'cream'
-              ? 'Cream'
-              : 'Premium Color'
-        }
-        helpText="Paper type affects spine width and print quality. Cream is warmer and thicker; premium color is for full-color interiors."
-        index={3}
-      >
-        <SegmentedSelector
-          options={[
-            { value: 'white' as const, label: 'White' },
-            { value: 'cream' as const, label: 'Cream' },
-            { value: 'premium-color' as const, label: 'Premium' },
-          ]}
-          selected={bookConfig.paper}
-          onSelect={(val) => updateBookConfig({ paper: val as PaperType })}
-        />
-      </ConfigCard>
-
-      {/* Page Count */}
-      <ConfigCard
-        icon={FileText}
-        label="Page Count"
-        value={`${bookConfig.pageCount} pages`}
-        helpText="Must be between 24 and 828 pages for paperback. Even numbers only — blank pages are added if needed."
-        index={4}
-      >
-        <Input
-          type="number"
-          min={24}
-          max={828}
-          value={bookConfig.pageCount}
-          onChange={(e) => {
-            const val = parseInt(e.target.value, 10);
-            if (!isNaN(val) && val >= 24 && val <= 828) {
-              updateBookConfig({ pageCount: val });
-            }
-          }}
-          className="h-8 text-xs bg-white/[0.04] border-white/[0.08] text-white/70 hover:bg-white/[0.06] font-mono"
-        />
-      </ConfigCard>
-
-      {/* Margin Safety */}
-      <ConfigCard
-        icon={Shield}
-        label="Margin Safety"
-        value={`${SAFE_AREA_IN}" inside margin`}
-        helpText={`Keep all important content at least 0.25" away from the trim edge. The safe zone is shown in the template preview.`}
-        index={5}
-      >
-        <div className="flex items-center gap-3 text-[11px] text-white/30">
-          <span>Safe area: {SAFE_AREA_IN}" from edge</span>
-          <span className="text-white/10">|</span>
-          <span>Gutter: 0.375" minimum</span>
-        </div>
-      </ConfigCard>
-
-      {/* Interior Type */}
-      <ConfigCard
-        icon={BookOpen}
-        label="Interior Type"
-        value={
-          bookConfig.interior === 'black-white'
-            ? 'Black & White'
-            : bookConfig.interior === 'standard-color'
-              ? 'Standard Color'
-              : 'Premium Color'
-        }
-        helpText="Affects printing costs and quality. Premium color uses heavier paper and higher-quality inks."
-        index={6}
-      >
-        <SegmentedSelector
-          options={[
-            { value: 'black-white' as const, label: 'B&W' },
-            { value: 'standard-color' as const, label: 'Standard' },
-            { value: 'premium-color' as const, label: 'Premium' },
-          ]}
-          selected={bookConfig.interior}
-          onSelect={(val) => updateBookConfig({ interior: val as InteriorType })}
-        />
-      </ConfigCard>
-    </motion.div>
-  );
-}
-
-// ─── Hardcover Config ─────────────────────────
-
-function HardcoverConfig({
-  bookConfig,
-  updateBookConfig,
-  measurements,
-  detectedMetadata,
-}: {
-  bookConfig: BookConfig;
-  updateBookConfig: (updates: Partial<BookConfig>) => void;
-  measurements: CalculatedMeasurements;
-  detectedMetadata: DetectedMetadata | null;
-}) {
-  const trimOptions = Object.entries(TRIM_SIZES)
-    .filter(([key]) => key !== 'custom')
-    .map(([key, ts]) => ({
-      value: key as TrimSizeKey,
-      label: ts.label,
-    }));
-
-  const [caseLaminate, setCaseLaminate] = React.useState<'matte' | 'glossy'>('matte');
-  const [dustJacket, setDustJacket] = React.useState(false);
-
-  return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="space-y-3"
-    >
-      {/* Trim Size */}
-      <ConfigCard
-        icon={Ruler}
-        label="Trim Size"
-        value={TRIM_SIZES[bookConfig.trimSize]?.label || 'Custom'}
-        helpText="Must match your manuscript's page dimensions exactly. KDP uses this for printing and cover templates."
-        index={0}
-      >
-        <Select
-          value={bookConfig.trimSize}
-          onValueChange={(val) => updateBookConfig({ trimSize: val as TrimSizeKey })}
-        >
-          <SelectTrigger className="w-full h-8 text-xs bg-white/[0.04] border-white/[0.08] text-white/70 hover:bg-white/[0.06]">
-            <SelectValue placeholder="Select trim size" />
-          </SelectTrigger>
-          <SelectContent className="bg-[#111] border-white/[0.08]">
-            {trimOptions.map((opt) => (
-              <SelectItem
-                key={opt.value}
-                value={opt.value}
-                className="text-xs text-white/70 focus:bg-white/[0.08] focus:text-white/90"
-              >
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </ConfigCard>
-
-      {/* Bleed */}
-      <ConfigCard
-        icon={Layers}
-        label="Bleed"
-        value={bookConfig.bleed === 'bleed' ? 'Enabled' : 'Disabled'}
-        helpText={
-          bookConfig.bleed === 'bleed'
-            ? 'Recommended if artwork touches the edge of the page. Adds 0.125" on each side.'
-            : 'Enable bleed if your artwork extends to the page edge. Without bleed, white borders may appear.'
-        }
-        index={1}
-      >
-        <ToggleControl
-          enabled={bookConfig.bleed === 'bleed'}
-          onToggle={(enabled) =>
-            updateBookConfig({ bleed: enabled ? 'bleed' : 'no-bleed' })
-          }
-          labels={['No Bleed', 'Bleed']}
-        />
-      </ConfigCard>
-
-      {/* Spine Width */}
-      <ConfigCard
-        icon={BookMarked}
-        label="Spine Width"
-        value={`${measurements.spineWidthIn.toFixed(3)}"`}
-        helpText="Calculated automatically based on page count and paper type. Hardcovers may have additional spine adjustments."
-        index={2}
-      >
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-          <span className="text-sm text-white/60 font-mono">
-            {measurements.spineWidthIn.toFixed(3)}"
-          </span>
-          <span className="text-[10px] text-white/20 ml-auto">Auto-calculated</span>
-        </div>
-      </ConfigCard>
-
-      {/* Paper Type */}
-      <ConfigCard
-        icon={Package}
-        label="Paper Type"
-        value={
-          bookConfig.paper === 'white'
-            ? 'White'
-            : bookConfig.paper === 'cream'
-              ? 'Cream'
-              : 'Premium Color'
-        }
-        helpText="Paper type affects spine width and print quality. Premium color uses heavier paper for vivid results."
-        index={3}
-      >
-        <SegmentedSelector
-          options={[
-            { value: 'white' as const, label: 'White' },
-            { value: 'cream' as const, label: 'Cream' },
-            { value: 'premium-color' as const, label: 'Premium' },
-          ]}
-          selected={bookConfig.paper}
-          onSelect={(val) => updateBookConfig({ paper: val as PaperType })}
-        />
-      </ConfigCard>
-
-      {/* Page Count */}
-      <ConfigCard
-        icon={FileText}
-        label="Page Count"
-        value={`${bookConfig.pageCount} pages`}
-        helpText="Must be between 24 and 550 pages for hardcover. Even numbers only — blank pages are added if needed."
-        index={4}
-      >
-        <Input
-          type="number"
-          min={24}
-          max={550}
-          value={bookConfig.pageCount}
-          onChange={(e) => {
-            const val = parseInt(e.target.value, 10);
-            if (!isNaN(val) && val >= 24 && val <= 550) {
-              updateBookConfig({ pageCount: val });
-            }
-          }}
-          className="h-8 text-xs bg-white/[0.04] border-white/[0.08] text-white/70 hover:bg-white/[0.06] font-mono"
-        />
-      </ConfigCard>
-
-      {/* Margin Safety */}
-      <ConfigCard
-        icon={Shield}
-        label="Margin Safety"
-        value={`${SAFE_AREA_IN}" inside margin`}
-        helpText={`Keep all important content at least 0.25" away from the trim edge. The safe zone is shown in the template preview.`}
-        index={5}
-      >
-        <div className="flex items-center gap-3 text-[11px] text-white/30">
-          <span>Safe area: {SAFE_AREA_IN}" from edge</span>
-          <span className="text-white/10">|</span>
-          <span>Gutter: 0.375" minimum</span>
-        </div>
-      </ConfigCard>
-
-      {/* Interior Type */}
-      <ConfigCard
-        icon={BookOpen}
-        label="Interior Type"
-        value={
-          bookConfig.interior === 'black-white'
-            ? 'Black & White'
-            : bookConfig.interior === 'standard-color'
-              ? 'Standard Color'
-              : 'Premium Color'
-        }
-        helpText="Affects printing costs and quality. Premium color uses heavier paper and higher-quality inks."
-        index={6}
-      >
-        <SegmentedSelector
-          options={[
-            { value: 'black-white' as const, label: 'B&W' },
-            { value: 'standard-color' as const, label: 'Standard' },
-            { value: 'premium-color' as const, label: 'Premium' },
-          ]}
-          selected={bookConfig.interior}
-          onSelect={(val) => updateBookConfig({ interior: val as InteriorType })}
-        />
-      </ConfigCard>
-
-      {/* Hinge Width */}
-      <ConfigCard
-        icon={BookMarked}
-        label="Hinge Width"
-        value={'0.375"'}
-        helpText="The hinge allows the cover to open. Keep important content away from this area."
-        index={7}
-      >
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-          <span className="text-sm text-white/60 font-mono">0.375"</span>
-          <span className="text-[10px] text-white/20 ml-auto">Standard KDP hinge</span>
-        </div>
-      </ConfigCard>
-
-      {/* Wrap Area */}
-      <ConfigCard
-        icon={Layers}
-        label="Wrap Area"
-        value={`${WRAP_AROUND_IN}" per side`}
-        helpText={`The wrap-around extends the cover around the book board. 0.0625" is added on each side of the cover.`}
-        index={8}
-      >
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-          <span className="text-sm text-white/60 font-mono">
-            {WRAP_AROUND_IN}" × 2 sides
-          </span>
-          <span className="text-[10px] text-white/20 ml-auto">0.0625" per side</span>
-        </div>
-      </ConfigCard>
-
-      {/* Case Laminate */}
-      <ConfigCard
-        icon={Settings}
-        label="Case Laminate"
-        value={caseLaminate === 'matte' ? 'Matte' : 'Glossy'}
-        helpText="Matte gives a smooth, elegant finish. Glossy is vibrant and reflective. This affects the cover's final look."
-        index={9}
-      >
-        <SegmentedSelector
-          options={[
-            { value: 'matte' as const, label: 'Matte' },
-            { value: 'glossy' as const, label: 'Glossy' },
-          ]}
-          selected={caseLaminate}
-          onSelect={setCaseLaminate}
-        />
-      </ConfigCard>
-
-      {/* Dust Jacket */}
-      <ConfigCard
-        icon={Package}
-        label="Dust Jacket"
-        value={dustJacket ? 'Included' : 'Not included'}
-        helpText="A dust jacket wraps around the hardcover. If included, the jacket has its own template with flaps."
-        index={10}
-      >
-        <ToggleControl
-          enabled={dustJacket}
-          onToggle={setDustJacket}
-          labels={['None', 'Included']}
-        />
-        {dustJacket && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mt-2 px-3 py-2 rounded-lg bg-emerald-500/[0.06] border border-emerald-500/[0.12]"
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+      <h4 className="text-xs text-white/50 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <Ruler className="w-3.5 h-3.5" />
+        Calculated Measurements
+      </h4>
+      <div className="space-y-1.5">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className={`flex items-center justify-between p-2 rounded-lg transition-colors duration-200 ${
+              (item as any).highlight
+                ? 'bg-emerald-500/[0.08] border border-emerald-500/20'
+                : 'bg-white/[0.02]'
+            }`}
           >
-            <div className="flex items-start gap-1.5">
-              <Info className="w-3 h-3 text-emerald-400/60 mt-0.5 shrink-0" />
-              <div className="text-[10px] text-emerald-400/50 leading-relaxed space-y-1">
-                <p>Dust jacket dimensions include front flap (3.5") and back flap (3.5")</p>
-                <p>
-                  Total width:{' '}
-                  {(
-                    measurements.trimWidthIn +
-                    measurements.spineWidthIn +
-                    measurements.trimWidthIn +
-                    3.5 +
-                    3.5 +
-                    measurements.bleedIn * 2
-                  ).toFixed(3)}
-                  " × {measurements.fullCoverHeightIn.toFixed(3)}"
-                </p>
-              </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-white/45">{item.label}</p>
+              <p className="text-[9px] text-white/25 truncate">{item.sub}</p>
             </div>
-          </motion.div>
-        )}
-      </ConfigCard>
-
-      {/* Hardcover spine adjustments info */}
-      <ConfigCard
-        icon={Info}
-        label="Spine Adjustments"
-        value="Hardcover specific"
-        helpText="Hardcover spines include the board thickness and may vary slightly from calculated values. KDP will confirm exact dimensions."
-        index={11}
-      >
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-          <span className="text-[11px] text-white/30">
-            Board thickness: ~0.08&quot; per side added to spine calculation
-          </span>
-        </div>
-      </ConfigCard>
-    </motion.div>
+            <p className={`text-xs font-mono font-medium shrink-0 ml-2 ${
+              (item as any).highlight ? 'text-emerald-400' : 'text-white/70'
+            }`}>
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
-// ─── Live SVG Visualization ───────────────────
+// ─── Live SVG Visualization ─────────────────────────────────────────────────
 
-function CoverTemplateSVG({
-  kdpFormat,
-  bookConfig,
-  measurements,
-}: {
-  kdpFormat: KDPFormat;
-  bookConfig: BookConfig;
-  measurements: CalculatedMeasurements;
-}) {
-  // Scale: pixels per inch for the SVG display
-  const scale = 36;
+function CoverVisualization() {
+  const { measurements, bookType, bookConfig } = useAppStore();
+  const isHardcover = bookType === 'hardcover';
 
-  const { trimWidthIn, trimHeightIn, bleedIn, spineWidthIn, safeAreaIn, wrapAroundIn, barcodeAreaIn } =
-    measurements;
+  if (bookType === 'kindle') {
+    return <KindleVisualization />;
+  }
 
-  const hasBleed = bookConfig.bleed === 'bleed';
-  const isHardcover = kdpFormat === 'hardcover';
-  const isPaperback = kdpFormat === 'paperback';
-  const hingeWidthIn = isHardcover ? 0.375 : 0;
+  // Scale to fit within SVG viewport
+  const svgW = 500;
+  const svgH = 420;
+  const padding = 40;
 
-  // Full cover dimensions (front + spine + back)
-  const totalWidthIn = trimWidthIn * 2 + spineWidthIn + bleedIn * 2 + wrapAroundIn * 2;
-  const totalHeightIn = trimHeightIn + bleedIn * 2 + wrapAroundIn * 2;
+  const m = measurements;
+  const maxDim = Math.max(m.fullCoverWidthIn, m.fullCoverHeightIn);
+  const availW = svgW - padding * 2;
+  const availH = svgH - padding * 2;
+  const scale = Math.min(availW, availH) / maxDim;
 
-  // SVG dimensions
-  const svgWidth = totalWidthIn * scale;
-  const svgHeight = totalHeightIn * scale;
+  const coverW = m.fullCoverWidthIn * scale;
+  const coverH = m.fullCoverHeightIn * scale;
+  const offX = (svgW - coverW) / 2;
+  const offY = (svgH - coverH) / 2;
 
-  // Padding for labels
-  const pad = 20;
-  const fullW = svgWidth + pad * 2;
-  const fullH = svgHeight + pad * 2 + 24;
+  const bleed = m.bleedIn * scale;
+  const wrap = m.wrapAroundIn * scale;
+  const spine = m.spineWidthIn * scale;
+  const trimW = m.trimWidthIn * scale;
+  const trimH = m.trimHeightIn * scale;
+  const safe = m.safeAreaIn * scale;
+  const hinge = m.hingeIn * scale;
 
-  // Helper: inches to SVG x/y
-  const ix = (inches: number) => pad + inches * scale;
-  const iy = (inches: number) => pad + inches * scale;
+  // Positions
+  const x0 = offX; // full cover left
+  const y0 = offY; // full cover top
 
-  // Key x positions (from left)
-  const wrapLeft = 0;
-  const bleedLeft = wrapAroundIn;
-  const backCoverLeft = wrapAroundIn + bleedIn;
-  const spineLeft = backCoverLeft + trimWidthIn;
-  const frontCoverLeft = spineLeft + spineWidthIn;
-  const frontCoverRight = frontCoverLeft + trimWidthIn;
-  const bleedRight = frontCoverRight + bleedIn;
-  const wrapRight = bleedRight + wrapAroundIn;
+  // Wrap inner edge
+  const wrapL = x0 + wrap;
+  const wrapT = y0 + wrap;
+  const wrapR = x0 + coverW - wrap;
+  const wrapB = y0 + coverH - wrap;
 
-  // Key y positions
-  const wrapTop = 0;
-  const bleedTop = wrapAroundIn;
-  const contentTop = wrapAroundIn + bleedIn;
-  const contentBottom = contentTop + trimHeightIn;
-  const bleedBottom = contentBottom + bleedIn;
-  const wrapBottom = bleedBottom + wrapAroundIn;
+  // Bleed inner edge
+  const bleedL = wrapL + bleed;
+  const bleedT = wrapT + bleed;
+  const bleedR = wrapR - bleed;
+  const bleedB = wrapB - bleed;
 
-  // Hinge positions (hardcover only)
-  const hingeBackRight = backCoverLeft + hingeWidthIn;
-  const hingeFrontLeft = frontCoverLeft;
-  const hingeFrontRight = frontCoverLeft + hingeWidthIn;
-  const hingeBackLeft = backCoverLeft;
+  // Back cover trim area
+  const backX = bleedL;
+  const backY = bleedT;
+  const backW = trimW;
+  const backH = trimH;
+
+  // Spine
+  const spineX = backX + backW;
+  const spineY = bleedT;
+  const spineH = trimH;
+
+  // Front cover trim area
+  const frontX = spineX + spine;
+  const frontY = bleedT;
+  const frontW = trimW;
+  const frontH = trimH;
+
+  // Hinge areas (hardcover only)
+  const hingeLeftX = backX;
+  const hingeRightX = frontX + frontW - hinge;
+
+  // Barcode area (paperback only)
+  const barcodeW = BARCODE_AREA.width * scale;
+  const barcodeH = BARCODE_AREA.height * scale;
+  const barcodeX = backX + backW - safe - barcodeW;
+  const barcodeY = backY + backH - safe - barcodeH;
 
   return (
-    <svg
-      width="100%"
-      height="100%"
-      viewBox={`0 0 ${fullW} ${fullH}`}
-      className="max-h-full"
-      style={{ transition: 'all 0.5s cubic-bezier(0.25, 0.4, 0.25, 1)' }}
-    >
-      <defs>
-        {/* Grid pattern */}
-        <pattern id="grid" width={scale / 4} height={scale / 4} patternUnits="userSpaceOnUse">
-          <path
-            d={`M ${scale / 4} 0 L 0 0 0 ${scale / 4}`}
-            fill="none"
-            stroke="rgba(255,255,255,0.03)"
-            strokeWidth="0.5"
-          />
-        </pattern>
-        <pattern id="gridMajor" width={scale} height={scale} patternUnits="userSpaceOnUse">
-          <path
-            d={`M ${scale} 0 L 0 0 0 ${scale}`}
-            fill="none"
-            stroke="rgba(255,255,255,0.06)"
-            strokeWidth="0.5"
-          />
-        </pattern>
-
-        {/* Bleed pattern */}
-        <pattern id="bleedPattern" width={8} height={8} patternUnits="userSpaceOnUse">
-          <line x1="0" y1="8" x2="8" y2="0" stroke="rgba(239,68,68,0.2)" strokeWidth="0.5" />
-        </pattern>
-
-        {/* Hinge pattern */}
-        <pattern id="hingePattern" width={6} height={6} patternUnits="userSpaceOnUse">
-          <line x1="0" y1="6" x2="6" y2="0" stroke="rgba(251,191,36,0.2)" strokeWidth="0.5" />
-        </pattern>
-      </defs>
-
-      {/* Background grid */}
-      <rect x={pad} y={pad} width={svgWidth} height={svgHeight} fill="url(#grid)" rx="2" />
-      <rect x={pad} y={pad} width={svgWidth} height={svgHeight} fill="url(#gridMajor)" rx="2" />
-
-      {/* Wrap area (hardcover) */}
-      {isHardcover && wrapAroundIn > 0 && (
-        <g>
-          {/* Left wrap */}
-          <rect
-            x={ix(wrapLeft)}
-            y={iy(wrapTop)}
-            width={wrapAroundIn * scale}
-            height={totalHeightIn * scale}
-            fill="rgba(139,92,246,0.06)"
-            stroke="rgba(139,92,246,0.15)"
-            strokeWidth="0.5"
-            strokeDasharray="3 2"
-            rx="1"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-          {/* Right wrap */}
-          <rect
-            x={ix(bleedRight)}
-            y={iy(wrapTop)}
-            width={wrapAroundIn * scale}
-            height={totalHeightIn * scale}
-            fill="rgba(139,92,246,0.06)"
-            stroke="rgba(139,92,246,0.15)"
-            strokeWidth="0.5"
-            strokeDasharray="3 2"
-            rx="1"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-          {/* Top wrap */}
-          <rect
-            x={ix(wrapLeft)}
-            y={iy(wrapTop)}
-            width={totalWidthIn * scale}
-            height={wrapAroundIn * scale}
-            fill="rgba(139,92,246,0.06)"
-            stroke="rgba(139,92,246,0.15)"
-            strokeWidth="0.5"
-            strokeDasharray="3 2"
-            rx="1"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-          {/* Bottom wrap */}
-          <rect
-            x={ix(wrapLeft)}
-            y={iy(bleedBottom)}
-            width={totalWidthIn * scale}
-            height={wrapAroundIn * scale}
-            fill="rgba(139,92,246,0.06)"
-            stroke="rgba(139,92,246,0.15)"
-            strokeWidth="0.5"
-            strokeDasharray="3 2"
-            rx="1"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-        </g>
-      )}
-
-      {/* Bleed area (if enabled) */}
-      {hasBleed && (
-        <g>
-          {/* Left bleed */}
-          <rect
-            x={ix(bleedLeft)}
-            y={iy(bleedTop)}
-            width={bleedIn * scale}
-            height={trimHeightIn * scale + bleedIn * 2 * scale}
-            fill="url(#bleedPattern)"
-            stroke="rgba(239,68,68,0.25)"
-            strokeWidth="0.5"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-          {/* Right bleed */}
-          <rect
-            x={ix(frontCoverRight)}
-            y={iy(bleedTop)}
-            width={bleedIn * scale}
-            height={trimHeightIn * scale + bleedIn * 2 * scale}
-            fill="url(#bleedPattern)"
-            stroke="rgba(239,68,68,0.25)"
-            strokeWidth="0.5"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-          {/* Top bleed */}
-          <rect
-            x={ix(bleedLeft)}
-            y={iy(bleedTop)}
-            width={(trimWidthIn * 2 + spineWidthIn + bleedIn * 2) * scale}
-            height={bleedIn * scale}
-            fill="url(#bleedPattern)"
-            stroke="rgba(239,68,68,0.25)"
-            strokeWidth="0.5"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-          {/* Bottom bleed */}
-          <rect
-            x={ix(bleedLeft)}
-            y={iy(contentBottom)}
-            width={(trimWidthIn * 2 + spineWidthIn + bleedIn * 2) * scale}
-            height={bleedIn * scale}
-            fill="url(#bleedPattern)"
-            stroke="rgba(239,68,68,0.25)"
-            strokeWidth="0.5"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-        </g>
-      )}
-
-      {/* Back Cover */}
-      <rect
-        x={ix(backCoverLeft)}
-        y={iy(contentTop)}
-        width={trimWidthIn * scale}
-        height={trimHeightIn * scale}
-        fill="rgba(255,255,255,0.04)"
-        stroke="rgba(255,255,255,0.2)"
-        strokeWidth="1"
-        rx="1"
-        style={{ transition: 'all 0.4s ease' }}
-      />
-
-      {/* Spine */}
-      <rect
-        x={ix(spineLeft)}
-        y={iy(contentTop)}
-        width={spineWidthIn * scale}
-        height={trimHeightIn * scale}
-        fill="rgba(251,191,36,0.08)"
-        stroke="rgba(251,191,36,0.3)"
-        strokeWidth="1"
-        rx="0.5"
-        style={{ transition: 'all 0.4s ease' }}
-      />
-
-      {/* Front Cover */}
-      <rect
-        x={ix(frontCoverLeft)}
-        y={iy(contentTop)}
-        width={trimWidthIn * scale}
-        height={trimHeightIn * scale}
-        fill="rgba(255,255,255,0.04)"
-        stroke="rgba(255,255,255,0.2)"
-        strokeWidth="1"
-        rx="1"
-        style={{ transition: 'all 0.4s ease' }}
-      />
-
-      {/* Hinge areas (hardcover only) */}
-      {isHardcover && (
-        <g>
-          {/* Back cover hinge */}
-          <rect
-            x={ix(hingeBackLeft)}
-            y={iy(contentTop)}
-            width={hingeWidthIn * scale}
-            height={trimHeightIn * scale}
-            fill="url(#hingePattern)"
-            stroke="rgba(251,191,36,0.25)"
-            strokeWidth="0.5"
-            strokeDasharray="4 2"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-          {/* Front cover hinge */}
-          <rect
-            x={ix(hingeFrontRight - hingeWidthIn)}
-            y={iy(contentTop)}
-            width={hingeWidthIn * scale}
-            height={trimHeightIn * scale}
-            fill="url(#hingePattern)"
-            stroke="rgba(251,191,36,0.25)"
-            strokeWidth="0.5"
-            strokeDasharray="4 2"
-            style={{ transition: 'all 0.4s ease' }}
-          />
-        </g>
-      )}
-
-      {/* Safe zone - back cover */}
-      <rect
-        x={ix(backCoverLeft + safeAreaIn)}
-        y={iy(contentTop + safeAreaIn)}
-        width={(trimWidthIn - safeAreaIn * 2) * scale}
-        height={(trimHeightIn - safeAreaIn * 2) * scale}
-        fill="none"
-        stroke="rgba(52,211,153,0.25)"
-        strokeWidth="0.75"
-        strokeDasharray="6 3"
-        rx="1"
-        style={{ transition: 'all 0.4s ease' }}
-      />
-
-      {/* Safe zone - front cover */}
-      <rect
-        x={ix(frontCoverLeft + safeAreaIn)}
-        y={iy(contentTop + safeAreaIn)}
-        width={(trimWidthIn - safeAreaIn * 2) * scale}
-        height={(trimHeightIn - safeAreaIn * 2) * scale}
-        fill="none"
-        stroke="rgba(52,211,153,0.25)"
-        strokeWidth="0.75"
-        strokeDasharray="6 3"
-        rx="1"
-        style={{ transition: 'all 0.4s ease' }}
-      />
-
-      {/* Barcode zone (paperback only) */}
-      {isPaperback && (
+    <div className="flex flex-col items-center justify-center h-full">
+      <h3 className="text-xs text-white/40 uppercase tracking-wider mb-4">
+        {isHardcover ? 'Hardcover' : 'Paperback'} Cover Layout
+      </h3>
+      <svg
+        width={svgW}
+        height={svgH}
+        viewBox={`0 0 ${svgW} ${svgH}`}
+        className="text-white max-w-full"
+      >
+        {/* Full Cover Outline */}
         <rect
-          x={ix(frontCoverLeft + barcodeAreaIn.x)}
-          y={iy(contentTop + barcodeAreaIn.y)}
-          width={barcodeAreaIn.width * scale}
-          height={barcodeAreaIn.height * scale}
-          fill="rgba(139,92,246,0.08)"
-          stroke="rgba(139,92,246,0.3)"
-          strokeWidth="0.75"
-          strokeDasharray="3 2"
-          rx="1"
+          x={x0} y={y0}
+          width={coverW} height={coverH}
+          fill="none"
+          stroke="rgba(255,255,255,0.12)"
+          strokeWidth="1"
+          strokeDasharray="4 3"
           style={{ transition: 'all 0.4s ease' }}
         />
-      )}
 
-      {/* Labels */}
-      <g className="text-[9px] fill-white/25" style={{ fontSize: '9px', fontFamily: 'ui-monospace, monospace' }}>
-        {/* Back Cover label */}
+        {/* Wrap Area (hardcover) */}
+        {isHardcover && (
+          <>
+            <rect
+              x={x0} y={y0}
+              width={coverW} height={coverH}
+              fill="rgba(251,191,36,0.03)"
+              stroke="none"
+              style={{ transition: 'all 0.4s ease' }}
+            />
+            <rect
+              x={wrapL} y={wrapT}
+              width={wrapR - wrapL} height={wrapB - wrapT}
+              fill="none"
+              stroke="rgba(251,191,36,0.2)"
+              strokeWidth="0.5"
+              strokeDasharray="3 2"
+              style={{ transition: 'all 0.4s ease' }}
+            />
+          </>
+        )}
+
+        {/* Bleed Area */}
+        {bleed > 0 && (
+          <rect
+            x={wrapL} y={wrapT}
+            width={wrapR - wrapL} height={wrapB - wrapT}
+            fill="rgba(239,68,68,0.04)"
+            stroke="rgba(239,68,68,0.25)"
+            strokeWidth="0.5"
+            style={{ transition: 'all 0.4s ease' }}
+          />
+        )}
+
+        {/* Back Cover */}
+        <rect
+          x={backX} y={backY}
+          width={backW} height={backH}
+          fill="rgba(255,255,255,0.03)"
+          stroke="rgba(255,255,255,0.18)"
+          strokeWidth="1"
+          style={{ transition: 'all 0.4s ease' }}
+        />
+
+        {/* Front Cover */}
+        <rect
+          x={frontX} y={frontY}
+          width={frontW} height={frontH}
+          fill="rgba(255,255,255,0.06)"
+          stroke="rgba(255,255,255,0.25)"
+          strokeWidth="1"
+          style={{ transition: 'all 0.4s ease' }}
+        />
+
+        {/* Spine */}
+        <rect
+          x={spineX} y={spineY}
+          width={Math.max(spine, 1)} height={spineH}
+          fill="rgba(16,185,129,0.1)"
+          stroke="rgba(16,185,129,0.4)"
+          strokeWidth="0.5"
+          style={{ transition: 'all 0.4s ease' }}
+        />
+
+        {/* Hinge Areas (hardcover only) */}
+        {isHardcover && hinge > 0 && (
+          <>
+            <rect
+              x={hingeLeftX} y={bleedT}
+              width={hinge} height={trimH}
+              fill="rgba(251,191,36,0.06)"
+              stroke="rgba(251,191,36,0.3)"
+              strokeWidth="0.5"
+              strokeDasharray="2 2"
+              style={{ transition: 'all 0.4s ease' }}
+            />
+            <rect
+              x={hingeRightX} y={bleedT}
+              width={hinge} height={trimH}
+              fill="rgba(251,191,36,0.06)"
+              stroke="rgba(251,191,36,0.3)"
+              strokeWidth="0.5"
+              strokeDasharray="2 2"
+              style={{ transition: 'all 0.4s ease' }}
+            />
+          </>
+        )}
+
+        {/* Safe Zones */}
+        {/* Back safe */}
+        <rect
+          x={backX + safe} y={backY + safe}
+          width={Math.max(backW - 2 * safe, 1)} height={Math.max(backH - 2 * safe, 1)}
+          fill="none"
+          stroke="rgba(59,130,246,0.3)"
+          strokeWidth="0.5"
+          strokeDasharray="2 2"
+          style={{ transition: 'all 0.4s ease' }}
+        />
+        {/* Front safe */}
+        <rect
+          x={frontX + safe} y={frontY + safe}
+          width={Math.max(frontW - 2 * safe, 1)} height={Math.max(frontH - 2 * safe, 1)}
+          fill="none"
+          stroke="rgba(59,130,246,0.3)"
+          strokeWidth="0.5"
+          strokeDasharray="2 2"
+          style={{ transition: 'all 0.4s ease' }}
+        />
+
+        {/* Barcode Area (paperback only) */}
+        {!isHardcover && (
+          <rect
+            x={barcodeX} y={barcodeY}
+            width={barcodeW} height={barcodeH}
+            fill="rgba(168,85,247,0.06)"
+            stroke="rgba(168,85,247,0.25)"
+            strokeWidth="0.5"
+            strokeDasharray="2 2"
+            style={{ transition: 'all 0.4s ease' }}
+          />
+        )}
+
+        {/* ─── Labels ─── */}
         <text
-          x={ix(backCoverLeft + trimWidthIn / 2)}
-          y={iy(contentTop + trimHeightIn / 2) - 6}
+          x={frontX + frontW / 2}
+          y={frontY + frontH / 2 - 6}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.3)"
+          className="text-[9px]"
+          fill="rgba(255,255,255,0.5)"
         >
-          BACK
+          Front Cover
         </text>
         <text
-          x={ix(backCoverLeft + trimWidthIn / 2)}
-          y={iy(contentTop + trimHeightIn / 2) + 6}
+          x={frontX + frontW / 2}
+          y={frontY + frontH / 2 + 8}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.15)"
-          style={{ fontSize: '7px' }}
+          className="text-[8px]"
+          fill="rgba(255,255,255,0.25)"
         >
-          {trimWidthIn}" × {trimHeightIn}"
+          {formatInches(m.trimWidthIn)} × {formatInches(m.trimHeightIn)}
+        </text>
+
+        <text
+          x={backX + backW / 2}
+          y={backY + backH / 2}
+          textAnchor="middle"
+          className="text-[9px]"
+          fill="rgba(255,255,255,0.35)"
+        >
+          Back Cover
         </text>
 
         {/* Spine label */}
-        {spineWidthIn * scale > 16 && (
+        {spine > 12 && (
           <text
-            x={ix(spineLeft + spineWidthIn / 2)}
-            y={iy(contentTop + trimHeightIn / 2)}
+            x={spineX + spine / 2}
+            y={spineY + spineH / 2}
             textAnchor="middle"
-            fill="rgba(251,191,36,0.5)"
-            style={{ fontSize: '7px' }}
+            className="text-[7px]"
+            fill="rgba(16,185,129,0.6)"
+            transform={`rotate(-90, ${spineX + spine / 2}, ${spineY + spineH / 2})`}
           >
-            {spineWidthIn.toFixed(3)}"
-          </text>
-        )}
-
-        {/* Front Cover label */}
-        <text
-          x={ix(frontCoverLeft + trimWidthIn / 2)}
-          y={iy(contentTop + trimHeightIn / 2) - 6}
-          textAnchor="middle"
-          fill="rgba(255,255,255,0.3)"
-        >
-          FRONT
-        </text>
-        <text
-          x={ix(frontCoverLeft + trimWidthIn / 2)}
-          y={iy(contentTop + trimHeightIn / 2) + 6}
-          textAnchor="middle"
-          fill="rgba(255,255,255,0.15)"
-          style={{ fontSize: '7px' }}
-        >
-          {trimWidthIn}" × {trimHeightIn}"
-        </text>
-
-        {/* Barcode label */}
-        {isPaperback && barcodeAreaIn.width * scale > 30 && (
-          <text
-            x={ix(frontCoverLeft + barcodeAreaIn.x + barcodeAreaIn.width / 2)}
-            y={iy(contentTop + barcodeAreaIn.y + barcodeAreaIn.height / 2 + 3)}
-            textAnchor="middle"
-            fill="rgba(139,92,246,0.4)"
-            style={{ fontSize: '6px' }}
-          >
-            ISBN
+            Spine {formatInches(m.spineWidthIn)}
           </text>
         )}
 
         {/* Hinge labels */}
-        {isHardcover && hingeWidthIn * scale > 14 && (
+        {isHardcover && hinge > 8 && (
           <>
             <text
-              x={ix(hingeBackLeft + hingeWidthIn / 2)}
-              y={iy(contentTop + trimHeightIn - 8)}
+              x={hingeLeftX + hinge / 2}
+              y={bleedT + trimH / 2}
               textAnchor="middle"
-              fill="rgba(251,191,36,0.3)"
-              style={{ fontSize: '6px' }}
+              className="text-[6px]"
+              fill="rgba(251,191,36,0.5)"
+              transform={`rotate(-90, ${hingeLeftX + hinge / 2}, ${bleedT + trimH / 2})`}
             >
-              HINGE
+              Hinge
             </text>
             <text
-              x={ix(hingeFrontRight - hingeWidthIn / 2)}
-              y={iy(contentTop + trimHeightIn - 8)}
+              x={hingeRightX + hinge / 2}
+              y={bleedT + trimH / 2}
               textAnchor="middle"
-              fill="rgba(251,191,36,0.3)"
-              style={{ fontSize: '6px' }}
+              className="text-[6px]"
+              fill="rgba(251,191,36,0.5)"
+              transform={`rotate(-90, ${hingeRightX + hinge / 2}, ${bleedT + trimH / 2})`}
             >
-              HINGE
+              Hinge
             </text>
           </>
         )}
 
-        {/* Wrap labels */}
-        {isHardcover && wrapAroundIn * scale > 10 && (
-          <>
-            <text
-              x={ix(wrapLeft + wrapAroundIn / 2)}
-              y={iy(wrapTop + totalHeightIn / 2)}
-              textAnchor="middle"
-              fill="rgba(139,92,246,0.3)"
-              style={{ fontSize: '6px' }}
-              transform={`rotate(-90, ${ix(wrapLeft + wrapAroundIn / 2)}, ${iy(wrapTop + totalHeightIn / 2)})`}
-            >
-              WRAP
-            </text>
-          </>
+        {/* Barcode label */}
+        {!isHardcover && (
+          <text
+            x={barcodeX + barcodeW / 2}
+            y={barcodeY + barcodeH / 2}
+            textAnchor="middle"
+            className="text-[6px]"
+            fill="rgba(168,85,247,0.5)"
+          >
+            Barcode
+          </text>
         )}
-      </g>
 
-      {/* Dimension annotations */}
-      <g style={{ fontSize: '8px', fontFamily: 'ui-monospace, monospace' }}>
-        {/* Full width dimension */}
+        {/* Dimension lines */}
         <line
-          x1={ix(0)}
-          y1={iy(totalHeightIn) + 10}
-          x2={ix(totalWidthIn)}
-          y2={iy(totalHeightIn) + 10}
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth="0.5"
-        />
-        <line
-          x1={ix(0)}
-          y1={iy(totalHeightIn) + 7}
-          x2={ix(0)}
-          y2={iy(totalHeightIn) + 13}
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth="0.5"
-        />
-        <line
-          x1={ix(totalWidthIn)}
-          y1={iy(totalHeightIn) + 7}
-          x2={ix(totalWidthIn)}
-          y2={iy(totalHeightIn) + 13}
-          stroke="rgba(255,255,255,0.1)"
+          x1={x0} y1={y0 + coverH + 14}
+          x2={x0 + coverW} y2={y0 + coverH + 14}
+          stroke="rgba(255,255,255,0.15)"
           strokeWidth="0.5"
         />
         <text
-          x={ix(totalWidthIn / 2)}
-          y={iy(totalHeightIn) + 20}
+          x={x0 + coverW / 2} y={y0 + coverH + 25}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.2)"
+          className="text-[8px]"
+          fill="rgba(255,255,255,0.3)"
         >
-          {measurements.fullCoverWidthIn.toFixed(3)}" total width
+          {formatInches(m.fullCoverWidthIn)}
         </text>
-      </g>
+
+        <line
+          x1={x0 + coverW + 14} y1={y0}
+          x2={x0 + coverW + 14} y2={y0 + coverH}
+          stroke="rgba(255,255,255,0.15)"
+          strokeWidth="0.5"
+        />
+        <text
+          x={x0 + coverW + 22} y={y0 + coverH / 2}
+          textAnchor="middle"
+          className="text-[8px]"
+          fill="rgba(255,255,255,0.3)"
+          transform={`rotate(90, ${x0 + coverW + 22}, ${y0 + coverH / 2})`}
+        >
+          {formatInches(m.fullCoverHeightIn)}
+        </text>
+      </svg>
 
       {/* Legend */}
-      <g transform={`translate(${pad}, ${pad + svgHeight + 32})`} style={{ fontSize: '8px' }}>
-        {/* Trim */}
-        <rect x="0" y="-4" width="8" height="8" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" rx="1" />
-        <text x="12" y="2" fill="rgba(255,255,255,0.25)">Trim</text>
-
-        {/* Spine */}
-        <rect x="52" y="-4" width="8" height="8" fill="rgba(251,191,36,0.15)" stroke="rgba(251,191,36,0.3)" strokeWidth="0.75" rx="1" />
-        <text x="64" y="2" fill="rgba(255,255,255,0.25)">Spine</text>
-
-        {/* Safe zone */}
-        <rect x="110" y="-4" width="8" height="8" fill="none" stroke="rgba(52,211,153,0.25)" strokeWidth="0.75" strokeDasharray="3 1.5" rx="1" />
-        <text x="122" y="2" fill="rgba(255,255,255,0.25)">Safe</text>
-
-        {hasBleed && (
-          <>
-            <rect x="158" y="-4" width="8" height="8" fill="url(#bleedPattern)" stroke="rgba(239,68,68,0.25)" strokeWidth="0.5" rx="1" />
-            <text x="170" y="2" fill="rgba(255,255,255,0.25)">Bleed</text>
-          </>
+      <div className="flex flex-wrap gap-3 justify-center mt-3">
+        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+          <div className="w-3 h-0.5 border border-dashed border-white/20" /> Full Cover
+        </div>
+        {bleed > 0 && (
+          <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+            <div className="w-3 h-0.5 bg-red-500/30" /> Bleed
+          </div>
         )}
-
+        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+          <div className="w-3 h-0.5 bg-emerald-500/40" /> Spine
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+          <div className="w-3 h-0.5 border border-dashed border-blue-400/30" /> Safe Zone
+        </div>
+        {!isHardcover && (
+          <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+            <div className="w-3 h-0.5 border border-dashed border-purple-400/30" /> Barcode
+          </div>
+        )}
         {isHardcover && (
-          <>
-            <rect x={hasBleed ? '210' : '158'} y="-4" width="8" height="8" fill="url(#hingePattern)" stroke="rgba(251,191,36,0.25)" strokeWidth="0.5" strokeDasharray="3 1.5" rx="1" />
-            <text x={hasBleed ? '222' : '170'} y="2" fill="rgba(255,255,255,0.25)">Hinge</text>
-
-            <rect x={hasBleed ? '262' : '210'} y="-4" width="8" height="8" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.15)" strokeWidth="0.5" strokeDasharray="3 1.5" rx="1" />
-            <text x={hasBleed ? '274' : '222'} y="2" fill="rgba(255,255,255,0.25)">Wrap</text>
-          </>
+          <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+            <div className="w-3 h-0.5 border border-dashed border-amber-400/30" /> Hinge/Wrap
+          </div>
         )}
-
-        {isPaperback && (
-          <>
-            <rect x={hasBleed ? '210' : '158'} y="-4" width="8" height="8" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.3)" strokeWidth="0.5" strokeDasharray="3 1.5" rx="1" />
-            <text x={hasBleed ? '222' : '170'} y="2" fill="rgba(255,255,255,0.25)">Barcode</text>
-          </>
-        )}
-      </g>
-    </svg>
+      </div>
+    </div>
   );
 }
 
-// ─── Kindle SVG (simplified) ──────────────────
+// ─── Kindle Visualization ───────────────────────────────────────────────────
 
-function KindleSVG() {
+function KindleVisualization() {
   return (
-    <svg
-      width="100%"
-      height="100%"
-      viewBox="0 0 240 340"
-      className="max-h-full"
-    >
-      <defs>
-        <pattern id="kindleGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-          <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
-        </pattern>
-      </defs>
+    <div className="flex flex-col items-center justify-center h-full">
+      <h3 className="text-xs text-white/40 uppercase tracking-wider mb-6">
+        Kindle Digital Preview
+      </h3>
 
       {/* Device frame */}
-      <rect
-        x="20"
-        y="10"
-        width="200"
-        height="320"
-        fill="rgba(255,255,255,0.03)"
-        stroke="rgba(255,255,255,0.12)"
-        strokeWidth="1.5"
-        rx="12"
-      />
+      <div className="relative">
+        <svg width="280" height="380" viewBox="0 0 280 380" className="text-white">
+          {/* Device body */}
+          <rect
+            x="20" y="10"
+            width="240" height="360"
+            rx="16" ry="16"
+            fill="rgba(255,255,255,0.03)"
+            stroke="rgba(255,255,255,0.12)"
+            strokeWidth="1.5"
+          />
 
-      {/* Screen */}
-      <rect
-        x="32"
-        y="30"
-        width="176"
-        height="260"
-        fill="rgba(255,255,255,0.04)"
-        stroke="rgba(255,255,255,0.08)"
-        strokeWidth="0.75"
-        rx="4"
-      />
+          {/* Screen area */}
+          <rect
+            x="36" y="36"
+            width="208" height="290"
+            rx="2" ry="2"
+            fill="rgba(255,255,255,0.02)"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth="0.5"
+          />
 
-      {/* Grid inside screen */}
-      <rect x="32" y="30" width="176" height="260" fill="url(#kindleGrid)" rx="4" />
+          {/* Simulated text lines */}
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => (
+            <rect
+              key={i}
+              x="48"
+              y={52 + i * 22}
+              width={i % 3 === 1 ? 140 : i % 3 === 2 ? 170 : 185}
+              height="4"
+              rx="2"
+              fill="rgba(255,255,255,0.06)"
+            />
+          ))}
 
-      {/* Safe zone */}
-      <rect
-        x="44"
-        y="42"
-        width="152"
-        height="236"
-        fill="none"
-        stroke="rgba(52,211,153,0.2)"
-        strokeWidth="0.75"
-        strokeDasharray="6 3"
-        rx="2"
-      />
+          {/* Title text */}
+          <text x="140" y="46" textAnchor="middle" className="text-[8px]" fill="rgba(255,255,255,0.3)">
+            Chapter Title
+          </text>
 
-      {/* Title area */}
-      <rect
-        x="52"
-        y="55"
-        width="100"
-        height="6"
-        fill="rgba(255,255,255,0.08)"
-        rx="3"
-      />
-      {/* Text lines */}
-      {[80, 95, 110, 125, 140, 155, 170, 185, 200, 215].map((y, i) => (
-        <rect
-          key={i}
-          x="52"
-          y={y}
-          width={140 - (i === 9 ? 40 : i === 8 ? 60 : 0)}
-          height="3"
-          fill="rgba(255,255,255,0.04)"
-          rx="1.5"
-        />
-      ))}
+          {/* Page indicator */}
+          <text x="140" y="352" textAnchor="middle" className="text-[7px]" fill="rgba(255,255,255,0.2)">
+            Loc 1234 · 15%
+          </text>
 
-      {/* Home button */}
-      <circle cx="120" cy="310" r="6" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          {/* Kindle logo dot */}
+          <circle cx="140" cy="340" r="3" fill="rgba(255,255,255,0.08)" />
+        </svg>
+      </div>
 
-      {/* Labels */}
-      <text x="120" y="25" textAnchor="middle" fill="rgba(255,255,255,0.2)" style={{ fontSize: '8px', fontFamily: 'ui-monospace, monospace' }}>
-        KINDLE
-      </text>
-      <text x="120" y="48" textAnchor="middle" fill="rgba(52,211,153,0.3)" style={{ fontSize: '7px', fontFamily: 'ui-monospace, monospace' }}>
-        Safe zone
-      </text>
-    </svg>
+      <div className="flex gap-4 mt-4">
+        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+          <Monitor className="w-3 h-3" /> Reflowable Layout
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+          <Type className="w-3 h-3" /> Embedded Fonts
+        </div>
+      </div>
+    </div>
   );
 }
 
-// ─── Main ConfigStep Component ────────────────
+// ─── Auto-Fill Banner ───────────────────────────────────────────────────────
+
+function AutoFillBanner() {
+  const { uploadedCover, uploadedManuscript, bookConfig, updateBookConfig } = useAppStore();
+
+  const hasAutoFill = uploadedManuscript?.pageCount && uploadedManuscript.pageCount !== bookConfig.pageCount;
+
+  if (!hasAutoFill) return null;
+
+  return (
+    <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-xl p-3 flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+        <Check className="w-4 h-4 text-emerald-400" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-emerald-300 font-medium">Auto-detected from import</p>
+        <p className="text-[10px] text-white/40">
+          {uploadedManuscript?.pageCount} pages detected — you can still adjust settings manually
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main ConfigStep ────────────────────────────────────────────────────────
 
 export default function ConfigStep() {
   const {
-    kdpFormat,
-    bookConfig,
-    updateBookConfig,
-    measurements,
-    detectedMetadata,
-    setCheckerStep,
+    bookType, bookConfig, measurements, updateBookConfig,
+    uploadedCover, uploadedManuscript, setCheckerStep,
   } = useAppStore();
 
-  const formatLabel: Record<KDPFormat, string> = {
+  const isHardcover = bookType === 'hardcover';
+  const isKindle = bookType === 'kindle';
+
+  const bookTypeLabel = {
     kindle: 'Kindle eBook',
     paperback: 'Paperback',
     hardcover: 'Hardcover',
-  };
+  }[bookType];
+
+  const bookTypeIcon = {
+    kindle: <Monitor className="w-4 h-4" />,
+    paperback: <BookOpen className="w-4 h-4" />,
+    hardcover: <Box className="w-4 h-4" />,
+  }[bookType];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.35 }}
-      className="flex flex-col h-full"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-lg font-semibold text-white/90 flex items-center gap-2">
-            <Settings className="w-5 h-5 text-white/40" />
-            Configuration
-          </h2>
-          <p className="text-xs text-white/30 mt-0.5">
-            Review and adjust settings for your {formatLabel[kdpFormat]} — everything is auto-detected, but you can fine-tune.
-          </p>
+    <div className="flex flex-col lg:flex-row gap-6 h-full">
+      {/* ─── LEFT: Config Panel ─── */}
+      <div className="lg:w-[400px] xl:w-[440px] shrink-0 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-200px)] pr-1 custom-scrollbar">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+            {bookTypeIcon}
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-white/90">Configure</h2>
+            <p className="text-xs text-white/40">{bookTypeLabel} — set your book specifications</p>
+          </div>
         </div>
 
-        {/* Format badge */}
-        <div className="flex items-center gap-2">
-          <div className="px-3 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white/40">
-            {formatLabel[kdpFormat]}
-          </div>
+        {/* Auto-fill banner */}
+        <AutoFillBanner />
+
+        {/* Context-aware config cards */}
+        {isKindle ? <KindleConfigCards /> : <PrintConfigCards isHardcover={isHardcover} />}
+
+        {/* Measurements Display */}
+        <MeasurementsDisplay />
+
+        {/* Navigation */}
+        <div className="flex gap-3 pt-2 pb-4">
           <button
-            onClick={() => {
-              updateBookConfig({
-                trimSize: '6x9',
-                bleed: 'no-bleed',
-                paper: 'white',
-                interior: 'black-white',
-                pageCount: 100,
-                binding: kdpFormat === 'kindle' ? 'paperback' : kdpFormat,
-              });
-            }}
-            className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-colors group"
-            title="Reset to defaults"
+            onClick={() => setCheckerStep('import')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-xs text-white/50 hover:text-white/70 transition-all duration-200"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors" />
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to Import
+          </button>
+          <button
+            onClick={() => setCheckerStep('preview')}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-medium text-xs transition-all duration-200 shadow-lg shadow-emerald-500/20"
+          >
+            Start Preview
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Main Content: Left config + Right SVG */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-5 min-h-0">
-        {/* Left: Config Cards */}
-        <div className="lg:w-[380px] xl:w-[420px] shrink-0 overflow-y-auto pr-1 max-h-[calc(100vh-220px)] lg:max-h-none custom-scrollbar">
-          <AnimatePresence mode="wait">
-            {kdpFormat === 'kindle' && (
-              <motion.div
-                key="kindle-config"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <KindleConfig
-                  bookConfig={bookConfig}
-                  updateBookConfig={updateBookConfig}
-                  detectedMetadata={detectedMetadata}
-                />
-              </motion.div>
-            )}
-            {kdpFormat === 'paperback' && (
-              <motion.div
-                key="paperback-config"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <PaperbackConfig
-                  bookConfig={bookConfig}
-                  updateBookConfig={updateBookConfig}
-                  measurements={measurements}
-                  detectedMetadata={detectedMetadata}
-                />
-              </motion.div>
-            )}
-            {kdpFormat === 'hardcover' && (
-              <motion.div
-                key="hardcover-config"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <HardcoverConfig
-                  bookConfig={bookConfig}
-                  updateBookConfig={updateBookConfig}
-                  measurements={measurements}
-                  detectedMetadata={detectedMetadata}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Right: Live SVG Visualization */}
-        <div className="flex-1 min-h-[300px] lg:min-h-0 bg-white/[0.015] border border-white/[0.04] rounded-2xl overflow-hidden flex items-center justify-center p-4">
-          <AnimatePresence mode="wait">
-            {kdpFormat === 'kindle' ? (
-              <motion.div
-                key="kindle-svg"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.35 }}
-                className="w-full h-full flex items-center justify-center"
-              >
-                <KindleSVG />
-              </motion.div>
-            ) : (
-              <motion.div
-                key={`${kdpFormat}-svg`}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.35 }}
-                className="w-full h-full flex items-center justify-center"
-              >
-                <CoverTemplateSVG
-                  kdpFormat={kdpFormat}
-                  bookConfig={bookConfig}
-                  measurements={measurements}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+      {/* ─── RIGHT: Live Visualization ─── */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8 w-full h-full min-h-[500px] flex items-center justify-center">
+          <CoverVisualization />
         </div>
       </div>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-5 pt-4 border-t border-white/[0.04]">
-        <button
-          onClick={() => setCheckerStep('import')}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-white/40 hover:text-white/60 hover:bg-white/[0.04] transition-all duration-200"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
-
-        <button
-          onClick={() => setCheckerStep('preview')}
-          className="btn-premium flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-white/[0.08] text-white/80 border border-white/[0.1] hover:bg-white/[0.12] hover:text-white transition-all duration-300"
-        >
-          Run Checks
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-    </motion.div>
+    </div>
   );
 }

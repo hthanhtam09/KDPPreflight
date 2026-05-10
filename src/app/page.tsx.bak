@@ -1,16 +1,13 @@
 'use client';
 
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Shield, Box, HomeIcon, ArrowLeft } from 'lucide-react';
+import { BookOpen, Shield, Box, HomeIcon, Loader2 } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import { AppView } from '@/types/kdp';
 import LandingPage from '@/components/landing/LandingPage';
 import SetupFeature from '@/components/setup/SetupFeature';
 import CheckerFeature from '@/components/checker/CheckerFeature';
-import dynamic from 'next/dynamic';
-
-// Dynamic import for 3D preview to avoid SSR issues
-const PreviewFeature = dynamic(() => import('@/components/preview/PreviewFeature'), { ssr: false });
 
 // --- Navigation ---
 function NavBar() {
@@ -88,7 +85,7 @@ function ViewRouter() {
         )}
         {view === 'preview' && (
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 h-[calc(100vh-56px)]">
-            <PreviewFeature />
+            <LazyPreviewFeature />
           </div>
         )}
       </motion.div>
@@ -97,6 +94,39 @@ function ViewRouter() {
 }
 
 // --- Main Page ---
+// Lazy-loaded 3D preview - only loads when actually viewed
+function LazyPreviewFeature() {
+  const [PreviewComponent, setPreviewComponent] = useState<React.ComponentType | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    import('@/components/preview/PreviewFeature')
+      .then((mod) => setPreviewComponent(() => mod.default))
+      .catch(() => setError(true));
+  }, []);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-white/30">
+        <Box className="w-12 h-12 mb-3" />
+        <p className="text-sm">Failed to load 3D preview</p>
+        <p className="text-xs text-white/20 mt-1">Try refreshing the page</p>
+      </div>
+    );
+  }
+
+  if (!PreviewComponent) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-white/30">
+        <Loader2 className="w-8 h-8 animate-spin mb-3" />
+        <p className="text-sm">Loading 3D engine...</p>
+      </div>
+    );
+  }
+
+  return <PreviewComponent />;
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0f] text-white">

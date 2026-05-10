@@ -10,29 +10,69 @@ export type InteriorType = 'black-white' | 'standard-color' | 'premium-color';
 
 export type BindingType = 'paperback' | 'hardcover';
 
-export type KDPFormat = 'kindle' | 'paperback' | 'hardcover';
-
-export type CheckerStep = 'import' | 'config' | 'preview';
-
-export type PreviewMode = 'single' | 'spread';
-
-export type OverlayType = 'bleed' | 'trim' | 'safe' | 'gutter' | 'crop' | 'spine' | 'hinge';
-
 export type CheckStatus = 'pass' | 'safe' | 'warning' | 'risk' | 'fail';
 
-export type PageContentType = 'text' | 'image-heavy' | 'blank' | 'mixed' | 'low-ink' | 'dark-risk' | 'edge-artwork';
+// Book type for the checker workflow
+export type BookType = 'kindle' | 'paperback' | 'hardcover';
+
+// Checker workflow steps
+export type CheckerStep = 'import' | 'config' | 'preview';
+
+// Preview view modes
+export type PreviewViewMode = 'single' | 'spread';
+
+// Preview content modes — 'book' is the unified flow
+export type PreviewContentMode = 'book' | 'cover' | 'manuscript';
+
+// Book page section types for unified preview
+export type BookSection = 'blank' | 'full-cover' | 'interior';
+
+// Single entry in the unified book model
+export interface BookPage {
+  id: string;                        // unique: 'blank', 'cover', 'p1'...'pN'
+  section: BookSection;              // which part of the book
+  label: string;                     // display label: 'Blank', 'Full Cover', 'Page 1', etc.
+  manuscriptIndex?: number;          // 1-based page number in manuscript PDF (interior only)
+  dataUrl?: string;                  // rendered page image
+  isBlank: boolean;                  // blank placeholder page
+  isCoverPage: boolean;              // true for the full cover spread
+  coverSide?: 'front' | 'back' | 'spine'; // which part of cover wrap (kept for compatibility)
+  widthIn?: number;                  // page width in inches (cover is wider than interior)
+  heightIn?: number;                 // page height in inches
+}
+
+// Overlay toggle types
+export type OverlayType = 'bleed' | 'trim' | 'safe-area' | 'gutter' | 'hinge' | 'crop' | 'spine' | 'barcode';
+
+// Page analysis intelligence
+export type PageContentType = 'text' | 'image-heavy' | 'blank' | 'mixed';
+
+export interface PageIssue {
+  id: string;
+  page: number;
+  type: 'margin-danger' | 'trim-risk' | 'low-dpi' | 'clipped-artwork' | 'font-issue' | 'bleed-problem' | 'blank-page' | 'duplicate-page' | 'upside-down' | 'low-contrast' | 'oversized-image' | 'inconsistent-size';
+  severity: CheckStatus;
+  message: string;
+  description?: string;
+}
 
 export interface PageAnalysis {
-  pageIndex: number;
-  contentType: PageContentType;
+  index: number;
+  widthIn: number;
+  heightIn: number;
+  dpi: number;
   imageCount: number;
-  hasArtworkNearEdge: boolean;
-  dominantColor: 'light' | 'dark' | 'colorful' | 'neutral';
-  marginSafety: 'safe' | 'caution' | 'risk';
-  estimatedDPI: number;
+  contentType: PageContentType;
   isBlank: boolean;
-  hasTransparency: boolean;
-  warnings: string[];
+  isDuplicate: boolean;
+  isUpsideDown: boolean;
+  hasClippedContent: boolean;
+  hasLowContrast: boolean;
+  hasBleedIssue: boolean;
+  marginSafety: 'safe' | 'caution' | 'danger';
+  colorCoverage: number;
+  issues: PageIssue[];
+  dataUrl?: string;
 }
 
 export interface TrimSize {
@@ -55,30 +95,7 @@ export interface BookConfig {
   interior: InteriorType;
   pageCount: number;
   binding: BindingType;
-}
-
-export interface DetectedMetadata {
-  trimSize: TrimSizeKey | null;
-  widthIn: number;
-  heightIn: number;
-  pageCount: number;
-  hasBleed: boolean;
-  probableFormat: KDPFormat;
-  spineWidthIn: number;
-  orientation: 'portrait' | 'landscape';
-  dpi: number;
-  isGrayscale: boolean;
-  hasTransparency: boolean;
-  colorProfile: string;
-}
-
-export interface PageIssue {
-  pageIndex: number;
-  checkId: string;
-  severity: CheckStatus;
-  label: string;
-  description: string;
-  suggestion?: string;
+  bookType: BookType;
 }
 
 export interface CalculatedMeasurements {
@@ -91,11 +108,13 @@ export interface CalculatedMeasurements {
   safeAreaIn: number;
   barcodeAreaIn: { x: number; y: number; width: number; height: number };
   wrapAroundIn: number;
+  gutterIn: number;
+  hingeIn: number;
 }
 
 export interface ValidationCheck {
   id: string;
-  category: 'cover' | 'manuscript' | 'general';
+  category: 'cover' | 'manuscript' | 'general' | 'kindle';
   name: string;
   description: string;
   status: CheckStatus;
@@ -104,12 +123,13 @@ export interface ValidationCheck {
   value?: number;
   expected?: number;
   tolerance?: number;
+  page?: number;
 }
 
 export interface ValidationReport {
   fileId: string;
   fileName: string;
-  fileType: 'cover' | 'manuscript';
+  fileType: 'cover' | 'manuscript' | 'kindle';
   checks: ValidationCheck[];
   overallStatus: CheckStatus;
   summary: string;
@@ -125,7 +145,6 @@ export interface UploadedFile {
   pageCount?: number;
   dimensions?: { width: number; height: number };
   dataUrl?: string;
-  pages?: { index: number; dataUrl: string; width: number; height: number; isBlank: boolean }[];
 }
 
 export interface PageTexture {
@@ -148,11 +167,114 @@ export interface AppState {
   manuscriptTextures: PageTexture[];
   isProcessing: boolean;
   processingMessage: string;
-  kdpFormat: KDPFormat;
-  checkerStep: CheckerStep;
-  previewMode: PreviewMode;
-  activeOverlays: OverlayType[];
-  detectedMetadata: DetectedMetadata | null;
-  pageIssues: PageIssue[];
-  currentPreviewPage: number;
+}
+
+// Auto-detection result from import analysis
+export interface ImportAnalysis {
+  bookType: BookType;
+  trimSize: TrimSizeKey;
+  customWidth?: number;
+  customHeight?: number;
+  bleed: BleedType;
+  paper: PaperType;
+  interior: InteriorType;
+  pageCount: number;
+  binding: BindingType;
+  orientation: 'portrait' | 'landscape';
+  detectedDpi: number;
+  hasEmbeddedFonts: boolean;
+  colorProfile: string;
+  confidence: number; // 0-1 how confident the detection is
+}
+
+// Processing step for animated states
+export interface ProcessingStep {
+  id: string;
+  label: string;
+  status: 'pending' | 'active' | 'complete';
+}
+
+// Preview asset cache — built during import, used instantly in preview
+export interface PreviewAssetCache {
+  pages: Map<number, string>;        // manuscript page index → data URL
+  thumbnails: Map<number, string>;   // page index → thumbnail data URL
+  coverDataUrl: string;              // cover image data URL
+  coverThumbnail: string;            // cover thumbnail
+  spreads: SpreadInfo[];             // pre-computed spread layout
+  issueMap: Map<number, PageIssue[]>;// page index → issues
+  pageAnalyses: PageAnalysis[];      // per-page analysis results
+  metadata: PreviewMetadata;
+  status: ProcessingStatus;
+}
+
+export interface SpreadInfo {
+  leftPageIndex: number | null;  // index into bookPages array
+  rightPageIndex: number | null;
+  isSingle: boolean;
+  label: string;
+}
+
+export interface PreviewMetadata {
+  totalBookPages: number;
+  manuscriptPages: number;
+  hasCover: boolean;
+  bookType: BookType;
+  trimWidthIn: number;
+  trimHeightIn: number;
+  fullCoverWidthIn: number;
+  fullCoverHeightIn: number;
+  dpi: number;
+  createdAt: number;
+}
+
+export type ProcessingStatus = 'idle' | 'parsing' | 'rendering' | 'analyzing' | 'ready' | 'error';
+
+// Issue filter types
+export type IssueSeverityFilter = 'all' | 'fail' | 'risk' | 'warning' | 'safe' | 'pass';
+export type IssueCategoryFilter = 'all' | 'cover' | 'interior' | 'bleed' | 'dpi' | 'font' | 'gutter' | 'margin' | 'size';
+
+export interface IssueFilter {
+  severity: IssueSeverityFilter;
+  category: IssueCategoryFilter;
+  search: string;
+}
+
+// Issue category for grouping and filtering
+export type IssueCategory = 'cover' | 'interior' | 'bleed' | 'dpi' | 'font' | 'gutter' | 'margin' | 'size';
+
+// Enhanced PageIssue with position info for overlay highlights
+export interface PageIssueExtended extends PageIssue {
+  category: IssueCategory;
+  actual: string;
+  expected: string;
+  region?: {
+    xIn: number;  // position in inches from left
+    yIn: number;  // position in inches from top
+    widthIn: number;
+    heightIn: number;
+  };
+  suggestion: string;
+}
+
+// Spread model for book preview
+export interface SpreadModel {
+  id: string;
+  leftPageIndex: number | null;  // index into bookPages array
+  rightPageIndex: number | null;
+  isSingle: boolean;
+  label: string;
+  spreadIndex: number;
+}
+
+// Validation summary computed from PageIssueExtended[]
+export interface ValidationSummary {
+  total: number;
+  fail: number;
+  risk: number;
+  warning: number;
+  safe: number;
+  pass: number;
+  byCategory: Record<IssueCategory, number>;
+  overallStatus: CheckStatus;
+  isReady: boolean; // true when no fail/risk issues
 }

@@ -1,108 +1,137 @@
 ---
-Task ID: 1-8
-Agent: Main Orchestrator
-Task: Redesign the entire Checker Feature UX for KDPPreflight into a 3-step publishing workflow
+Task ID: 1-4
+Agent: Main
+Task: Complete Spread Logic + Validation Workspace Refactor
 
 Work Log:
-- Read and analyzed existing project structure (types, store, validator, pdf-processor, kdp-constants, existing CheckerFeature)
-- Updated `/home/z/my-project/src/types/kdp.ts` with new types: KDPFormat, CheckerStep, PreviewMode, OverlayType, DetectedMetadata, PageIssue, updated UploadedFile and AppState
-- Updated `/home/z/my-project/src/store/use-app-store.ts` with new store fields: kdpFormat, checkerStep, previewMode, activeOverlays, currentPreviewPage, detectedMetadata, pageIssues and their actions
-- Created `/home/z/my-project/src/components/checker/ImportStep.tsx` (729 lines) - Step 1: Format selector (Kindle/Paperback/Hardcover), cinematic upload zones, auto-detection with animated scan sequence, detection summary card
-- Created `/home/z/my-project/src/components/checker/ConfigStep.tsx` (1497 lines) - Step 2: Format-aware config cards (Kindle: layout/fonts/scaling/TOC; Paperback: trim/bleed/spine/paper/margins; Hardcover: all paperback + hinge/wrap/laminate/dust jacket), live SVG visualization, smart help text
-- Created `/home/z/my-project/src/components/checker/PreviewStep.tsx` (1410 lines) - Step 3: 3-column layout (Issue Panel | Preview | Thumbnails), single/spread view modes, SVG overlay system, issue navigation, smart suggestions, format-specific validation, zoom controls, keyboard navigation
-- Created `/home/z/my-project/src/components/checker/CheckerFeature.tsx` (114 lines) - Main orchestrator with step indicator, format badge, animated step transitions
-- Updated `/home/z/my-project/src/app/page.tsx` - Changed checker view to full-height layout
-- Updated `/home/z/my-project/src/app/globals.css` - Added checker-specific animations (scan-pulse, upload-shimmer, config transitions, overlay fades, severity glows, thumbnail glow)
-- Ran ESLint: Clean (no errors)
-- Verified dev server: Running on port 3000, responding 200
+- Read all current codebase files to understand state
+- Updated types/kdp.ts with IssueFilter, IssueSeverityFilter, IssueCategoryFilter, SpreadModel, ValidationSummary, enhanced PageIssueExtended
+- Updated store/use-app-store.ts with selectedIssueId, issueFilter, spreadModels, validationSummary state
+- Enhanced engine/validator.ts to return PageIssueExtended[] with actual/expected/category/region/suggestion fields
+- Added computeValidationSummary() function to validator
+- COMPLETE REWRITE of PreviewStep.tsx:
+  - Fixed spread pairing logic: Cover alone → [Blank + Page 1] → [Page 2 + Page 3] → etc.
+  - Two-panel layout: ~70% canvas + ~30% validation panel (300-380px)
+  - Rich ValidationPanel with: Document Summary, Validation Status, Filter System, Issue Cards
+  - Issue highlighting on canvas when selected (region overlay with severity-colored glow)
+  - ThumbnailStrip at top of validation panel (compact horizontal scrollable)
+  - Issue clicking navigates to page + highlights region
+  - Current spread issues pinned at top of issue list
+  - Search and filter by severity/category
+  - All existing zoom/pan/overlay functionality preserved
+  - Dark workspace background (#1e1f22, #232529)
+- Updated CheckerFeature.tsx: Preview step now renders fullscreen (100vh), no step indicator wrapper
 
 Stage Summary:
-- Complete 3-step checker workflow: Import → Config → Preview
-- Format-aware UI: Kindle, Paperback, Hardcover each show relevant settings
-- Import step: Animated auto-detection, cinematic upload zones, detection summary
-- Config step: Interactive cards with smart help, live SVG template visualization
-- Preview step: Single/Spread view, SVG overlays, issue navigation, thumbnail sidebar, zoom controls, smart suggestions
-- All components pass lint cleanly
-- Dev server running and responsive
+- Spread logic is now CORRECT: Cover alone, Blank+Page1, Page2+Page3
+- Validation panel is a full intelligence center with rich issue details
+- Issues are clickable → navigate + highlight affected area on canvas
+- Two-panel layout replaces the old thumbnail sidebar approach
+- All lint passes, dev server compiles, page returns 200
 
 ---
-Task ID: 9
-Agent: Main Orchestrator
-Task: Fix barcodeAreaIn undefined property bug and completely redesign Preview Step for professional publishing review
+Task ID: 3
+Agent: PreviewStep Refactor
+Task: Complete UX Refactor of PreviewStep.tsx — 3-Panel Layout
 
 Work Log:
-- Fixed critical bug: `calculateMeasurements()` returned `barcodeArea` but interface defined `barcodeAreaIn`, causing undefined property error at ConfigStep line 1058
-- Updated `OverlayType` in types/kdp.ts to include 'spine' and 'hinge' for hardcover support
-- Added new types: `PageContentType` (text/image-heavy/blank/mixed/low-ink/dark-risk/edge-artwork) and `PageAnalysis` interface
-- Completely rewrote `PreviewStep.tsx` (~950 lines) with comprehensive professional preview system:
-  - **Top Toolbar**: Back button, title, status badge, view mode toggle (single/spread), page navigation with jump input, zoom controls, overlay toggles (format-aware), Kindle dark mode toggle, issue panel toggle
-  - **Left Sidebar (IssuePanel)**: Collapsible validation panel with grouped issues (fail/risk/warning), summary counts, click-to-navigate issue resolution, smart suggestions
-  - **Center Canvas**: Main preview area with single/spread view, realistic gutter simulation in spread mode, SVG overlay system (bleed/trim/safe/gutter/crop/spine/hinge), mouse panning at high zoom, Ctrl+scroll zoom, premium page shadows
-  - **Right Sidebar**: Page metadata panel (content type, dimensions, bleed, DPI, margin safety, warnings) + thumbnail navigator with auto-scroll, issue severity badges, content type indicators, spread-mode thumbnails
-  - **Bottom Action Bar**: Progress indicator, first/prev/next/last navigation, final actions (Config, 3D Preview, Export Report)
-  - **PageRenderer**: Content type badges, ring indicators for margin safety, hover effects, SVG overlays
-  - **PageMetadataPanel**: Content analysis display, metadata grid, page warnings
-  - **OverlaySVG**: Enhanced with spine and hinge overlays for hardcover, format-aware rendering
-  - **analyzePageContent**: Heuristic page analysis engine (content type detection, margin safety, dark print risk, edge artwork detection)
-  - **runValidation**: Format-specific validation (Kindle: font embedding, TOC, reflow; Paperback: trim/gutter/resolution; Hardcover: hinge/margins)
-- Auto-fit zoom on mount and mode change
-- Keyboard navigation (arrow keys)
-- Page jump input
-- Empty state messaging
-- Format-aware overlay availability (Kindle: no bleed/trim overlays; Hardcover: spine/hinge)
+- Read existing PreviewStep.tsx (2202 lines), store, persistence layer, types, and kdp-constants
+- COMPLETE REWRITE of PreviewStep.tsx with comprehensive UX improvements:
+
+1. **3-Panel Layout**: Left Sidebar (~18%) + Center Canvas (~57%) + Right Panel (~25%)
+   - Replaces previous 2-panel (canvas + right panel) design
+
+2. **Mode Switcher — Top Center, Prominent**:
+   - Large segmented toggle with icons: 📄 Single Page | 📖 Spread View
+   - min-h-[44px] touch targets, visible active state with shadow
+   - Icon + label for both options, persists to localStorage
+
+3. **ThumbnailSidebar — Left Vertical Navigation**:
+   - New `ThumbnailSidebar` component with vertical scrollable thumbnails
+   - Each card: preview image, page/spread label, issue count badge, severity color dot
+   - Active page highlighted with emerald border + ring
+   - Auto-centers active thumbnail (scrollIntoView)
+   - Spread mode: side-by-side thumbnails matching spread structure
+   - Collapsible via toggle button (PanelLeftClose/PanelLeftOpen)
+
+4. **FriendlyIssueCard — Beginner-Friendly Issue Display**:
+   - TOP ROW: Severity badge + title + affected page
+   - MIDDLE SECTION: Problem / Why It Matters / Recommended Fix (plain language)
+   - BOTTOM SECTION: Technical Details (collapsible) with actual/expected/difference
+   - Severity colors: green=Safe, yellow=Warning, orange=Risk, red=Fail
+   - Large clear icons: CheckCircle2, AlertTriangle, XCircle, Image, Ruler
+   - Issues grouped by category: Cover, Layout, Bleed, DPI, Margins, Gutter, Fonts, Interior
+
+5. **Beginner-Friendly Filters**:
+   - [ All ] [ Important ] [ Needs Fix ] [ Safe ] — replaces technical severity filters
+   - Maps to: all → show all, important → fail+risk, needs-fix → fail+risk+warning, safe → pass+safe
+
+6. **Save/Restore System Integration**:
+   - Integrated `@/lib/persistence` (IndexedDB-based)
+   - Auto-save every 5 seconds (debounced) after major actions
+   - SaveStatusIndicator in toolbar: "Saved" / "Saving..." / "Save Failed"
+   - Saves: page, view mode, overlays, filters, book pages, spreads, cover/PDF data URLs
+
+7. **SessionRestoreDialog**:
+   - Shows on mount when saved workspace found
+   - Displays: time ago, file name, page count, book type
+   - [ Restore ] [ Start New ] buttons
+   - Restores all saved state on restore, clears IndexedDB on discard
+
+8. **OnboardingHint Component**:
+   - Lightweight dismissible hint bubbles using framer-motion
+   - 4 hints: sidebar click, mode switcher, canvas zoom, issue click
+   - Uses store's dismissHint/isHintDismissed (persists to localStorage)
+
+9. **Overlay Focus Mode**:
+   - When issue is selected with region, dims rest of page
+   - Semi-transparent SVG overlay with "cutout" for highlighted region
+   - 4 rectangles (top/bottom/left/right) around the highlight area
+   - focusMode prop passed to PageOverlay component
+
+10. **Preserved Business Logic**:
+    - buildBookSequence() — identical
+    - computeSpreads() — identical
+    - PageOverlay SVG overlays — identical + focus mode additions
+    - PageRenderer — identical + focusMode prop
+    - Zoom/pan physics (damped interpolation, cursor-centered zoom)
+    - FitDropdown, JumpToPageModal, ProcessingState — identical
+    - All keyboard shortcuts — identical
+    - All mouse wheel zoom + pan/drag — identical
+    - allowedOverlaysForBookType, OVERLAY_CONFIG, all constants — identical
+    - getWorstSeverity, IssueDot, SingleThumb helpers — identical
 
 Stage Summary:
-- Fixed barcodeAreaIn → barcodeArea naming mismatch in kdp-constants.ts
-- Complete professional preview system with 7 overlay types, page content analysis, metadata panel
-- Three-panel layout: Issues | Canvas | Metadata+Thumbnails
-- Spread mode with realistic gutter simulation
-- Kindle dark mode simulation
-- All navigation methods: keyboard, click, jump, scroll, thumbnail
-- Issue navigation: click issue → jump to page
-- Format-aware overlays and validation
-- Lint clean, dev server responding 200
+- 3-panel layout: left thumbnails + center canvas + right validation
+- Mode switcher is prominent at top center with large touch targets
+- Issue cards use beginner-friendly Problem/Why/Fix structure
+- Auto-save to IndexedDB every 5s, session restore dialog on mount
+- Overlay focus mode dims non-highlighted areas
+- Onboarding hints for first-time users
+- All existing business logic preserved exactly
+- Lint passes, dev server compiles, page returns 200
 
 ---
-Task ID: 10
-Agent: Main Orchestrator
-Task: Critical Preview Update — Full Manuscript Interior Preview Support
+Task ID: 5
+Agent: Main
+Task: Final verification and testing of complete UX refactor
 
 Work Log:
-- Upgraded `/home/z/my-project/src/engine/pdf-processor.ts` with:
-  - New `initPDFDocument()` for lazy page-by-page rendering (no longer requires rendering all 50 pages upfront)
-  - New `renderPage()` for single page rendering with quality settings (low/medium/high/ultra) and LRU caching
-  - New `renderPagesBatch()` for batch rendering with progress callback
-  - New `prefetchPages()` for pre-rendering adjacent pages around current page
-  - New `PageCache` class (LRU cache with TTL) for rendered page texture caching
-  - New `PageContentAnalysis` interface and `analyzePageContent()` for real page content analysis
-  - New `cleanupPDFDocument()` for memory management
-  - Backward compatible `loadPDF()` preserved for legacy usage
-- Completely rewrote `/home/z/my-project/src/components/checker/PreviewStep.tsx` with professional publishing review environment:
-  - **PreviewToolbar**: Top bar with view mode toggle (Single/Spread), overlay toggles (format-aware), zoom controls, Kindle-specific controls (dark mode toggle, font scaling slider), sidebar toggles
-  - **IssuePanel (Left Sidebar)**: Toggleable validation panel with grouped issues, click-to-navigate, summary counts, smart suggestions
-  - **PageRenderer**: Enhanced with kindleDarkMode support, overlay rendering, content type badges, margin safety indicators
-  - **EmptyPreviewState**: Professional empty state with BookOpen icon and reassuring messaging
-  - **ThumbnailNavigator (Right Sidebar)**: Toggleable, auto-scrolling, single/spread mode thumbnails with issue badges, blank page indicators, content type mini-badges
-  - **PageMetadataBar (Bottom)**: Page info, content type, dimensions, margin safety status, issue count, bleed info
-  - **NavigationBar**: First/Prev/Jump/Next/Last with page jump input, keyboard arrow navigation, Ctrl+scroll zoom
-  - **Spread View**: Proper book-like spread with gutter shadow effects, blank left page for page 1 (cover), left/right page alignment
-  - **Single View**: Full page display with zoom and pan support
-  - **Kindle Support**: Dark mode simulation (CSS invert), font scaling slider
-  - **Performance**: useCallback for navigation, useMemo for analyses, lazy thumbnail loading, LRU caching in PDF processor
-  - **Keyboard Navigation**: Arrow keys for prev/next, Home/End for first/last, Ctrl+/-/0 for zoom
-  - **Mouse Navigation**: Ctrl+scroll for zoom, click-drag for pan at high zoom
-- Fixed lint errors: Moved setZoom wrapper before effects, removed unused imports, fixed ref access during render
-- All source files pass lint cleanly (only warnings in pdf.worker.min.mjs which is third-party)
+- Verified all new components exist: ThumbnailSidebar, FriendlyIssueCard, SessionRestoreDialog, OnboardingHint, SaveStatusIndicator, OverlayFocusMode
+- Verified 3-panel layout: Left (~18%) + Center (~57%) + Right (~25%)
+- Verified mode switcher is in top center with 44px touch targets and localStorage persistence
+- Verified FriendlyIssueCard has Problem/Why It Matters/Recommended Fix structure with collapsible technical details
+- Verified beginner-friendly filters: All/Important/Needs Fix/Safe
+- Verified auto-save system with 5s debounce to IndexedDB
+- Verified session restore dialog on mount
+- Verified onboarding hints (4 hints) with dismiss functionality persisted to localStorage
+- Verified overlay focus mode (SVG cutout) dims non-highlighted areas
+- Verified all business logic preserved: spread computation, zoom/pan physics, overlays, keyboard shortcuts
+- Lint passes cleanly, dev server compiles, page returns HTTP 200
 
 Stage Summary:
-- Full manuscript interior preview (not just cover) — users can now navigate every page
-- Professional 3-panel layout: Issues (left) | Canvas (center) | Thumbnails (right)
-- Toggleable sidebars for maximum canvas space
-- Single Page + Spread View modes with realistic gutter simulation
-- Enhanced PDF processor with lazy rendering, LRU caching, high-DPI support
-- Kindle-specific features: dark mode simulation, font scaling
-- Complete navigation: keyboard, mouse, thumbnails, page jump, issue click
-- Smart overlays: bleed, trim, safe area, gutter, crop risk, spine, hinge
-- Page analysis with content type detection and margin safety indicators
-- Professional empty states with reassuring messaging
-- Dev server running, all lint checks pass
+- Complete UX refactor implemented and verified
+- New persistence layer (lib/persistence.ts) provides IndexedDB-based save/restore
+- Store updated with save status, mode memory, onboarding hints, sidebar collapse
+- PreviewStep.tsx rewritten (2753 lines) with all new features
+- All requirements from the spec have been addressed
