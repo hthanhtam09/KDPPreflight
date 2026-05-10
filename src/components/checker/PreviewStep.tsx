@@ -955,16 +955,19 @@ function FriendlyIssueCard({
   issue,
   isSelected,
   onClick,
+  locationLabel,
 }: {
   issue: PageIssueExtended;
   isSelected: boolean;
   onClick: () => void;
+  /** Override location label, e.g. "Spread 2–3 · Page 3 (Right)" instead of just "Page 3" */
+  locationLabel?: string;
 }) {
   const [showTechnical, setShowTechnical] = useState(false);
   const colors = getSeverityColors(issue.severity);
   const friendlyInfo = CATEGORY_FRIENDLY[issue.category] || CATEGORY_FRIENDLY['interior'];
 
-  const pageLabel = issue.page ? `Page ${issue.page}` : '';
+  const pageLabel = locationLabel || (issue.page ? `Page ${issue.page}` : '');
 
   return (
     <motion.div
@@ -1103,6 +1106,7 @@ interface ValidationPanelProps {
   setIssueFilter: (filter: Partial<IssueFilter>) => void;
   currentSpreadIdx: number;
   spreads: SpreadModel[];
+  viewMode: PreviewViewMode;
 }
 
 function ValidationPanel({
@@ -1119,9 +1123,34 @@ function ValidationPanel({
   setIssueFilter,
   currentSpreadIdx,
   spreads,
+  viewMode,
 }: ValidationPanelProps) {
   const [searchInput, setSearchInput] = useState(issueFilter.search);
   const [beginnerFilter, setBeginnerFilter] = useState<BeginnerFilter>('all');
+  const isSpreadMode = viewMode === 'spread' && bookType !== 'kindle';
+
+  // -------------------------------------------------------------------------
+  // Helper: compute location label for an issue based on view mode
+  // -------------------------------------------------------------------------
+  const getLocationLabel = useCallback((issue: PageIssueExtended): string => {
+    if (!issue.page) return '';
+    if (!isSpreadMode) return `Page ${issue.page}`;
+
+    // Find which spread this page belongs to and whether it's left or right
+    for (const spread of spreads) {
+      const leftPage = spread.leftPageIndex !== null ? bookPages[spread.leftPageIndex] : null;
+      const rightPage = spread.rightPageIndex !== null ? bookPages[spread.rightPageIndex] : null;
+
+      if (leftPage?.manuscriptIndex === issue.page) {
+        if (spread.isSingle) return `Cover`;
+        return `${spread.label} · Left`;
+      }
+      if (rightPage?.manuscriptIndex === issue.page) {
+        return `${spread.label} · Right`;
+      }
+    }
+    return `Page ${issue.page}`;
+  }, [isSpreadMode, spreads, bookPages]);
 
   // Filter issues
   const filteredIssues = useMemo(() => {
@@ -1172,6 +1201,63 @@ function ValidationPanel({
     return { critical, warnings, passed };
   }, [filteredIssues]);
 
+  // -------------------------------------------------------------------------
+  // In SPREAD mode: group issues by spread (then severity within each spread)
+  // -------------------------------------------------------------------------
+  interface SpreadGroup {
+    spread: SpreadModel;
+    spreadIndex: number;
+    label: string;
+    issues: PageIssueExtended[];
+    worstSeverity: CheckStatus;
+    leftIssues: PageIssueExtended[];
+    rightIssues: PageIssueExtended[];
+  }
+
+  const spreadGroups = useMemo((): SpreadGroup[] => {
+    if (!isSpreadMode) return [];
+
+    const groups: SpreadGroup[] = [];
+    for (let si = 0; si < spreads.length; si++) {
+      const spread = spreads[si];
+      const leftPage = spread.leftPageIndex !== null ? bookPages[spread.leftPageIndex] : null;
+      const rightPage = spread.rightPageIndex !== null ? bookPages[spread.rightPageIndex] : null;
+
+      const leftMIdx = leftPage?.manuscriptIndex;
+      const rightMIdx = rightPage?.manuscriptIndex;
+
+      const leftIssues = filteredIssues.filter(i => leftMIdx !== undefined && i.page === leftMIdx);
+      const rightIssues = filteredIssues.filter(i => rightMIdx !== undefined && i.page === rightMIdx);
+      const issues = [...leftIssues, ...rightIssues];
+
+      if (issues.length === 0) continue;
+
+      // Determine worst severity
+      const severityOrder: CheckStatus[] = ['fail', 'risk', 'warning', 'safe', 'pass'];
+      let worst: CheckStatus = 'pass';
+      for (const iss of issues) {
+        if (severityOrder.indexOf(iss.severity) < severityOrder.indexOf(worst)) {
+          worst = iss.severity;
+        }
+      }
+
+      groups.push({
+        spread,
+        spreadIndex: si,
+        label: spread.label,
+        issues,
+        worstSeverity: worst,
+        leftIssues,
+        rightIssues,
+      });
+    }
+    // Sort: worst severity spreads first
+    const severityOrder: CheckStatus[] = ['fail', 'risk', 'warning', 'safe', 'pass'];
+    groups.sort((a, b) => severityOrder.indexOf(a.worstSeverity) - severityOrder.indexOf(b.worstSeverity));
+
+    return groups;
+  }, [isSpreadMode, spreads, bookPages, filteredIssues]);
+
   // Issues relevant to current spread
   const currentSpreadIssues = useMemo(() => {
     const currentSpread = spreads[currentSpreadIdx];
@@ -1184,6 +1270,13 @@ function ValidationPanel({
 
     return filteredIssues.filter(i => manuscriptIndices.includes(i.page));
   }, [spreads, currentSpreadIdx, bookPages, filteredIssues]);
+
+  // Current spread label for the pinned section
+  const currentSpreadLabel = useMemo(() => {
+    if (!isSpreadMode) return 'Current Page';
+    const spread = spreads[currentSpreadIdx];
+    return spread ? `Current: ${spread.label}` : 'Current Spread';
+  }, [isSpreadMode, spreads, currentSpreadIdx]);
 
   const findPageIndex = useCallback((manuscriptPage: number): number => {
     return bookPages.findIndex((p) => p.manuscriptIndex === manuscriptPage);
@@ -1219,7 +1312,12 @@ function ValidationPanel({
       {/* ---- Section 1: Validation Status ---- */}
       <div className="shrink-0 border-b border-white/[0.06] px-4 py-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-[11px] font-semibold text-white/35 uppercase tracking-wider">Validation</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-[11px] font-semibold text-white/35 uppercase tracking-wider">Validation</h3>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/20 font-medium">
+              {isSpreadMode ? '📖 Spread' : '📄 Single'}
+            </span>
+          </div>
           <div className="flex items-center gap-1">
             {validationSummary.isReady ? (
               <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
@@ -1305,31 +1403,29 @@ function ValidationPanel({
         </div>
       </div>
 
-      {/* ---- Section 3: Current Spread Issues (pinned) ---- */}
+      {/* ---- Section 3: Current Page/Spread Issues (pinned) ---- */}
       {currentSpreadIssues.length > 0 && (
         <div className="shrink-0 border-b border-white/[0.06] px-4 py-2">
           <div className="flex items-center gap-1.5 mb-1.5">
             <Info className="w-3 h-3 text-white/20" />
-            <span className="text-[9px] font-medium text-white/25 uppercase tracking-wider">Current Spread</span>
+            <span className="text-[9px] font-medium text-white/25 uppercase tracking-wider">{currentSpreadLabel}</span>
             <span className="text-[8px] px-1 py-0.5 rounded bg-white/[0.06] text-white/20">{currentSpreadIssues.length}</span>
           </div>
-          <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
-            {currentSpreadIssues.slice(0, 3).map(issue => (
+          <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
+            {currentSpreadIssues.map(issue => (
               <FriendlyIssueCard
                 key={issue.id}
                 issue={issue}
                 isSelected={selectedIssueId === issue.id}
                 onClick={() => handleIssueClick(issue)}
+                locationLabel={getLocationLabel(issue)}
               />
             ))}
-            {currentSpreadIssues.length > 3 && (
-              <span className="text-[8px] text-white/15 pl-2">+{currentSpreadIssues.length - 3} more below</span>
-            )}
           </div>
         </div>
       )}
 
-      {/* ---- Section 4: All Issues (grouped by SEVERITY: 🔴 Critical → 🟡 Warning → 🟢 OK) ---- */}
+      {/* ---- Section 4: All Issues ---- */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
         {filteredIssues.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-2">
@@ -1346,7 +1442,101 @@ function ValidationPanel({
               </>
             )}
           </div>
+        ) : isSpreadMode ? (
+          /* ────────────────────────────────────────────────────────────────── */
+          /* SPREAD MODE: Group issues by spread, with left/right indicators    */
+          /* ────────────────────────────────────────────────────────────────── */
+          <div className="p-3 space-y-4">
+            {spreadGroups.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 gap-2">
+                <CheckCircle2 className="w-6 h-6 text-emerald-400/25" />
+                <span className="text-[11px] text-emerald-400/35">All spreads look good</span>
+              </div>
+            ) : (
+              spreadGroups.map((group) => {
+                const isCurrentSpread = group.spreadIndex === currentSpreadIdx;
+                const severityColors = getSeverityColors(group.worstSeverity);
+                const severityDot = group.worstSeverity === 'fail' || group.worstSeverity === 'risk' ? '🔴'
+                  : group.worstSeverity === 'warning' ? '🟡' : '🟢';
+
+                return (
+                  <div key={group.spread.id} className={`rounded-lg border transition-all ${
+                    isCurrentSpread
+                      ? 'border-emerald-400/30 bg-emerald-500/[0.03]'
+                      : 'border-white/[0.04] hover:border-white/[0.08]'
+                  }`}>
+                    {/* Spread header */}
+                    <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.04]">
+                      <span className="text-[13px]">{severityDot}</span>
+                      <span className={`text-[12px] font-semibold ${
+                        isCurrentSpread ? 'text-emerald-400' : 'text-white/60'
+                      }`}>
+                        {group.label}
+                      </span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${severityColors.bg} ${severityColors.text}`}>
+                        {group.issues.length} issue{group.issues.length !== 1 ? 's' : ''}
+                      </span>
+                      {isCurrentSpread && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-medium">
+                          Viewing
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Left page issues */}
+                    {group.leftIssues.length > 0 && (
+                      <div className={group.rightIssues.length > 0 ? 'border-b border-white/[0.03]' : ''}>
+                        {!group.spread.isSingle && (
+                          <div className="px-3 pt-1.5 pb-0.5">
+                            <span className="text-[9px] font-medium text-white/20 uppercase tracking-wider">
+                              {group.spread.isSingle ? '' : '⬅ Left page'}
+                            </span>
+                          </div>
+                        )}
+                        <div className="px-2 pb-1 space-y-1">
+                          {group.leftIssues.map(issue => (
+                            <FriendlyIssueCard
+                              key={issue.id}
+                              issue={issue}
+                              isSelected={selectedIssueId === issue.id}
+                              onClick={() => handleIssueClick(issue)}
+                              locationLabel={getLocationLabel(issue)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Right page issues */}
+                    {group.rightIssues.length > 0 && (
+                      <div>
+                        <div className="px-3 pt-1.5 pb-0.5">
+                          <span className="text-[9px] font-medium text-white/20 uppercase tracking-wider">
+                            ➡ Right page
+                          </span>
+                        </div>
+                        <div className="px-2 pb-2 space-y-1">
+                          {group.rightIssues.map(issue => (
+                            <FriendlyIssueCard
+                              key={issue.id}
+                              issue={issue}
+                              isSelected={selectedIssueId === issue.id}
+                              onClick={() => handleIssueClick(issue)}
+                              locationLabel={getLocationLabel(issue)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
         ) : (
+          /* ────────────────────────────────────────────────────────────────── */
+          /* SINGLE MODE: Group by severity (original behavior)                 */
+          /* ────────────────────────────────────────────────────────────────── */
           <div className="p-3 space-y-5">
             {/* 🔴 CRITICAL ISSUES — Likely Rejected By KDP */}
             {severityGroups.critical.length > 0 && (
@@ -2718,6 +2908,7 @@ export default function PreviewStep() {
             setIssueFilter={setIssueFilter}
             currentSpreadIdx={currentSpreadIdx}
             spreads={spreads}
+            viewMode={previewViewMode}
           />
 
           {/* Onboarding hint: issue panel */}
