@@ -95,3 +95,28 @@ Stage Summary:
 - Export: Transparent PNG (standard + HD resolution)
 - Premium UI: Floating toolbar, page slider, device picker, info panel
 - Camera: OrbitControls with auto-framing based on book state
+
+---
+Task ID: 1-8
+Agent: Main
+Task: Fix major 3D Preview system bugs - cover parsing, manuscript import, performance
+
+Work Log:
+- Created cover-parser.ts engine that dynamically splits KDP cover spreads into front/spine/back textures
+- Refactored BookPreview3D.tsx with: NaN-safe geometry helpers, global texture cache, smooth camera controller, stable flip animation, book state machine
+- Refactored PaperbackBook.tsx with: separate front/spine/back cover meshes, Bezier-curve page deformation, dynamic page thickness, stable persistent geometry
+- Refactored HardcoverBook.tsx with: rigid board meshes, hinge gap areas, endpapers, spine texture, stiffer page curl
+- Refactored PreviewFeature.tsx with: manuscript PDF import pipeline, cover spread auto-detection, loading progress, dual upload zones
+- Updated PreviewToolbar.tsx to match new types
+- Fixed React lint errors (accessing refs during render → useState)
+- Fixed PDF cover upload crash (loadImage → loadPDF for PDFs)
+- All pages compile and return 200, lint passes clean
+
+Stage Summary:
+- Cover PDF parsing now correctly splits front/spine/back textures dynamically
+- Manuscript import pipeline added (PDF → page textures → 3D interior)
+- Page flip uses persistent geometry (no flickering/recreation)
+- NaN protection on all geometry values
+- Smooth damped camera controller with velocity clamping
+- Dynamic page thickness changes as you flip
+- PM2 process manager keeps dev server alive

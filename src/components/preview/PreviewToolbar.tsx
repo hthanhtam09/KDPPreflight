@@ -4,13 +4,10 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   RotateCcw,
-  ZoomIn,
-  ZoomOut,
   BookOpen,
   ChevronLeft,
   ChevronRight,
   Camera,
-  CameraOff,
   Sun,
   Moon,
   Monitor,
@@ -18,7 +15,6 @@ import {
   BookMarked,
   Book,
   Laptop,
-  Maximize2,
   Download,
   Info,
   X,
@@ -78,14 +74,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             icon={<RotateCcw className="w-4 h-4" />}
             tooltip="Reset view"
           />
-          <ToolBarButton
-            onClick={() => {}} // Zoom handled by OrbitControls
-            icon={<ZoomIn className="w-4 h-4" />}
-            tooltip="Scroll to zoom"
-            disabled
-          />
 
-          {/* Open/Close - only for physical books */}
           {!isKindle && (
             <ToolBarButton
               onClick={actions.toggleOpen}
@@ -95,24 +84,21 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             />
           )}
 
-          {/* Dark mode toggle - only for Kindle */}
           {isKindle && (
-            <ToolBarButton
-              onClick={actions.toggleDarkMode}
-              icon={state.darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              tooltip={state.darkMode ? 'Light mode' : 'Dark mode'}
-              active={state.darkMode}
-            />
-          )}
-
-          {/* Device picker - only for Kindle */}
-          {isKindle && (
-            <ToolBarButton
-              onClick={() => setShowDevicePicker(!showDevicePicker)}
-              icon={<Monitor className="w-4 h-4" />}
-              tooltip="Device type"
-              active={showDevicePicker}
-            />
+            <>
+              <ToolBarButton
+                onClick={actions.toggleDarkMode}
+                icon={state.darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                tooltip={state.darkMode ? 'Light mode' : 'Dark mode'}
+                active={state.darkMode}
+              />
+              <ToolBarButton
+                onClick={() => setShowDevicePicker(!showDevicePicker)}
+                icon={<Monitor className="w-4 h-4" />}
+                tooltip="Device type"
+                active={showDevicePicker}
+              />
+            </>
           )}
 
           <div className="w-6 h-px bg-white/10 mx-auto" />
@@ -168,7 +154,6 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
       {/* Bottom bar - Page navigation + Export */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
         <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 px-4 py-2.5">
-          {/* Previous page */}
           <button
             onClick={actions.prevPage}
             disabled={state.currentPage <= 0 || state.isFlipping}
@@ -177,7 +162,6 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          {/* Page slider */}
           <div className="flex items-center gap-3 min-w-[200px]">
             <span className="text-white/60 text-xs font-mono w-8 text-right">
               {state.currentPage + 1}
@@ -200,7 +184,6 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             </span>
           </div>
 
-          {/* Next page */}
           <button
             onClick={actions.nextPage}
             disabled={state.currentPage >= totalPages - 1 || state.isFlipping}
@@ -211,9 +194,8 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
 
           <div className="w-px h-5 bg-white/10" />
 
-          {/* Export buttons */}
           <button
-            onClick={() => actions.exportScreenshot(false)}
+            onClick={() => actions.exportScreenshot()}
             className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs"
             title="Export PNG"
           >
@@ -221,7 +203,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             <span className="hidden sm:inline">Export</span>
           </button>
           <button
-            onClick={() => actions.exportScreenshot(true)}
+            onClick={() => actions.exportScreenshot()}
             className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs"
             title="Export HD"
           >
@@ -263,7 +245,9 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
   );
 }
 
-// --- Sub-components ---
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
 function BookTypeButton({
   active,

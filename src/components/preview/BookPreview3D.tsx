@@ -2,24 +2,32 @@
 
 import { useState, useCallback, useRef, Suspense, useMemo, useEffect } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/drei';
+import { OrbitControls, ContactShadows, AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppStore } from '@/store/use-app-store';
 import { BookType } from '@/types/kdp';
+import { CoverSegments } from '@/engine/cover-parser';
 import PaperbackBook from './books/PaperbackBook';
 import HardcoverBook from './books/HardcoverBook';
 import KindleDevice from './books/KindleDevice';
 
-// --- Types ---
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export type BookState = 'closed' | 'opening' | 'opened' | 'closing' | 'flipping' | 'idle';
+export type FlipDirection = 'forward' | 'backward';
+
 export interface Preview3DState {
   isOpen: boolean;
   currentPage: number;
   isFlipping: boolean;
   flipProgress: number;
-  flipDirection: 'forward' | 'backward';
+  flipDirection: FlipDirection;
   bookType: BookType;
   kindleDevice: 'paperwhite' | 'oasis' | 'tablet' | 'phone';
   darkMode: boolean;
+  bookState: BookState;
 }
 
 export interface Preview3DActions {
@@ -34,139 +42,160 @@ export interface Preview3DActions {
   exportScreenshot: (highRes?: boolean) => void;
 }
 
-// --- Texture Manager ---
-// Manages loading and caching of page textures
-function useTextureManager(pageDataUrls: Map<number, string>, coverDataUrl: string) {
-  const textureCache = useRef<Map<number, THREE.Texture>>(new Map());
-  const coverTextureRef = useRef<THREE.Texture | null>(null);
-  const loader = useMemo(() => new THREE.TextureLoader(), []);
-
-  // Load a texture from data URL
-  const loadTexture = useCallback((dataUrl: string): Promise<THREE.Texture> => {
-    return new Promise((resolve, reject) => {
-      loader.load(dataUrl, (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.generateMipmaps = true;
-        resolve(texture);
-      }, undefined, reject);
-    });
-  }, [loader]);
-
-  // Get or load a page texture
-  const getPageTexture = useCallback(async (pageIndex: number): Promise<THREE.Texture | null> => {
-    if (textureCache.current.has(pageIndex)) {
-      return textureCache.current.get(pageIndex)!;
-    }
-    const dataUrl = pageDataUrls.get(pageIndex);
-    if (!dataUrl) return null;
-    try {
-      const tex = await loadTexture(dataUrl);
-      textureCache.current.set(pageIndex, tex);
-      return tex;
-    } catch {
-      return null;
-    }
-  }, [pageDataUrls, loadTexture]);
-
-  // Get cover texture
-  const getCoverTexture = useCallback(async (): Promise<THREE.Texture | null> => {
-    if (coverTextureRef.current) return coverTextureRef.current;
-    if (!coverDataUrl) return null;
-    try {
-      const tex = await loadTexture(coverDataUrl);
-      coverTextureRef.current = tex;
-      return tex;
-    } catch {
-      return null;
-    }
-  }, [coverDataUrl, loadTexture]);
-
-  // Get currently loaded textures as a Map
-  const getLoadedTextures = useCallback((): Map<number, THREE.Texture | null> => {
-    return new Map(textureCache.current);
-  }, []);
-
-  // Dispose all textures
-  const disposeAll = useCallback(() => {
-    textureCache.current.forEach(tex => tex.dispose());
-    textureCache.current.clear();
-    if (coverTextureRef.current) {
-      coverTextureRef.current.dispose();
-      coverTextureRef.current = null;
-    }
-  }, []);
-
-  return { getPageTexture, getCoverTexture, getLoadedTextures, disposeAll };
+export interface CoverTextures {
+  front: THREE.Texture | null;
+  back: THREE.Texture | null;
+  spine: THREE.Texture | null;
 }
 
-// --- Camera Auto-Framing ---
-function CameraAutoFrame({ isOpen, bookType }: { isOpen: boolean; bookType: BookType }) {
+// ---------------------------------------------------------------------------
+// NaN-safe geometry helper
+// ---------------------------------------------------------------------------
+
+function safeVec(v: number, fallback = 0): number {
+  if (!Number.isFinite(v) || Number.isNaN(v)) return fallback;
+  return v;
+}
+
+// ---------------------------------------------------------------------------
+// Texture loader with caching and NaN protection
+// ---------------------------------------------------------------------------
+
+class TextureCache {
+  private cache = new Map<string, THREE.Texture>();
+  private loader = new THREE.TextureLoader();
+
+  load(dataUrl: string): Promise<THREE.Texture> {
+    if (this.cache.has(dataUrl)) {
+      return Promise.resolve(this.cache.get(dataUrl)!);
+    }
+    return new Promise((resolve, reject) => {
+      this.loader.load(
+        dataUrl,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.minFilter = THREE.LinearMipmapLinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          tex.generateMipmaps = true;
+          tex.needsUpdate = true;
+          this.cache.set(dataUrl, tex);
+          resolve(tex);
+        },
+        undefined,
+        reject,
+      );
+    });
+  }
+
+  dispose(key: string) {
+    const tex = this.cache.get(key);
+    if (tex) {
+      tex.dispose();
+      this.cache.delete(key);
+    }
+  }
+
+  disposeAll() {
+    this.cache.forEach(tex => tex.dispose());
+    this.cache.clear();
+  }
+}
+
+const globalTextureCache = new TextureCache();
+
+// ---------------------------------------------------------------------------
+// Camera controller — smooth orbit with damping
+// ---------------------------------------------------------------------------
+
+function CameraController({ isOpen, bookType }: { isOpen: boolean; bookType: BookType }) {
   const { camera } = useThree();
-  const targetRef = useRef(new THREE.Vector3());
-  const posRef = useRef(new THREE.Vector3(2, 1.5, 3));
+  const targetPos = useRef(new THREE.Vector3(2, 1.5, 3));
+  const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const velocity = useRef(new THREE.Vector3(0, 0, 0));
 
   useFrame((_, delta) => {
-    // Target position based on book state
-    let targetPos: THREE.Vector3;
+    const dt = Math.min(delta, 0.05); // Cap delta to prevent jumps
+
+    // Target camera position based on book state
+    let goal: THREE.Vector3;
     if (bookType === 'kindle') {
-      targetPos = new THREE.Vector3(0, 0.3, 2.5);
+      goal = new THREE.Vector3(0, 0.3, 2.5);
     } else if (isOpen) {
-      targetPos = new THREE.Vector3(0, 2.5, 3);
+      goal = new THREE.Vector3(0, 2.5, 3.5);
     } else {
-      targetPos = new THREE.Vector3(2, 1.5, 3);
+      goal = new THREE.Vector3(2, 1.5, 3);
     }
+    targetPos.current.copy(goal);
 
-    // Smooth interpolation
-    posRef.current.lerp(targetPos, delta * 2);
-    camera.position.lerp(posRef.current, delta * 2);
+    // Target look-at point
+    const lookGoal = new THREE.Vector3(0, 0, isOpen ? 0.1 : 0);
+    targetLookAt.current.copy(lookGoal);
 
-    // Look at center
-    const lookTarget = new THREE.Vector3(0, 0, isOpen ? 0.1 : 0);
-    targetRef.current.lerp(lookTarget, delta * 2);
-    camera.lookAt(targetRef.current);
+    // Smooth damped interpolation (velocity-based)
+    const stiffness = 3.0;
+    const damping = 0.8;
+
+    velocity.current.lerp(
+      targetPos.current.clone().sub(camera.position).multiplyScalar(stiffness * dt),
+      damping,
+    );
+    // Clamp velocity
+    velocity.current.clampLength(0, 5);
+
+    camera.position.add(velocity.current.clone().multiplyScalar(dt * 60));
+
+    // Smooth look-at interpolation
+    currentLookAt.current.lerp(targetLookAt.current, dt * 3);
+    camera.lookAt(currentLookAt.current);
   });
 
   return null;
 }
 
-// --- Scene Content ---
+// ---------------------------------------------------------------------------
+// Scene Content — Renders the appropriate book model
+// ---------------------------------------------------------------------------
+
 function SceneContent({
   state,
-  coverTexture,
+  coverTextures,
   pageTextures,
+  onFlipComplete,
 }: {
   state: Preview3DState;
-  coverTexture: THREE.Texture | null;
+  coverTextures: CoverTextures;
   pageTextures: Map<number, THREE.Texture | null>;
+  onFlipComplete: (newPage: number) => void;
 }) {
   const { bookConfig, measurements } = useAppStore();
   const scale = 0.3; // inches to scene units
 
-  const trimWidth = measurements.trimWidthIn * scale;
-  const trimHeight = measurements.trimHeightIn * scale;
-  const spineWidth = measurements.spineWidthIn * scale;
+  const trimWidth = safeVec(measurements.trimWidthIn * scale, 1.8);
+  const trimHeight = safeVec(measurements.trimHeightIn * scale, 2.7);
+  const spineWidth = safeVec(measurements.spineWidthIn * scale, 0.05);
 
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={0.4} />
+      {/* Studio lighting */}
+      <ambientLight intensity={0.35} />
       <directionalLight
         position={[5, 8, 5]}
-        intensity={1.2}
+        intensity={1.0}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-camera-far={20}
         shadow-camera-near={0.1}
-        shadow-bias={-0.001}
+        shadow-bias={-0.002}
       />
-      <directionalLight position={[-3, 4, -3]} intensity={0.4} color="#b4c7e7" />
-      <directionalLight position={[0, 2, -5]} intensity={0.2} color="#f0e0c0" />
+      <directionalLight position={[-3, 4, -3]} intensity={0.3} color="#b4c7e7" />
+      <directionalLight position={[0, 2, -5]} intensity={0.15} color="#f0e0c0" />
+      {/* Fill light from below for softer shadows */}
+      <hemisphereLight args={['#b4c7e7', '#1a1a2e', 0.2]} />
 
       {/* Camera auto-framing */}
-      <CameraAutoFrame isOpen={state.isOpen} bookType={state.bookType} />
+      <CameraController isOpen={state.isOpen} bookType={state.bookType} />
 
       {/* Book Model */}
       {state.bookType === 'kindle' ? (
@@ -179,7 +208,6 @@ function SceneContent({
         />
       ) : state.bookType === 'hardcover' ? (
         <HardcoverBook
-          coverUrl=""
           trimWidth={trimWidth}
           trimHeight={trimHeight}
           spineWidth={spineWidth}
@@ -189,12 +217,12 @@ function SceneContent({
           flipProgress={state.flipProgress}
           isFlippingForward={state.flipDirection === 'forward'}
           pageTextures={pageTextures}
-          coverTexture={coverTexture}
+          coverTextures={coverTextures}
           coverFinish={bookConfig.coverFinish}
+          onFlipComplete={onFlipComplete}
         />
       ) : (
         <PaperbackBook
-          coverUrl=""
           trimWidth={trimWidth}
           trimHeight={trimHeight}
           spineWidth={spineWidth}
@@ -204,33 +232,33 @@ function SceneContent({
           flipProgress={state.flipProgress}
           isFlippingForward={state.flipDirection === 'forward'}
           pageTextures={pageTextures}
-          coverTexture={coverTexture}
+          coverTextures={coverTextures}
           coverFinish={bookConfig.coverFinish}
+          onFlipComplete={onFlipComplete}
         />
       )}
 
       {/* Ground shadow */}
       <ContactShadows
-        position={[0, -trimHeight / 2 - 0.1, 0]}
-        opacity={0.5}
+        position={[0, -trimHeight / 2 - 0.05, 0]}
+        opacity={0.4}
         scale={10}
         blur={2.5}
         far={4}
       />
 
-      {/* Environment for reflections */}
-      <Environment preset="studio" />
-
-      {/* Orbit controls */}
+      {/* Orbit controls with smooth damping */}
       <OrbitControls
         enableDamping
-        dampingFactor={0.08}
+        dampingFactor={0.06}
         minDistance={state.bookType === 'kindle' ? 1 : 0.8}
         maxDistance={state.bookType === 'kindle' ? 5 : 8}
         enablePan={true}
         maxPolarAngle={Math.PI * 0.85}
         minPolarAngle={Math.PI * 0.1}
         target={[0, 0, state.isOpen ? 0.1 : 0]}
+        rotateSpeed={0.6}
+        zoomSpeed={0.8}
       />
 
       {/* Performance optimization */}
@@ -240,7 +268,10 @@ function SceneContent({
   );
 }
 
-// --- Loading Placeholder ---
+// ---------------------------------------------------------------------------
+// Loading placeholder
+// ---------------------------------------------------------------------------
+
 function SceneLoader() {
   return (
     <mesh>
@@ -250,9 +281,13 @@ function SceneLoader() {
   );
 }
 
-// --- Main 3D Preview Component ---
+// ---------------------------------------------------------------------------
+// Main 3D Preview Component
+// ---------------------------------------------------------------------------
+
 interface BookPreview3DProps {
   coverUrl?: string;
+  coverSegments?: CoverSegments | null;
   state: Preview3DState;
   onStateChange: (updates: Partial<Preview3DState>) => void;
   onExportRef?: React.MutableRefObject<(() => void) | null>;
@@ -260,162 +295,201 @@ interface BookPreview3DProps {
 
 export default function BookPreview3D({
   coverUrl,
+  coverSegments,
   state,
   onStateChange,
   onExportRef,
 }: BookPreview3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const { pdfPageDataUrls, coverDataUrl } = useAppStore();
 
-  // Texture management
-  const [coverTexture, setCoverTexture] = useState<THREE.Texture | null>(null);
+  // ---- Texture state ----
+  const [coverTextures, setCoverTextures] = useState<CoverTextures>({
+    front: null,
+    back: null,
+    spine: null,
+  });
   const [pageTextures, setPageTextures] = useState<Map<number, THREE.Texture | null>>(new Map());
-  const loader = useMemo(() => new THREE.TextureLoader(), []);
 
-  // Resolve effective cover URL
-  const effectiveCoverUrl = coverUrl || coverDataUrl;
+  // ---- Flip animation state ----
+  const flipAnimRef = useRef<{ rafId: number | null; startTime: number | null }>({
+    rafId: null,
+    startTime: null,
+  });
+  const isFlippingRef = useRef(false);
 
-  // Load cover texture (only when URL exists — avoid sync setState in effect)
+  // ---- Load cover textures from segments ----
   useEffect(() => {
-    if (!effectiveCoverUrl) return;
     let cancelled = false;
-    loader.load(effectiveCoverUrl, (tex) => {
-      if (cancelled) { tex.dispose(); return; }
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      setCoverTexture(prev => {
-        if (prev) prev.dispose();
-        return tex;
-      });
-    });
+
+    async function loadCoverTextures() {
+      // Priority: coverSegments (split) > coverUrl (single image) > coverDataUrl (from store)
+      let frontUrl: string | undefined;
+      let backUrl: string | undefined;
+      let spineUrl: string | undefined;
+
+      if (coverSegments) {
+        frontUrl = coverSegments.frontDataUrl;
+        backUrl = coverSegments.backDataUrl;
+        spineUrl = coverSegments.spineDataUrl;
+      } else if (coverUrl || coverDataUrl) {
+        frontUrl = coverUrl || coverDataUrl;
+        // Single image — use for front only; back/spine will use defaults
+      }
+
+      if (!frontUrl) return;
+
+      try {
+        const [frontTex, backTex, spineTex] = await Promise.all([
+          frontUrl ? globalTextureCache.load(frontUrl) : Promise.resolve(null),
+          backUrl ? globalTextureCache.load(backUrl) : Promise.resolve(null),
+          spineUrl ? globalTextureCache.load(spineUrl) : Promise.resolve(null),
+        ]);
+
+        if (!cancelled) {
+          // Dispose old textures
+          setCoverTextures(prev => {
+            // Don't dispose here — the cache manages them
+            return { front: frontTex, back: backTex, spine: spineTex };
+          });
+        }
+      } catch (err) {
+        console.error('Error loading cover textures:', err);
+      }
+    }
+
+    loadCoverTextures();
     return () => { cancelled = true; };
-  }, [effectiveCoverUrl, loader]);
+  }, [coverSegments, coverUrl, coverDataUrl]);
 
-  // Use texture only when URL is present; otherwise treat as null
-  const activeCoverTexture = effectiveCoverUrl ? coverTexture : null;
-
-  // Load nearby page textures (texture streaming)
+  // ---- Stream page textures (dynamic loading with eviction) ----
   useEffect(() => {
-    const loadNearbyPages = async () => {
+    let cancelled = false;
+
+    async function streamPages() {
       const currentPage = state.currentPage;
-      const range = 4; // Load pages within ±4 of current
+      const range = 5; // Load ±5 pages around current
       const newTextures = new Map(pageTextures);
 
+      // Load nearby pages
+      const pagesToLoad: number[] = [];
       for (let i = Math.max(0, currentPage - range); i <= currentPage + range; i++) {
-        const dataUrl = pdfPageDataUrls.get(i);
-        if (dataUrl && !newTextures.has(i)) {
-          try {
-            const tex = await new Promise<THREE.Texture>((resolve, reject) => {
-              loader.load(dataUrl, (texture) => {
-                texture.colorSpace = THREE.SRGBColorSpace;
-                texture.minFilter = THREE.LinearFilter;
-                texture.magFilter = THREE.LinearFilter;
-                resolve(texture);
-              }, undefined, reject);
-            });
-            newTextures.set(i, tex);
-          } catch {
-            newTextures.set(i, null);
-          }
+        if (pdfPageDataUrls.has(i) && !newTextures.has(i)) {
+          pagesToLoad.push(i);
         }
       }
 
-      // Unload distant pages (LRU-like eviction)
-      const unloadRange = 10;
+      for (const pageIndex of pagesToLoad) {
+        if (cancelled) break;
+        const dataUrl = pdfPageDataUrls.get(pageIndex);
+        if (!dataUrl) continue;
+        try {
+          const tex = await globalTextureCache.load(dataUrl);
+          if (!cancelled) {
+            newTextures.set(pageIndex, tex);
+          }
+        } catch {
+          newTextures.set(pageIndex, null);
+        }
+      }
+
+      // Evict distant pages (beyond ±15)
+      const evictionRange = 15;
       for (const [key] of newTextures) {
-        if (Math.abs(key - currentPage) > unloadRange) {
+        if (Math.abs(key - currentPage) > evictionRange) {
           const tex = newTextures.get(key);
-          if (tex) tex.dispose();
+          if (tex) {
+            // Don't dispose — let cache manage lifecycle
+          }
           newTextures.delete(key);
         }
       }
 
-      setPageTextures(newTextures);
-    };
+      if (!cancelled) {
+        setPageTextures(newTextures);
+      }
+    }
 
-    loadNearbyPages();
-  }, [state.currentPage, pdfPageDataUrls, loader]);
+    streamPages();
+    return () => { cancelled = true; };
+  }, [state.currentPage, pdfPageDataUrls]);
 
-  // Page flip animation
+  // ---- Page flip animation (requestAnimationFrame-based, not React state) ----
+  const onFlipComplete = useCallback((newPage: number) => {
+    isFlippingRef.current = false;
+    onStateChange({
+      isFlipping: false,
+      flipProgress: 0,
+      currentPage: newPage,
+      bookState: state.isOpen ? 'opened' : 'closed',
+    });
+  }, [onStateChange, state.isOpen]);
+
   useEffect(() => {
     if (!state.isFlipping) return;
+    if (isFlippingRef.current) return; // Prevent duplicate animations
+    isFlippingRef.current = true;
 
-    let start: number | null = null;
-    const duration = 800; // ms
+    let startTime: number | null = null;
+    const duration = 700; // ms
 
     const animate = (timestamp: number) => {
-      if (!start) start = timestamp;
-      const elapsed = timestamp - start;
-      const progress = Math.min(elapsed / duration, 1);
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const rawProgress = Math.min(elapsed / duration, 1);
 
       // Easing: ease-in-out cubic
-      const eased = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      const eased = rawProgress < 0.5
+        ? 4 * rawProgress * rawProgress * rawProgress
+        : 1 - Math.pow(-2 * rawProgress + 2, 3) / 2;
 
-      onStateChange({ flipProgress: eased });
+      onStateChange({ flipProgress: safeVec(eased, 0) });
 
-      if (progress < 1) {
-        requestAnimationFrame(animate);
+      if (rawProgress < 1) {
+        flipAnimRef.current.rafId = requestAnimationFrame(animate);
       } else {
-        onStateChange({
-          isFlipping: false,
-          flipProgress: 0,
-          currentPage: state.flipDirection === 'forward'
-            ? Math.min(state.currentPage + 2, useAppStore.getState().bookConfig.pageCount)
-            : Math.max(state.currentPage - 2, 0),
-        });
+        // Animation complete — update page
+        const pageDelta = state.flipDirection === 'forward' ? 2 : -2;
+        const maxPage = useAppStore.getState().bookConfig.pageCount;
+        const newPage = Math.max(0, Math.min(state.currentPage + pageDelta, maxPage));
+        onFlipComplete(newPage);
       }
     };
 
-    requestAnimationFrame(animate);
-  }, [state.isFlipping, onStateChange, state.flipDirection, state.currentPage]);
+    flipAnimRef.current.rafId = requestAnimationFrame(animate);
 
-  // Screenshot export
+    return () => {
+      if (flipAnimRef.current.rafId !== null) {
+        cancelAnimationFrame(flipAnimRef.current.rafId);
+      }
+    };
+  }, [state.isFlipping, onStateChange, state.flipDirection, state.currentPage, onFlipComplete]);
+
+  // ---- Screenshot export ----
   const handleExport = useCallback((highRes = false) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    if (highRes) {
-      // High-res export: render at 2x resolution
-      const gl = rendererRef.current;
-      if (!gl) return;
-
-      const originalSize = gl.getSize(new THREE.Vector2());
-      const originalPixelRatio = gl.getPixelRatio();
-
-      gl.setPixelRatio(originalPixelRatio * 2);
-      gl.setSize(originalSize.x, originalSize.y, false);
-      gl.render(gl.domElement.parentElement as any, null as any);
-
+    try {
       const dataUrl = canvas.toDataURL('image/png');
-
-      gl.setPixelRatio(originalPixelRatio);
-      gl.setSize(originalSize.x, originalSize.y, false);
-
-      downloadImage(dataUrl, 'kdp-book-preview-hd.png');
-    } else {
-      const dataUrl = canvas.toDataURL('image/png');
-      downloadImage(dataUrl, 'kdp-book-preview.png');
+      downloadImage(dataUrl, highRes ? 'kdp-book-preview-hd.png' : 'kdp-book-preview.png');
+    } catch (err) {
+      console.error('Export failed:', err);
     }
   }, []);
 
-  // Expose export function to parent
   useEffect(() => {
     if (onExportRef) {
       onExportRef.current = handleExport;
     }
   }, [handleExport, onExportRef]);
 
-  // Cleanup textures on unmount
+  // ---- Cleanup on unmount ----
   useEffect(() => {
     return () => {
-      if (coverTexture) coverTexture.dispose();
-      pageTextures.forEach(tex => { if (tex) tex.dispose(); });
+      // Don't dispose cached textures — they're managed globally
     };
-  }, []); // cleanup only on unmount
+  }, []);
 
   return (
     <Canvas
@@ -429,7 +503,6 @@ export default function BookPreview3D({
       }}
       style={{ background: 'transparent' }}
       onCreated={({ gl }) => {
-        rendererRef.current = gl;
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.1;
       }}
@@ -440,8 +513,9 @@ export default function BookPreview3D({
         <PerformanceMonitor>
           <SceneContent
             state={state}
-            coverTexture={activeCoverTexture}
+            coverTextures={coverTextures}
             pageTextures={pageTextures}
+            onFlipComplete={onFlipComplete}
           />
         </PerformanceMonitor>
       </Suspense>
@@ -449,7 +523,10 @@ export default function BookPreview3D({
   );
 }
 
-// --- Helper: Download image ---
+// ---------------------------------------------------------------------------
+// Helper: Download image
+// ---------------------------------------------------------------------------
+
 function downloadImage(dataUrl: string, filename: string) {
   const link = document.createElement('a');
   link.download = filename;

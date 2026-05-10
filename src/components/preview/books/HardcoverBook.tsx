@@ -1,11 +1,15 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import type { CoverTextures } from '../BookPreview3D';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface HardcoverBookProps {
-  coverUrl?: string;
   trimWidth: number;
   trimHeight: number;
   spineWidth: number;
@@ -15,9 +19,232 @@ interface HardcoverBookProps {
   flipProgress: number;
   isFlippingForward: boolean;
   pageTextures: Map<number, THREE.Texture | null>;
-  coverTexture: THREE.Texture | null;
+  coverTextures: CoverTextures;
   coverFinish?: 'matte' | 'glossy';
+  onFlipComplete?: (newPage: number) => void;
 }
+
+// ---------------------------------------------------------------------------
+// NaN-safe helper
+// ---------------------------------------------------------------------------
+
+function safe(v: number, fallback = 0.001): number {
+  if (!Number.isFinite(v) || Number.isNaN(v)) return fallback;
+  return Math.max(v, 0.001);
+}
+
+// ---------------------------------------------------------------------------
+// Persistent geometry hook
+// ---------------------------------------------------------------------------
+
+function useStablePlaneGeometry(width: number, height: number, segX: number, segY: number) {
+  return useMemo(() => {
+    return new THREE.PlaneGeometry(safe(width), safe(height), segX, segY);
+  }, [width, height, segX, segY]);
+}
+
+// ---------------------------------------------------------------------------
+// Hard Board — thick rigid cover with front/spine/back texture mapping
+// ---------------------------------------------------------------------------
+
+function HardBoard({
+  width,
+  height,
+  thickness,
+  position,
+  texture,
+  roughness,
+  metalness,
+}: {
+  width: number;
+  height: number;
+  thickness: number;
+  position: [number, number, number];
+  texture: THREE.Texture | null;
+  roughness: number;
+  metalness: number;
+}) {
+  return (
+    <mesh position={position}>
+      <boxGeometry args={[safe(width), safe(height), safe(thickness)]} />
+      <meshStandardMaterial
+        map={texture}
+        color={texture ? 0xffffff : 0x1a1a2e}
+        roughness={roughness}
+        metalness={metalness}
+      />
+    </mesh>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Endpaper — decorative paper inside covers
+// ---------------------------------------------------------------------------
+
+function Endpaper({
+  width,
+  height,
+  position,
+  color = '#c4a882',
+}: {
+  width: number;
+  height: number;
+  position: [number, number, number];
+  color?: string;
+}) {
+  return (
+    <mesh position={position}>
+      <planeGeometry args={[safe(width), safe(height)]} />
+      <meshStandardMaterial color={color} roughness={0.85} metalness={0} side={THREE.DoubleSide} />
+    </mesh>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page Stack
+// ---------------------------------------------------------------------------
+
+function PageStack({
+  width,
+  height,
+  depth,
+  position,
+}: {
+  width: number;
+  height: number;
+  depth: number;
+  position: [number, number, number];
+}) {
+  if (depth < 0.003) return null;
+  return (
+    <mesh position={position}>
+      <boxGeometry args={[safe(width), safe(height), safe(depth)]} />
+      <meshStandardMaterial color="#f5f0e8" roughness={0.95} metalness={0} />
+    </mesh>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page Surface (visible page with real manuscript texture)
+// ---------------------------------------------------------------------------
+
+function PageSurface({
+  width,
+  height,
+  position,
+  texture,
+}: {
+  width: number;
+  height: number;
+  position: [number, number, number];
+  texture: THREE.Texture | null;
+}) {
+  return (
+    <mesh position={position}>
+      <planeGeometry args={[safe(width), safe(height)]} />
+      {texture ? (
+        <meshStandardMaterial map={texture} roughness={0.9} metalness={0} />
+      ) : (
+        <meshStandardMaterial color="#f5f0e8" roughness={0.9} metalness={0} />
+      )}
+    </mesh>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Hardcover Flipping Page — stiffer than paperback
+// ---------------------------------------------------------------------------
+
+function HardcoverFlippingPage({
+  width,
+  height,
+  flipProgress,
+  leftStackDepth,
+  rightStackDepth,
+  texture,
+}: {
+  width: number;
+  height: number;
+  flipProgress: number;
+  leftStackDepth: number;
+  rightStackDepth: number;
+  texture: THREE.Texture | null;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const segments = 16;
+
+  const geometry = useStablePlaneGeometry(width, height, segments, 1);
+
+  useFrame(() => {
+    if (!meshRef.current) return;
+    const posAttr = meshRef.current.geometry.getAttribute('position');
+    if (!posAttr) return;
+
+    const progress = safe(flipProgress, 0);
+
+    if (progress <= 0.001 || progress >= 0.999) {
+      // Reset to flat
+      const origGeo = new THREE.PlaneGeometry(safe(width), safe(height), segments, 1);
+      const origPos = origGeo.getAttribute('position');
+      let needsUpdate = false;
+      for (let i = 0; i < posAttr.count; i++) {
+        const ox = origPos.getX(i);
+        const oz = origPos.getZ(i);
+        if (Math.abs(posAttr.getX(i) - ox) > 0.0001 || Math.abs(posAttr.getZ(i) - oz) > 0.0001) {
+          posAttr.setX(i, ox);
+          posAttr.setZ(i, oz);
+          needsUpdate = true;
+        }
+      }
+      if (needsUpdate) {
+        posAttr.needsUpdate = true;
+        meshRef.current.geometry.computeVertexNormals();
+      }
+      origGeo.dispose();
+      return;
+    }
+
+    const curlRadius = safe(width * 0.1, 0.01);
+    const travelX = width;
+    const curlIntensity = Math.sin(progress * Math.PI);
+
+    // Hardcover pages are stiffer — less curl
+    const stiffness = 0.5;
+
+    for (let i = 0; i < posAttr.count; i++) {
+      const col = i % (segments + 1);
+      const origX = (col / segments) * width - width / 2;
+      const origY = posAttr.getY(i);
+      const t = (origX + width / 2) / safe(width, 1);
+
+      const baseX = origX - travelX * progress;
+      const curlHeight = curlIntensity * curlRadius * Math.sin(t * Math.PI) * stiffness * (1 - Math.abs(progress - 0.5) * 2);
+
+      posAttr.setX(i, safe(baseX));
+      posAttr.setY(i, origY);
+      posAttr.setZ(i, safe(Math.max(0, curlHeight)));
+    }
+
+    posAttr.needsUpdate = true;
+    meshRef.current.geometry.computeVertexNormals();
+  });
+
+  const zBase = Math.max(safe(leftStackDepth), safe(rightStackDepth)) + 0.004;
+
+  return (
+    <mesh ref={meshRef} geometry={geometry} position={[0, 0, zBase]}>
+      {texture ? (
+        <meshStandardMaterial map={texture} roughness={0.85} metalness={0} side={THREE.DoubleSide} />
+      ) : (
+        <meshStandardMaterial color="#f5f0e8" roughness={0.85} metalness={0} side={THREE.DoubleSide} />
+      )}
+    </mesh>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main Hardcover Book Component
+// ---------------------------------------------------------------------------
 
 export default function HardcoverBook({
   trimWidth,
@@ -29,332 +256,219 @@ export default function HardcoverBook({
   flipProgress,
   isFlippingForward,
   pageTextures,
-  coverTexture,
+  coverTextures,
   coverFinish = 'glossy',
+  onFlipComplete,
 }: HardcoverBookProps) {
   const groupRef = useRef<THREE.Group>(null);
   const frontCoverRef = useRef<THREE.Group>(null);
-  const bookOpenRef = useRef(0);
+  const [openAmount, setOpenAmount] = useState(0);
 
   // Hardcover dimensions
-  const boardThickness = 0.04;  // Hard board thickness
-  const coverOverhang = 0.04;   // Cover extends beyond pages
-  const pageDepth = Math.max(spineWidth * 0.8, 0.05);
-  const hingeWidth = 0.06;      // Hinge flex area
+  const boardThickness = 0.04; // Thick rigid board
+  const coverOverhang = 0.04; // Cover extends beyond pages
+  const pageDepth = safe(Math.max(spineWidth * 0.8, 0.05));
+  const hingeGap = 0.02; // Visible hinge gap
 
-  // Animate opening — hardcover opens more rigidly
+  // Animate opening — hardcover opens more deliberately
   useFrame((_, delta) => {
     const targetOpen = isOpen ? 1 : 0;
-    // Slower, more deliberate opening for hardcover
-    bookOpenRef.current += (targetOpen - bookOpenRef.current) * Math.min(delta * 2.5, 0.12);
+    const dt = Math.min(delta, 0.05);
+    setOpenAmount(prev => {
+      const next = prev + (targetOpen - prev) * Math.min(dt * 2.5, 0.1);
+      return Math.max(0, Math.min(1, next));
+    });
 
     if (frontCoverRef.current) {
-      // Hardcover opens rigidly from hinge, not flexing
-      frontCoverRef.current.rotation.y = -bookOpenRef.current * Math.PI * 0.85;
+      // Hardcover opens rigidly from hinge
+      frontCoverRef.current.rotation.y = -openAmount * Math.PI * 0.85;
     }
   });
 
   const coverRoughness = coverFinish === 'glossy' ? 0.25 : 0.6;
   const coverMetalness = coverFinish === 'glossy' ? 0.15 : 0.02;
 
-  // Page distribution when open
+  // Dynamic page distribution
   const totalPages = Math.max(pageCount, 1);
-  const currentLeftPage = Math.floor(currentPage / 2);
-  const leftPages = currentLeftPage;
-  const rightPages = totalPages - currentLeftPage;
+  const currentSpread = Math.floor(currentPage / 2);
+  const leftPages = currentSpread;
+  const rightPages = totalPages - currentSpread;
   const pageThickness = pageDepth / totalPages;
-  const leftStackDepth = Math.max(leftPages * pageThickness, 0.003);
-  const rightStackDepth = Math.max(rightPages * pageThickness, 0.003);
+  const leftStackDepth = safe(Math.max(leftPages * pageThickness, 0.003));
+  const rightStackDepth = safe(Math.max(rightPages * pageThickness, 0.003));
+
+  // Cover dimensions with overhang
+  const coverW = trimWidth + coverOverhang * 2;
+  const coverH = trimHeight + coverOverhang * 2;
+
+  // Page textures for current spread
+  const leftPageTexture = pageTextures.get(currentSpread * 2 - 1) || null;
+  const rightPageTexture = pageTextures.get(currentSpread * 2) || null;
+  const flippingTexture = pageTextures.get(
+    isFlippingForward ? currentSpread * 2 : currentSpread * 2 - 1
+  ) || null;
 
   return (
     <group ref={groupRef}>
-      {!isOpen ? (
-        // === CLOSED HARDCOVER ===
+      {!isOpen && openAmount < 0.05 ? (
+        // ━━━ CLOSED HARDCOVER ━━━
         <>
-          {/* Page block (slightly smaller than cover) */}
+          {/* Page block */}
           <mesh position={[0, 0, 0]}>
-            <boxGeometry args={[trimWidth * 0.96, trimHeight * 0.96, pageDepth]} />
+            <boxGeometry args={[safe(trimWidth * 0.96), safe(trimHeight * 0.96), safe(pageDepth)]} />
             <meshStandardMaterial color="#f5f0e8" roughness={0.95} metalness={0} />
           </mesh>
 
-          {/* Front Board */}
+          {/* Front Board with front cover texture */}
           <HardBoard
-            width={trimWidth + coverOverhang * 2}
-            height={trimHeight + coverOverhang * 2}
+            width={coverW}
+            height={coverH}
             thickness={boardThickness}
             position={[0, 0, pageDepth / 2 + boardThickness / 2]}
-            texture={coverTexture}
+            texture={coverTextures.front}
             roughness={coverRoughness}
             metalness={coverMetalness}
           />
 
-          {/* Back Board */}
-          <mesh position={[0, 0, -(pageDepth / 2 + boardThickness / 2)]}>
-            <boxGeometry args={[trimWidth + coverOverhang * 2, trimHeight + coverOverhang * 2, boardThickness]} />
-            <meshStandardMaterial color="#1a1a2e" roughness={coverRoughness} metalness={coverMetalness} />
+          {/* Back Board with back cover texture */}
+          <HardBoard
+            width={coverW}
+            height={coverH}
+            thickness={boardThickness}
+            position={[0, 0, -(pageDepth / 2 + boardThickness / 2)]}
+            texture={coverTextures.back}
+            roughness={coverRoughness}
+            metalness={coverMetalness}
+          />
+
+          {/* Spine shell with spine texture */}
+          <mesh position={[-coverW / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+            <planeGeometry args={[safe(pageDepth + boardThickness * 2), safe(coverH)]} />
+            <meshStandardMaterial
+              map={coverTextures.spine}
+              color={coverTextures.spine ? 0xffffff : 0x151525}
+              roughness={coverRoughness}
+              metalness={coverMetalness}
+            />
           </mesh>
 
-          {/* Spine Board */}
-          <mesh position={[-(trimWidth + coverOverhang) / 2 - 0.005, 0, 0]}>
-            <boxGeometry args={[0.025, trimHeight + coverOverhang * 2, pageDepth + boardThickness * 2]} />
-            <meshStandardMaterial color="#151525" roughness={coverRoughness} metalness={coverMetalness} />
-          </mesh>
-
-          {/* Right edge (page edges visible) */}
-          <mesh position={[(trimWidth + coverOverhang) / 2 + 0.005, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
-            <planeGeometry args={[pageDepth, trimHeight * 0.96]} />
+          {/* Page edges */}
+          <mesh position={[(trimWidth * 0.96) / 2 + coverOverhang / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+            <planeGeometry args={[safe(pageDepth), safe(trimHeight * 0.96)]} />
             <meshStandardMaterial color="#e8e0d4" roughness={0.95} metalness={0} />
           </mesh>
-
-          {/* Top edge */}
-          <mesh position={[0, (trimHeight + coverOverhang) / 2 + 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[trimWidth * 0.96, pageDepth]} />
+          <mesh position={[0, (trimHeight * 0.96) / 2 + coverOverhang / 2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[safe(trimWidth * 0.96), safe(pageDepth)]} />
             <meshStandardMaterial color="#ede6da" roughness={0.95} metalness={0} />
           </mesh>
-
-          {/* Bottom edge */}
-          <mesh position={[0, -(trimHeight + coverOverhang) / 2 - 0.005, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[trimWidth * 0.96, pageDepth]} />
+          <mesh position={[0, -((trimHeight * 0.96) / 2 + coverOverhang / 2), 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[safe(trimWidth * 0.96), safe(pageDepth)]} />
             <meshStandardMaterial color="#ede6da" roughness={0.95} metalness={0} />
           </mesh>
         </>
       ) : (
-        // === OPEN HARDCOVER ===
+        // ━━━ OPEN HARDCOVER ━━━
         <>
           {/* Left page stack */}
           <PageStack
-            width={trimWidth * 0.96}
-            height={trimHeight * 0.96}
+            width={trimWidth * 0.94}
+            height={trimHeight * 0.94}
             depth={leftStackDepth}
             position={[-trimWidth / 2, 0, leftStackDepth / 2]}
-            color="#f5f0e8"
           />
 
           {/* Right page stack */}
           <PageStack
-            width={trimWidth * 0.96}
-            height={trimHeight * 0.96}
+            width={trimWidth * 0.94}
+            height={trimHeight * 0.94}
             depth={rightStackDepth}
             position={[trimWidth / 2, 0, rightStackDepth / 2]}
-            color="#f5f0e8"
           />
 
           {/* Left visible page */}
-          <mesh position={[-trimWidth / 2, 0, leftStackDepth + 0.001]}>
-            <planeGeometry args={[trimWidth * 0.96, trimHeight * 0.96]} />
-            {pageTextures.get(currentLeftPage * 2 - 1) ? (
-              <meshStandardMaterial map={pageTextures.get(currentLeftPage * 2 - 1)} roughness={0.9} metalness={0} />
-            ) : (
-              <meshStandardMaterial color="#f5f0e8" roughness={0.9} metalness={0} />
-            )}
-          </mesh>
-
-          {/* Right visible page */}
-          <mesh position={[trimWidth / 2, 0, rightStackDepth + 0.001]}>
-            <planeGeometry args={[trimWidth * 0.96, trimHeight * 0.96]} />
-            {pageTextures.get(currentLeftPage * 2) ? (
-              <meshStandardMaterial map={pageTextures.get(currentLeftPage * 2)} roughness={0.9} metalness={0} />
-            ) : (
-              <meshStandardMaterial color="#f5f0e8" roughness={0.9} metalness={0} />
-            )}
-          </mesh>
-
-          {/* Endpaper - left side (decorative paper inside front cover) */}
-          <Endpaper
-            width={trimWidth * 0.94}
-            height={trimHeight * 0.94}
-            position={[-trimWidth / 2, 0, boardThickness + 0.002]}
-            color="#c4a882"
+          <PageSurface
+            width={trimWidth * 0.9}
+            height={trimHeight * 0.9}
+            position={[-trimWidth / 2, 0, leftStackDepth + 0.002]}
+            texture={leftPageTexture}
           />
 
-          {/* Endpaper - right side (inside back cover) */}
+          {/* Right visible page */}
+          <PageSurface
+            width={trimWidth * 0.9}
+            height={trimHeight * 0.9}
+            position={[trimWidth / 2, 0, rightStackDepth + 0.002]}
+            texture={rightPageTexture}
+          />
+
+          {/* Flipping page */}
+          {flipProgress > 0.005 && flipProgress < 0.995 && (
+            <HardcoverFlippingPage
+              width={trimWidth * 0.9}
+              height={trimHeight * 0.9}
+              flipProgress={flipProgress}
+              leftStackDepth={leftStackDepth}
+              rightStackDepth={rightStackDepth}
+              texture={flippingTexture}
+            />
+          )}
+
+          {/* Endpaper - left side */}
           <Endpaper
-            width={trimWidth * 0.94}
-            height={trimHeight * 0.94}
-            position={[trimWidth / 2, 0, boardThickness + 0.002]}
-            color="#c4a882"
+            width={trimWidth * 0.92}
+            height={trimHeight * 0.92}
+            position={[-trimWidth / 2, 0, boardThickness + 0.003]}
+          />
+
+          {/* Endpaper - right side */}
+          <Endpaper
+            width={trimWidth * 0.92}
+            height={trimHeight * 0.92}
+            position={[trimWidth / 2, 0, boardThickness + 0.003]}
           />
 
           {/* Back board (flat on table) */}
-          <mesh position={[-trimWidth / 2, 0, -(boardThickness / 2)]}>
-            <boxGeometry args={[trimWidth + coverOverhang * 2, trimHeight + coverOverhang * 2, boardThickness]} />
-            <meshStandardMaterial color="#1a1a2e" roughness={coverRoughness} metalness={coverMetalness} />
-          </mesh>
+          <HardBoard
+            width={coverW}
+            height={coverH}
+            thickness={boardThickness}
+            position={[-trimWidth / 2, 0, -(boardThickness / 2)]}
+            texture={coverTextures.back}
+            roughness={coverRoughness}
+            metalness={coverMetalness}
+          />
 
-          {/* Front board (flipped open) */}
+          {/* Front board (pivoting open from hinge) */}
           <group ref={frontCoverRef} position={[-trimWidth, 0, pageDepth / 2]}>
             <HardBoard
-              width={trimWidth + coverOverhang * 2}
-              height={trimHeight + coverOverhang * 2}
+              width={coverW}
+              height={coverH}
               thickness={boardThickness}
               position={[0, 0, boardThickness / 2]}
-              texture={coverTexture}
+              texture={coverTextures.front}
               roughness={coverRoughness}
               metalness={coverMetalness}
-              flipped
             />
           </group>
 
-          {/* Spine area */}
-          <mesh position={[-trimWidth, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-            <planeGeometry args={[pageDepth + boardThickness * 2, trimHeight + coverOverhang * 2]} />
-            <meshStandardMaterial color="#151525" roughness={coverRoughness} metalness={coverMetalness} />
+          {/* Hinge gap visual */}
+          <mesh position={[-trimWidth, 0, 0]}>
+            <boxGeometry args={[safe(hingeGap), safe(trimHeight * 0.94), safe(pageDepth * 0.9)]} />
+            <meshStandardMaterial color="#2a2a3e" roughness={0.8} metalness={0.1} />
           </mesh>
 
-          {/* Flipping page */}
-          {flipProgress > 0.001 && flipProgress < 0.999 && (
-            <HardcoverFlippingPage
-              width={trimWidth * 0.96}
-              height={trimHeight * 0.96}
-              leftStackDepth={leftStackDepth}
-              rightStackDepth={rightStackDepth}
-              flipProgress={flipProgress}
-              texture={pageTextures.get(isFlippingForward ? currentLeftPage * 2 : currentLeftPage * 2 - 1) || null}
+          {/* Spine with texture */}
+          <mesh position={[-trimWidth - hingeGap / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+            <planeGeometry args={[safe(pageDepth + boardThickness * 2), safe(coverH)]} />
+            <meshStandardMaterial
+              map={coverTextures.spine}
+              color={coverTextures.spine ? 0xffffff : 0x151525}
+              roughness={coverRoughness}
+              metalness={coverMetalness}
             />
-          )}
+          </mesh>
         </>
       )}
     </group>
-  );
-}
-
-// --- Hard Board Component ---
-function HardBoard({
-  width,
-  height,
-  thickness,
-  position,
-  texture,
-  roughness,
-  metalness,
-  flipped = false,
-}: {
-  width: number;
-  height: number;
-  thickness: number;
-  position: [number, number, number];
-  texture: THREE.Texture | null;
-  roughness: number;
-  metalness: number;
-  flipped?: boolean;
-}) {
-  return (
-    <mesh position={position}>
-      <boxGeometry args={[width, height, thickness]} />
-      {texture ? (
-        <meshStandardMaterial map={texture} roughness={roughness} metalness={metalness} />
-      ) : (
-        <meshStandardMaterial color="#1a1a2e" roughness={roughness} metalness={metalness} />
-      )}
-    </mesh>
-  );
-}
-
-// --- Endpaper ---
-function Endpaper({
-  width,
-  height,
-  position,
-  color,
-}: {
-  width: number;
-  height: number;
-  position: [number, number, number];
-  color: string;
-}) {
-  return (
-    <mesh position={position}>
-      <planeGeometry args={[width, height]} />
-      <meshStandardMaterial color={color} roughness={0.85} metalness={0} side={THREE.DoubleSide} />
-    </mesh>
-  );
-}
-
-// --- Page Stack ---
-function PageStack({
-  width,
-  height,
-  depth,
-  position,
-  color,
-}: {
-  width: number;
-  height: number;
-  depth: number;
-  position: [number, number, number];
-  color: string;
-}) {
-  if (depth < 0.002) return null;
-  return (
-    <mesh position={position}>
-      <boxGeometry args={[width, height, depth]} />
-      <meshStandardMaterial color={color} roughness={0.95} metalness={0} />
-    </mesh>
-  );
-}
-
-// --- Hardcover Flipping Page ---
-function HardcoverFlippingPage({
-  width,
-  height,
-  leftStackDepth,
-  rightStackDepth,
-  flipProgress,
-  texture,
-}: {
-  width: number;
-  height: number;
-  leftStackDepth: number;
-  rightStackDepth: number;
-  flipProgress: number;
-  texture: THREE.Texture | null;
-}) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const segments = 16;
-
-  const geometry = useMemo(() => {
-    return new THREE.PlaneGeometry(width, height, segments, 1);
-  }, [width, height]);
-
-  useFrame(() => {
-    if (!meshRef.current) return;
-    const posAttr = meshRef.current.geometry.getAttribute('position');
-    if (!posAttr) return;
-
-    const progress = flipProgress;
-    const travelX = width;
-    const curlRadius = width * 0.1;
-    const curlWave = Math.sin(progress * Math.PI);
-
-    for (let i = 0; i < posAttr.count; i++) {
-      const col = i % (segments + 1);
-      const origX = (col / segments) * width - width / 2;
-      const origY = posAttr.getY(i);
-      const t = (origX + width / 2) / width;
-
-      // Hardcover pages flip more stiffly than paperback
-      const stiffness = 0.6; // Less curl than paperback
-      const baseX = origX - travelX * progress;
-      const curlHeight = curlWave * curlRadius * Math.sin(t * Math.PI) * stiffness * (1 - Math.abs(progress - 0.5) * 2);
-
-      posAttr.setX(i, baseX);
-      posAttr.setY(i, origY);
-      posAttr.setZ(i, Math.max(0, curlHeight));
-    }
-
-    posAttr.needsUpdate = true;
-    meshRef.current.geometry.computeVertexNormals();
-  });
-
-  const zBase = Math.max(leftStackDepth, rightStackDepth) + 0.003;
-
-  return (
-    <mesh ref={meshRef} geometry={geometry} position={[0, 0, zBase]}>
-      {texture ? (
-        <meshStandardMaterial map={texture} roughness={0.85} metalness={0} side={THREE.DoubleSide} />
-      ) : (
-        <meshStandardMaterial color="#f5f0e8" roughness={0.85} metalness={0} side={THREE.DoubleSide} />
-      )}
-    </mesh>
   );
 }
