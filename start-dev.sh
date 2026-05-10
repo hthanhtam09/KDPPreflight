@@ -1,29 +1,10 @@
 #!/bin/bash
-# KDPPreflight Dev Server Starter
-# This script keeps the Next.js dev server running
-
+# Auto-restarting dev server
 cd /home/z/my-project
-
 while true; do
-  # Check if server is already running
-  if pgrep -f "next-server" > /dev/null; then
-    echo "Server already running"
-    sleep 10
-    continue
-  fi
-  
-  echo "Starting Next.js dev server..."
-  NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS="--max-old-space-size=512" \
-    node ./node_modules/.bin/next dev -p 3000 > /tmp/next-dev.log 2>&1 &
-  
-  # Wait for server to start
-  sleep 5
-  
-  if pgrep -f "next-server" > /dev/null; then
-    echo "Server started successfully"
-  else
-    echo "Server failed to start"
-  fi
-  
-  sleep 15
+  echo "[$(date)] Starting dev server..." >> /home/z/my-project/dev.log
+  node node_modules/.bin/next dev -p 3000 >> /home/z/my-project/dev.log 2>&1
+  EXIT_CODE=$?
+  echo "[$(date)] Server exited with code $EXIT_CODE, restarting in 3s..." >> /home/z/my-project/dev.log
+  sleep 3
 done
