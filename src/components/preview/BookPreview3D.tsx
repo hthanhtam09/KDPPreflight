@@ -60,7 +60,7 @@ function safeVec(v: number, fallback = 0): number {
 }
 
 // ---------------------------------------------------------------------------
-// Texture loader with caching and NaN protection
+// Texture loader with caching — stable, never disposes during session
 // ---------------------------------------------------------------------------
 
 class TextureCache {
@@ -68,8 +68,9 @@ class TextureCache {
   private loader = new THREE.TextureLoader();
 
   load(dataUrl: string): Promise<THREE.Texture> {
-    if (this.cache.has(dataUrl)) {
-      return Promise.resolve(this.cache.get(dataUrl)!);
+    const existing = this.cache.get(dataUrl);
+    if (existing) {
+      return Promise.resolve(existing);
     }
     return new Promise((resolve, reject) => {
       this.loader.load(
@@ -87,6 +88,14 @@ class TextureCache {
         reject,
       );
     });
+  }
+
+  has(key: string): boolean {
+    return this.cache.has(key);
+  }
+
+  get(key: string): THREE.Texture | undefined {
+    return this.cache.get(key);
   }
 
   dispose(key: string) {
@@ -109,120 +118,77 @@ const globalTextureCache = new TextureCache();
 // Camera preset positions
 // ---------------------------------------------------------------------------
 
-const CAMERA_PRESETS: Record<CameraPreset, { position: [number, number, number]; lookAt: [number, number, number] } | null> = {
-  front:       { position: [0, 0.5, 3.5],  lookAt: [0, 0, 0] },
-  back:        { position: [0, 0.5, -3.5], lookAt: [0, 0, 0] },
-  spine:       { position: [-3.5, 0.5, 0], lookAt: [0, 0, 0] },
-  'open-spread': { position: [0, 3.5, 2],  lookAt: [0, 0, 0] },
-  'page-detail': { position: [0, 1.5, 2],  lookAt: [0, 0, 0.2] },
-  free:        null, // No animation — user controls freely
+const CAMERA_PRESETS: Record<CameraPreset, { position: [number, number, number]; target: [number, number, number] } | null> = {
+  front:        { position: [0, 0.3, 3.5],  target: [0, 0, 0] },
+  back:         { position: [0, 0.3, -3.5], target: [0, 0, 0] },
+  spine:        { position: [-3.5, 0.3, 0], target: [0, 0, 0] },
+  'open-spread': { position: [0, 3.0, 2.5], target: [0, 0, 0] },
+  'page-detail': { position: [0, 1.0, 2.0], target: [0, 0, 0.1] },
+  free:         null, // User controls freely — no animation
 };
 
 // ---------------------------------------------------------------------------
-// Camera controller — smooth orbit with damping, supports presets
+// Camera Preset Animator — animates to preset ONLY when preset changes,
+// then hands control back to OrbitControls. Does NOT fight user input.
 // ---------------------------------------------------------------------------
 
-function CameraController({
-  isOpen,
-  bookType,
+function CameraPresetAnimator({
   cameraPreset,
-  onUserInteract,
+  onAnimDone,
 }: {
-  isOpen: boolean;
-  bookType: BookType;
   cameraPreset: CameraPreset;
-  onUserInteract: () => void;
+  onAnimDone: () => void;
 }) {
   const { camera } = useThree();
-  const targetPos = useRef(new THREE.Vector3(2, 1.5, 3));
-  const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
-  const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
-  const velocity = useRef(new THREE.Vector3(0, 0, 0));
+  const animRef = useRef<{
+    active: boolean;
+    startPos: THREE.Vector3;
+    endPos: THREE.Vector3;
+    startTarget: THREE.Vector3;
+    endTarget: THREE.Vector3;
+    progress: number;
+  } | null>(null);
   const prevPreset = useRef<CameraPreset>(cameraPreset);
+  const controlsRef = useRef<any>(null);
+
+  // When preset changes (and it's not 'free'), start animation
+  useEffect(() => {
+    if (cameraPreset === 'free' || cameraPreset === prevPreset.current) return;
+    const preset = CAMERA_PRESETS[cameraPreset];
+    if (!preset) return;
+
+    animRef.current = {
+      active: true,
+      startPos: camera.position.clone(),
+      endPos: new THREE.Vector3(...preset.position),
+      startTarget: new THREE.Vector3(0, 0, 0), // approximate current target
+      endTarget: new THREE.Vector3(...preset.target),
+      progress: 0,
+    };
+    prevPreset.current = cameraPreset;
+  }, [cameraPreset, camera]);
 
   useFrame((_, delta) => {
-    const dt = Math.min(delta, 0.05); // Cap delta to prevent jumps
+    if (!animRef.current || !animRef.current.active) return;
 
-    // Determine target camera position
-    let goal: THREE.Vector3;
-    let lookGoal: THREE.Vector3;
+    const anim = animRef.current;
+    anim.progress += delta * 2.0; // ~0.5s animation
+    const t = Math.min(anim.progress, 1);
+    // Smooth ease-in-out
+    const eased = t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-    if (cameraPreset !== 'free' && CAMERA_PRESETS[cameraPreset]) {
-      // Use preset position
-      const preset = CAMERA_PRESETS[cameraPreset]!;
-      goal = new THREE.Vector3(...preset.position);
-      lookGoal = new THREE.Vector3(...preset.lookAt);
-    } else if (bookType === 'kindle') {
-      goal = new THREE.Vector3(0, 0.3, 2.5);
-      lookGoal = new THREE.Vector3(0, 0, 0);
-    } else if (isOpen) {
-      goal = new THREE.Vector3(0, 2.5, 3.5);
-      lookGoal = new THREE.Vector3(0, 0, 0.1);
-    } else {
-      goal = new THREE.Vector3(2, 1.5, 3);
-      lookGoal = new THREE.Vector3(0, 0, 0);
+    camera.position.lerpVectors(anim.startPos, anim.endPos, eased);
+
+    if (t >= 1) {
+      anim.active = false;
+      animRef.current = null;
+      onAnimDone();
     }
-
-    targetPos.current.copy(goal);
-    targetLookAt.current.copy(lookGoal);
-
-    // Smooth damped interpolation (velocity-based)
-    const stiffness = 3.0;
-    const damping = 0.8;
-
-    velocity.current.lerp(
-      targetPos.current.clone().sub(camera.position).multiplyScalar(stiffness * dt),
-      damping,
-    );
-    // Clamp velocity
-    velocity.current.clampLength(0, 5);
-
-    camera.position.add(velocity.current.clone().multiplyScalar(dt * 60));
-
-    // Smooth look-at interpolation
-    currentLookAt.current.lerp(targetLookAt.current, dt * 3);
-    camera.lookAt(currentLookAt.current);
-
-    prevPreset.current = cameraPreset;
   });
 
   return null;
-}
-
-// ---------------------------------------------------------------------------
-// OrbitControls wrapper that detects user interaction
-// ---------------------------------------------------------------------------
-
-function OrbitControlsWrapper({
-  isOpen,
-  bookType,
-  onUserInteract,
-}: {
-  isOpen: boolean;
-  bookType: BookType;
-  onUserInteract: () => void;
-}) {
-  const handleStart = useCallback(() => {
-    onUserInteract();
-  }, [onUserInteract]);
-
-  return (
-    <OrbitControls
-      enableDamping
-      dampingFactor={0.08}
-      minDistance={1.0}
-      maxDistance={8.0}
-      enablePan={true}
-      minPolarAngle={0}
-      maxPolarAngle={Math.PI}
-      minAzimuthAngle={-Infinity}
-      maxAzimuthAngle={Infinity}
-      target={[0, 0, isOpen ? 0.1 : 0]}
-      rotateSpeed={0.6}
-      zoomSpeed={0.8}
-      onStart={handleStart}
-    />
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -234,13 +200,11 @@ function SceneContent({
   coverTextures,
   pageTextures,
   onFlipComplete,
-  onUserCameraInteract,
 }: {
   state: Preview3DState;
   coverTextures: CoverTextures;
   pageTextures: Map<number, THREE.Texture | null>;
   onFlipComplete: (newPage: number) => void;
-  onUserCameraInteract: () => void;
 }) {
   const { bookConfig, measurements } = useAppStore();
   const scale = 0.3; // inches to scene units
@@ -252,7 +216,7 @@ function SceneContent({
   return (
     <>
       {/* Studio lighting */}
-      <ambientLight intensity={0.35} />
+      <ambientLight intensity={0.4} />
       <directionalLight
         position={[5, 8, 5]}
         intensity={1.0}
@@ -265,15 +229,12 @@ function SceneContent({
       />
       <directionalLight position={[-3, 4, -3]} intensity={0.3} color="#b4c7e7" />
       <directionalLight position={[0, 2, -5]} intensity={0.15} color="#f0e0c0" />
-      {/* Fill light from below for softer shadows */}
       <hemisphereLight args={['#b4c7e7', '#1a1a2e', 0.2]} />
 
-      {/* Camera auto-framing with preset support */}
-      <CameraController
-        isOpen={state.isOpen}
-        bookType={state.bookType}
+      {/* Camera preset animator — only animates when preset changes */}
+      <CameraPresetAnimator
         cameraPreset={state.cameraPreset}
-        onUserInteract={onUserCameraInteract}
+        onAnimDone={() => {}}
       />
 
       {/* Book Model */}
@@ -326,11 +287,22 @@ function SceneContent({
         far={4}
       />
 
-      {/* Orbit controls with full 360° rotation */}
-      <OrbitControlsWrapper
-        isOpen={state.isOpen}
-        bookType={state.bookType}
-        onUserInteract={onUserCameraInteract}
+      {/* Orbit controls — TRUE 360° rotation, no constraints, smooth damping */}
+      <OrbitControls
+        enableDamping
+        dampingFactor={0.12}
+        minDistance={1.0}
+        maxDistance={8.0}
+        enablePan={true}
+        // Full 360° rotation — no angle limits
+        minPolarAngle={0}
+        maxPolarAngle={Math.PI}
+        minAzimuthAngle={-Infinity}
+        maxAzimuthAngle={Infinity}
+        // Smooth interaction feel
+        rotateSpeed={0.8}
+        zoomSpeed={0.8}
+        target={[0, 0, 0]}
       />
 
       {/* Performance optimization */}
@@ -392,17 +364,11 @@ export default function BookPreview3D({
   });
   const isFlippingRef = useRef(false);
 
-  // ---- User camera interaction handler ----
-  const handleUserCameraInteract = useCallback(() => {
-    onStateChange({ cameraPreset: 'free' });
-  }, [onStateChange]);
-
   // ---- Load cover textures from segments ----
   useEffect(() => {
     let cancelled = false;
 
     async function loadCoverTextures() {
-      // Priority: coverSegments (split) > coverUrl (single image) > coverDataUrl (from store)
       let frontUrl: string | undefined;
       let backUrl: string | undefined;
       let spineUrl: string | undefined;
@@ -413,7 +379,6 @@ export default function BookPreview3D({
         spineUrl = coverSegments.spineDataUrl;
       } else if (coverUrl || coverDataUrl) {
         frontUrl = coverUrl || coverDataUrl;
-        // Single image — use for front only; back/spine will use defaults
       }
 
       if (!frontUrl) return;
@@ -426,11 +391,7 @@ export default function BookPreview3D({
         ]);
 
         if (!cancelled) {
-          // Dispose old textures
-          setCoverTextures(prev => {
-            // Don't dispose here — the cache manages them
-            return { front: frontTex, back: backTex, spine: spineTex };
-          });
+          setCoverTextures({ front: frontTex, back: backTex, spine: spineTex });
         }
       } catch (err) {
         console.error('Error loading cover textures:', err);
@@ -441,13 +402,13 @@ export default function BookPreview3D({
     return () => { cancelled = true; };
   }, [coverSegments, coverUrl, coverDataUrl]);
 
-  // ---- Stream page textures (dynamic loading with eviction) ----
+  // ---- Stream page textures (dynamic loading with wider range) ----
   useEffect(() => {
     let cancelled = false;
 
     async function streamPages() {
       const currentPage = state.currentPage;
-      const range = 5; // Load ±5 pages around current
+      const range = 8; // Load ±8 pages around current for smoother experience
       const newTextures = new Map(pageTextures);
 
       // Load nearby pages
@@ -472,14 +433,10 @@ export default function BookPreview3D({
         }
       }
 
-      // Evict distant pages (beyond ±15)
-      const evictionRange = 15;
+      // Evict distant pages (beyond ±20) — but DON'T dispose textures (cache manages them)
+      const evictionRange = 20;
       for (const [key] of newTextures) {
         if (Math.abs(key - currentPage) > evictionRange) {
-          const tex = newTextures.get(key);
-          if (tex) {
-            // Don't dispose — let cache manage lifecycle
-          }
           newTextures.delete(key);
         }
       }
@@ -493,7 +450,7 @@ export default function BookPreview3D({
     return () => { cancelled = true; };
   }, [state.currentPage, pdfPageDataUrls]);
 
-  // ---- Page flip animation (requestAnimationFrame-based, not React state) ----
+  // ---- Page flip animation (requestAnimationFrame-based) ----
   const onFlipComplete = useCallback((newPage: number) => {
     isFlippingRef.current = false;
     onStateChange({
@@ -506,11 +463,11 @@ export default function BookPreview3D({
 
   useEffect(() => {
     if (!state.isFlipping) return;
-    if (isFlippingRef.current) return; // Prevent duplicate animations
+    if (isFlippingRef.current) return;
     isFlippingRef.current = true;
 
     let startTime: number | null = null;
-    const duration = 700; // ms
+    const duration = 600; // ms — slightly faster for snappier feel
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
@@ -527,7 +484,6 @@ export default function BookPreview3D({
       if (rawProgress < 1) {
         flipAnimRef.current.rafId = requestAnimationFrame(animate);
       } else {
-        // Animation complete — update page
         const pageDelta = state.flipDirection === 'forward' ? 2 : -2;
         const maxPage = useAppStore.getState().bookConfig.pageCount;
         const newPage = Math.max(0, Math.min(state.currentPage + pageDelta, maxPage));
@@ -563,13 +519,6 @@ export default function BookPreview3D({
     }
   }, [handleExport, onExportRef]);
 
-  // ---- Cleanup on unmount ----
-  useEffect(() => {
-    return () => {
-      // Don't dispose cached textures — they're managed globally
-    };
-  }, []);
-
   return (
     <Canvas
       ref={canvasRef}
@@ -595,7 +544,6 @@ export default function BookPreview3D({
             coverTextures={coverTextures}
             pageTextures={pageTextures}
             onFlipComplete={onFlipComplete}
-            onUserCameraInteract={handleUserCameraInteract}
           />
         </PerformanceMonitor>
       </Suspense>

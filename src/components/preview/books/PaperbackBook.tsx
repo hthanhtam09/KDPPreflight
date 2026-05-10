@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { CoverTextures } from '../BookPreview3D';
@@ -38,7 +38,7 @@ function lerp(a: number, b: number, t: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// Persistent page geometry (created once, deformed via vertex manipulation)
+// Stable geometry — created once per dimensions, never recreated in useFrame
 // ---------------------------------------------------------------------------
 
 function useStablePlaneGeometry(width: number, height: number, segX: number, segY: number) {
@@ -46,6 +46,18 @@ function useStablePlaneGeometry(width: number, height: number, segX: number, seg
     return new THREE.PlaneGeometry(safe(width), safe(height), segX, segY);
   }, [width, height, segX, segY]);
 }
+
+// ---------------------------------------------------------------------------
+// Z-fighting prevention constants
+// ---------------------------------------------------------------------------
+
+const RENDER_ORDER = {
+  pageStack: 0,
+  pageSurface: 10,
+  flippingPage: 20,
+  coverBoard: 5,
+  spine: 3,
+};
 
 // ---------------------------------------------------------------------------
 // Closed Paperback Book — unified structure with multi-material covers
@@ -77,18 +89,13 @@ function ClosedPaperback({
 
   return (
     <group>
-      {/* ── Front cover board (top, +Z face has front cover texture) ── */}
-      <mesh position={[0, 0, pageDepth / 2 + coverThickness / 2]}>
+      {/* ── Front cover board (+Z face = front cover texture) ── */}
+      <mesh position={[0, 0, pageDepth / 2 + coverThickness / 2]} renderOrder={RENDER_ORDER.coverBoard}>
         <boxGeometry args={[safe(trimWidth), safe(trimHeight), safe(coverThickness)]} />
-        {/* +x: right edge / page edges */}
         <meshStandardMaterial attach="material-0" color={pageEdgeColor} roughness={0.95} metalness={0} />
-        {/* -x: left edge / spine side */}
         <meshStandardMaterial attach="material-1" color="#151525" roughness={roughness} metalness={metalness} />
-        {/* +y: top edge */}
         <meshStandardMaterial attach="material-2" color={trimEdgeColor} roughness={0.95} metalness={0} />
-        {/* -y: bottom edge */}
         <meshStandardMaterial attach="material-3" color={trimEdgeColor} roughness={0.95} metalness={0} />
-        {/* +z: FRONT COVER TEXTURE (top face, visible from above) */}
         <meshStandardMaterial
           attach="material-4"
           map={coverTextures.front}
@@ -96,24 +103,17 @@ function ClosedPaperback({
           roughness={roughness}
           metalness={metalness}
         />
-        {/* -z: inner face (facing pages) */}
         <meshStandardMaterial attach="material-5" color={innerColor} roughness={0.92} metalness={0} />
       </mesh>
 
-      {/* ── Back cover board (bottom, -Z face has back cover texture) ── */}
-      <mesh position={[0, 0, -(pageDepth / 2 + coverThickness / 2)]}>
+      {/* ── Back cover board (-Z face = back cover texture) ── */}
+      <mesh position={[0, 0, -(pageDepth / 2 + coverThickness / 2)]} renderOrder={RENDER_ORDER.coverBoard}>
         <boxGeometry args={[safe(trimWidth), safe(trimHeight), safe(coverThickness)]} />
-        {/* +x: right edge / page edges */}
         <meshStandardMaterial attach="material-0" color={pageEdgeColor} roughness={0.95} metalness={0} />
-        {/* -x: left edge / spine side */}
         <meshStandardMaterial attach="material-1" color="#151525" roughness={roughness} metalness={metalness} />
-        {/* +y: top edge */}
         <meshStandardMaterial attach="material-2" color={trimEdgeColor} roughness={0.95} metalness={0} />
-        {/* -y: bottom edge */}
         <meshStandardMaterial attach="material-3" color={trimEdgeColor} roughness={0.95} metalness={0} />
-        {/* +z: inner face (facing pages) */}
         <meshStandardMaterial attach="material-4" color={innerColor} roughness={0.92} metalness={0} />
-        {/* -z: BACK COVER TEXTURE (bottom face, visible from below) */}
         <meshStandardMaterial
           attach="material-5"
           map={coverTextures.back}
@@ -124,13 +124,13 @@ function ClosedPaperback({
       </mesh>
 
       {/* ── Page block (between covers) ── */}
-      <mesh position={[0.005, 0, 0]}>
+      <mesh position={[0.005, 0, 0]} renderOrder={RENDER_ORDER.pageStack}>
         <boxGeometry args={[safe(trimWidth * 0.97), safe(trimHeight * 0.97), safe(pageDepth)]} />
         <meshStandardMaterial color="#f5f0e8" roughness={0.95} metalness={0} />
       </mesh>
 
       {/* ── Spine strip (left side, -X face) ── */}
-      <mesh position={[-trimWidth / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+      <mesh position={[-trimWidth / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]} renderOrder={RENDER_ORDER.spine}>
         <planeGeometry args={[safe(totalThickness), safe(trimHeight)]} />
         <meshStandardMaterial
           map={coverTextures.spine}
@@ -141,7 +141,7 @@ function ClosedPaperback({
       </mesh>
 
       {/* ── Page edge details (right side, +X) ── */}
-      <mesh position={[trimWidth / 2 + 0.001, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+      <mesh position={[trimWidth / 2 + 0.001, 0, 0]} rotation={[0, Math.PI / 2, 0]} renderOrder={RENDER_ORDER.pageStack}>
         <planeGeometry args={[safe(pageDepth), safe(trimHeight * 0.97)]} />
         <meshStandardMaterial color="#e8e0d4" roughness={0.95} metalness={0} />
       </mesh>
@@ -166,15 +166,23 @@ function PageStack({
 }) {
   if (depth < 0.003) return null;
   return (
-    <mesh position={position}>
+    <mesh position={position} renderOrder={RENDER_ORDER.pageStack}>
       <boxGeometry args={[safe(width), safe(height), safe(depth)]} />
-      <meshStandardMaterial color="#f5f0e8" roughness={0.95} metalness={0} />
+      <meshStandardMaterial
+        color="#f5f0e8"
+        roughness={0.95}
+        metalness={0}
+        polygonOffset
+        polygonOffsetFactor={1}
+        polygonOffsetUnit={1}
+      />
     </mesh>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Visible Page Surface (shows real manuscript content with gutter dip)
+// Page Surface — shows real manuscript content with gutter dip
+// CRITICAL: z-fighting prevention via polygonOffset + renderOrder
 // ---------------------------------------------------------------------------
 
 function PageSurface({
@@ -182,74 +190,83 @@ function PageSurface({
   height,
   position,
   texture,
-  side = THREE.FrontSide,
   isLeftPage = false,
 }: {
   width: number;
   height: number;
   position: [number, number, number];
   texture: THREE.Texture | null;
-  side?: THREE.Side;
   isLeftPage?: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const segments = 12;
+  const gutterApplied = useRef(false);
 
   const geometry = useStablePlaneGeometry(width, height, segments, 1);
 
-  // Apply gutter dip near the spine edge
-  useFrame(() => {
-    if (!meshRef.current) return;
+  // Apply gutter dip ONCE (not every frame — prevents flicker)
+  useEffect(() => {
+    if (!meshRef.current || gutterApplied.current) return;
     const posAttr = meshRef.current.geometry.getAttribute('position');
     if (!posAttr) return;
 
-    let needsUpdate = false;
     for (let i = 0; i < posAttr.count; i++) {
       const col = i % (segments + 1);
-      const u = col / segments; // 0 to 1 across page width
+      const u = col / segments;
 
-      // Gutter dip: curves inward near the spine edge
-      // For left pages, spine is on the right (u=1)
-      // For right pages, spine is on the left (u=0)
       const spineProximity = isLeftPage ? u : (1 - u);
-      const gutterDip = 0.015 * Math.pow(spineProximity, 3);
+      const gutterDip = 0.012 * Math.pow(spineProximity, 3);
 
-      const currentZ = posAttr.getZ(i);
-      if (Math.abs(currentZ + gutterDip) > 0.0001) {
-        posAttr.setZ(i, -gutterDip);
-        needsUpdate = true;
-      }
+      posAttr.setZ(i, -gutterDip);
     }
 
-    if (needsUpdate) {
-      posAttr.needsUpdate = true;
-      meshRef.current.geometry.computeVertexNormals();
+    posAttr.needsUpdate = true;
+    meshRef.current.geometry.computeVertexNormals();
+    gutterApplied.current = true;
+  }, [isLeftPage, segments]);
+
+  // Create stable material — own material per page side (prevents shared material bugs)
+  const material = useMemo(() => {
+    const mat = new THREE.MeshStandardMaterial({
+      color: texture ? 0xffffff : 0xf5f0e8,
+      map: texture,
+      roughness: 0.92,
+      metalness: 0,
+      // Z-fighting prevention
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnit: -1,
+      depthWrite: true,
+    });
+    return mat;
+  }, [texture]);
+
+  // Update texture if it changes (without recreating material)
+  useEffect(() => {
+    if (material.map !== texture) {
+      material.map = texture;
+      material.color.set(texture ? 0xffffff : 0xf5f0e8);
+      material.needsUpdate = true;
     }
-  });
+  }, [material, texture]);
 
   return (
-    <mesh ref={meshRef} geometry={geometry} position={position}>
-      {texture ? (
-        <meshStandardMaterial
-          map={texture}
-          roughness={0.92}
-          metalness={0}
-          side={side}
-        />
-      ) : (
-        <meshStandardMaterial
-          color="#f5f0e8"
-          roughness={0.92}
-          metalness={0}
-          side={side}
-        />
-      )}
-    </mesh>
+    <mesh
+      ref={meshRef}
+      geometry={geometry}
+      position={position}
+      material={material}
+      renderOrder={RENDER_ORDER.pageSurface}
+      frustumCulled={false}
+    />
   );
 }
 
 // ---------------------------------------------------------------------------
 // Flipping Page — stable geometry with Bezier-curve deformation
+// CRITICAL: Does NOT create new geometry in useFrame
+// CRITICAL: Has its OWN materials for front and back
+// CRITICAL: frustumCulled=false to prevent disappearing
 // ---------------------------------------------------------------------------
 
 function FlippingPage({
@@ -258,20 +275,77 @@ function FlippingPage({
   flipProgress,
   leftStackDepth,
   rightStackDepth,
-  texture,
+  frontTexture,
+  backTexture,
 }: {
   width: number;
   height: number;
   flipProgress: number;
   leftStackDepth: number;
   rightStackDepth: number;
-  texture: THREE.Texture | null;
+  frontTexture: THREE.Texture | null;
+  backTexture: THREE.Texture | null;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const segments = 20;
-
+  const segments = 16;
   const geometry = useStablePlaneGeometry(width, height, segments, 1);
 
+  // Store original positions for efficient reset
+  const origPositions = useMemo(() => {
+    const geo = new THREE.PlaneGeometry(safe(width), safe(height), segments, 1);
+    const pos = geo.getAttribute('position');
+    const arr = new Float32Array(pos.array);
+    geo.dispose();
+    return arr;
+  }, [width, height, segments]);
+
+  // Create two materials: front side and back side of the page
+  const frontMaterial = useMemo(() => {
+    return new THREE.MeshStandardMaterial({
+      color: frontTexture ? 0xffffff : 0xf5f0e8,
+      map: frontTexture,
+      roughness: 0.85,
+      metalness: 0,
+      side: THREE.FrontSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnit: -2,
+      depthWrite: true,
+    });
+  }, [frontTexture]);
+
+  const backMaterial = useMemo(() => {
+    return new THREE.MeshStandardMaterial({
+      color: backTexture ? 0xffffff : 0xf5f0e8,
+      map: backTexture,
+      roughness: 0.85,
+      metalness: 0,
+      side: THREE.BackSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnit: -2,
+      depthWrite: true,
+    });
+  }, [backTexture]);
+
+  // Update textures when they change
+  useEffect(() => {
+    if (frontMaterial.map !== frontTexture) {
+      frontMaterial.map = frontTexture;
+      frontMaterial.color.set(frontTexture ? 0xffffff : 0xf5f0e8);
+      frontMaterial.needsUpdate = true;
+    }
+  }, [frontMaterial, frontTexture]);
+
+  useEffect(() => {
+    if (backMaterial.map !== backTexture) {
+      backMaterial.map = backTexture;
+      backMaterial.color.set(backTexture ? 0xffffff : 0xf5f0e8);
+      backMaterial.needsUpdate = true;
+    }
+  }, [backMaterial, backTexture]);
+
+  // Deform vertices based on flip progress
   useFrame(() => {
     if (!meshRef.current) return;
     const posAttr = meshRef.current.geometry.getAttribute('position');
@@ -279,52 +353,58 @@ function FlippingPage({
 
     const progress = safe(flipProgress, 0);
 
-    // When not flipping, keep flat
-    if (progress <= 0.001 || progress >= 0.999) {
-      const origGeo = new THREE.PlaneGeometry(safe(width), safe(height), segments, 1);
-      const origPos = origGeo.getAttribute('position');
-      let needsUpdate = false;
+    // When not flipping, restore original positions from cache
+    if (progress <= 0.001) {
       for (let i = 0; i < posAttr.count; i++) {
-        const ox = origPos.getX(i);
-        const oz = origPos.getZ(i);
-        if (Math.abs(posAttr.getX(i) - ox) > 0.0001 || Math.abs(posAttr.getZ(i) - oz) > 0.0001) {
-          posAttr.setX(i, ox);
-          posAttr.setZ(i, oz);
-          needsUpdate = true;
-        }
+        const i3 = i * 3;
+        posAttr.setX(i, origPositions[i3]);
+        posAttr.setZ(i, origPositions[i3 + 2]);
       }
-      if (needsUpdate) {
-        posAttr.needsUpdate = true;
-        meshRef.current.geometry.computeVertexNormals();
+      posAttr.needsUpdate = true;
+      meshRef.current.geometry.computeVertexNormals();
+      return;
+    }
+
+    if (progress >= 0.999) {
+      // Page fully flipped — move to other side
+      for (let i = 0; i < posAttr.count; i++) {
+        const i3 = i * 3;
+        const origX = origPositions[i3];
+        posAttr.setX(i, origX - width); // Flipped across
+        posAttr.setZ(i, 0);
       }
-      origGeo.dispose();
+      posAttr.needsUpdate = true;
+      meshRef.current.geometry.computeVertexNormals();
       return;
     }
 
     // Bezier-curve page curl
-    const curlRadius = safe(width * 0.12, 0.01);
+    const curlRadius = safe(width * 0.1, 0.01);
     const travelX = width;
     const curlIntensity = Math.sin(progress * Math.PI);
 
     for (let i = 0; i < posAttr.count; i++) {
+      const i3 = i * 3;
+      const origX = origPositions[i3];
+      const origZ = origPositions[i3 + 2];
+
       const col = i % (segments + 1);
-      const origX = (col / segments) * width - width / 2;
-      const origY = posAttr.getY(i);
+      const t = col / segments; // 0 to 1 across page width
 
-      const t = (origX + width / 2) / safe(width, 1);
-
-      const vertexDelay = (1 - t) * 0.3;
+      // Wave propagation: spine-side starts turning first
+      const vertexDelay = (1 - t) * 0.25;
       const vertexProgress = Math.max(0, Math.min(1, (progress - vertexDelay) / (1 - vertexDelay)));
 
       const baseX = origX - travelX * vertexProgress;
 
+      // Curl height — peaks in the middle of the flip
       const curlWave = Math.sin(t * Math.PI);
       const liftHeight = curlIntensity * curlRadius * curlWave * (1 - Math.abs(progress - 0.5) * 2);
 
-      const spineCurve = curlIntensity * 0.15 * Math.sin(t * Math.PI * 0.5) * curlRadius;
+      // Subtle spine curve
+      const spineCurve = curlIntensity * 0.1 * Math.sin(t * Math.PI * 0.5) * curlRadius;
 
       posAttr.setX(i, safe(baseX));
-      posAttr.setY(i, origY);
       posAttr.setZ(i, safe(Math.max(0, liftHeight + spineCurve)));
     }
 
@@ -332,31 +412,35 @@ function FlippingPage({
     meshRef.current.geometry.computeVertexNormals();
   });
 
-  const zBase = Math.max(safe(leftStackDepth), safe(rightStackDepth)) + 0.004;
+  const zBase = Math.max(safe(leftStackDepth), safe(rightStackDepth)) + 0.005;
 
   return (
-    <mesh ref={meshRef} geometry={geometry} position={[0, 0, zBase]}>
-      {texture ? (
-        <meshStandardMaterial
-          map={texture}
-          roughness={0.85}
-          metalness={0}
-          side={THREE.DoubleSide}
-        />
-      ) : (
-        <meshStandardMaterial
-          color="#f5f0e8"
-          roughness={0.85}
-          metalness={0}
-          side={THREE.DoubleSide}
-        />
-      )}
-    </mesh>
+    <group position={[0, 0, zBase]}>
+      {/* Front face of the flipping page */}
+      <mesh
+        ref={meshRef}
+        geometry={geometry}
+        material={frontMaterial}
+        renderOrder={RENDER_ORDER.flippingPage}
+        frustumCulled={false}
+      />
+      {/* Back face of the flipping page */}
+      <mesh
+        geometry={geometry}
+        material={backMaterial}
+        renderOrder={RENDER_ORDER.flippingPage}
+        frustumCulled={false}
+      />
+    </group>
   );
 }
 
 // ---------------------------------------------------------------------------
 // Open Paperback Book — spread with page stacks and pivoting front cover
+// CRITICAL FIX: Correct page spread logic
+//   Spread 0: [Blank | Page 1]  (first page is on the RIGHT)
+//   Spread 1: [Page 2 | Page 3]
+//   Spread N: [Page 2N | Page 2N+1]
 // ---------------------------------------------------------------------------
 
 function OpenPaperback({
@@ -390,32 +474,45 @@ function OpenPaperback({
 }) {
   const frontCoverPivotRef = useRef<THREE.Group>(null);
 
-  // Dynamic page distribution
   const totalPages = Math.max(pageCount, 1);
   const currentSpread = Math.floor(currentPage / 2);
-  const leftPages = currentSpread;
-  const rightPages = totalPages - currentSpread;
+
+  // Page distribution — left stack = pages before current spread, right stack = pages after
+  const leftPages = Math.max(currentSpread, 0);
+  const rightPages = Math.max(totalPages - currentSpread, 0);
   const pageThickness = pageDepth / totalPages;
 
   const leftStackDepth = safe(Math.max(leftPages * pageThickness, 0.003));
   const rightStackDepth = safe(Math.max(rightPages * pageThickness, 0.003));
 
-  // Page texture indices for current spread
-  const leftPageTexture = pageTextures.get(currentSpread * 2 - 1) || null;
-  const rightPageTexture = pageTextures.get(currentSpread * 2) || null;
-  const flippingTexture = pageTextures.get(
-    isFlippingForward ? currentSpread * 2 : currentSpread * 2 - 1
-  ) || null;
+  // ━━━ CORRECT PAGE SPREAD LOGIC ━━━
+  // Pages are 0-indexed internally, but represent actual manuscript pages
+  // Spread 0: left=blank, right=page 0 (first page is on the right)
+  // Spread 1: left=page 1, right=page 2
+  // Spread N: left=page 2N-1, right=page 2N
+  const leftPageIndex = currentSpread === 0 ? -1 : (currentSpread * 2 - 1);
+  const rightPageIndex = currentSpread * 2;
 
-  // Front cover rotation and pivot animation
+  const leftPageTexture = leftPageIndex >= 0 ? (pageTextures.get(leftPageIndex) || null) : null;
+  const rightPageTexture = rightPageIndex < totalPages ? (pageTextures.get(rightPageIndex) || null) : null;
+
+  // Flipping page textures — front face and back face
+  // When flipping forward: the right page lifts and turns to become the left page
+  // Front = current right page texture, Back = next left page texture
+  const flipFrontIndex = isFlippingForward ? rightPageIndex : leftPageIndex;
+  const flipBackIndex = isFlippingForward ? (rightPageIndex + 1) : (leftPageIndex - 1);
+  const flipFrontTexture = flipFrontIndex >= 0 && flipFrontIndex < totalPages ? (pageTextures.get(flipFrontIndex) || null) : null;
+  const flipBackTexture = flipBackIndex >= 0 && flipBackIndex < totalPages ? (pageTextures.get(flipBackIndex) || null) : null;
+
+  // Front cover pivot animation — rotates around spine edge
   useFrame(() => {
     if (!frontCoverPivotRef.current) return;
 
-    // Pivot Z interpolates from top-of-pages to table-level as book opens
     const pivotZ = lerp(pageDepth / 2 + coverThickness / 2, coverThickness / 2, openAmount);
 
     frontCoverPivotRef.current.position.set(0, 0, pivotZ);
-    frontCoverPivotRef.current.rotation.y = -openAmount * Math.PI;
+    // Opening angle ~160° (not full 180° which looks unnatural)
+    frontCoverPivotRef.current.rotation.y = -openAmount * Math.PI * 0.89;
   });
 
   const coverColor = 0x1a1a2e;
@@ -423,22 +520,20 @@ function OpenPaperback({
   const trimEdgeColor = '#ede6da';
   const innerColor = '#f5f0e8';
 
+  // Page surface width — slightly less than trim to show page edges
+  const pageSurfaceW = trimWidth * 0.92;
+  const pageSurfaceH = trimHeight * 0.92;
+
   return (
     <group>
       {/* ── Back cover (flat on the right side) ── */}
-      <mesh position={[trimWidth / 2, 0, coverThickness / 2]}>
+      <mesh position={[trimWidth / 2, 0, coverThickness / 2]} renderOrder={RENDER_ORDER.coverBoard}>
         <boxGeometry args={[safe(trimWidth), safe(trimHeight), safe(coverThickness)]} />
-        {/* +x: right edge */}
         <meshStandardMaterial attach="material-0" color={pageEdgeColor} roughness={0.95} metalness={0} />
-        {/* -x: left edge (spine side) */}
         <meshStandardMaterial attach="material-1" color="#151525" roughness={roughness} metalness={metalness} />
-        {/* +y: top edge */}
         <meshStandardMaterial attach="material-2" color={trimEdgeColor} roughness={0.95} metalness={0} />
-        {/* -y: bottom edge */}
         <meshStandardMaterial attach="material-3" color={trimEdgeColor} roughness={0.95} metalness={0} />
-        {/* +z: inner face (facing up, inside of back cover) */}
         <meshStandardMaterial attach="material-4" color={innerColor} roughness={0.92} metalness={0} />
-        {/* -z: BACK COVER ARTWORK (facing down, toward table) */}
         <meshStandardMaterial
           attach="material-5"
           map={coverTextures.back}
@@ -464,10 +559,10 @@ function OpenPaperback({
         position={[trimWidth / 2, 0, rightStackDepth / 2 + coverThickness]}
       />
 
-      {/* ── Left visible page ── */}
+      {/* ── Left visible page (or blank for first spread) ── */}
       <PageSurface
-        width={trimWidth * 0.92}
-        height={trimHeight * 0.92}
+        width={pageSurfaceW}
+        height={pageSurfaceH}
         position={[-trimWidth / 2, 0, leftStackDepth + coverThickness + 0.002]}
         texture={leftPageTexture}
         isLeftPage={true}
@@ -475,38 +570,34 @@ function OpenPaperback({
 
       {/* ── Right visible page ── */}
       <PageSurface
-        width={trimWidth * 0.92}
-        height={trimHeight * 0.92}
+        width={pageSurfaceW}
+        height={pageSurfaceH}
         position={[trimWidth / 2, 0, rightStackDepth + coverThickness + 0.002]}
         texture={rightPageTexture}
         isLeftPage={false}
       />
 
-      {/* ── Flipping page animation ── */}
+      {/* ── Flipping page animation ━━━ ONLY renders when actively flipping ━━━ */}
       {flipProgress > 0.005 && flipProgress < 0.995 && (
         <FlippingPage
-          width={trimWidth * 0.92}
-          height={trimHeight * 0.92}
+          width={pageSurfaceW}
+          height={pageSurfaceH}
           flipProgress={flipProgress}
           leftStackDepth={leftStackDepth}
           rightStackDepth={rightStackDepth}
-          texture={flippingTexture}
+          frontTexture={flipFrontTexture}
+          backTexture={flipBackTexture}
         />
       )}
 
       {/* ── Front cover (pivoting from spine edge) ── */}
       <group ref={frontCoverPivotRef}>
-        <mesh position={[trimWidth / 2, 0, 0]}>
+        <mesh position={[trimWidth / 2, 0, 0]} renderOrder={RENDER_ORDER.coverBoard}>
           <boxGeometry args={[safe(trimWidth), safe(trimHeight), safe(coverThickness)]} />
-          {/* +x: right edge (free edge when closed, spine edge when open) */}
           <meshStandardMaterial attach="material-0" color={pageEdgeColor} roughness={0.95} metalness={0} />
-          {/* -x: left edge (spine edge when closed, free edge when open) */}
           <meshStandardMaterial attach="material-1" color="#151525" roughness={roughness} metalness={metalness} />
-          {/* +y: top edge */}
           <meshStandardMaterial attach="material-2" color={trimEdgeColor} roughness={0.95} metalness={0} />
-          {/* -y: bottom edge */}
           <meshStandardMaterial attach="material-3" color={trimEdgeColor} roughness={0.95} metalness={0} />
-          {/* +z: FRONT COVER TEXTURE (faces up when closed, down when open) */}
           <meshStandardMaterial
             attach="material-4"
             map={coverTextures.front}
@@ -514,13 +605,12 @@ function OpenPaperback({
             roughness={roughness}
             metalness={metalness}
           />
-          {/* -z: inner face (faces down when closed, up when open) */}
           <meshStandardMaterial attach="material-5" color={innerColor} roughness={0.92} metalness={0} />
         </mesh>
       </group>
 
       {/* ── Spine strip (visible at gutter when open) ── */}
-      <mesh position={[0, 0, coverThickness / 2]} rotation={[0, Math.PI / 2, 0]}>
+      <mesh position={[0, 0, coverThickness / 2]} rotation={[0, Math.PI / 2, 0]} renderOrder={RENDER_ORDER.spine}>
         <planeGeometry args={[safe(coverThickness * 2), safe(trimHeight * 0.96)]} />
         <meshStandardMaterial
           map={coverTextures.spine}
@@ -531,7 +621,7 @@ function OpenPaperback({
       </mesh>
 
       {/* ── Gutter shadow (dark strip in center) ── */}
-      <mesh position={[0, 0, coverThickness + 0.001]}>
+      <mesh position={[0, 0, coverThickness + 0.001]} renderOrder={RENDER_ORDER.pageSurface}>
         <planeGeometry args={[safe(0.02), safe(trimHeight * 0.92)]} />
         <meshStandardMaterial color="#2a1a0a" roughness={1} metalness={0} transparent opacity={0.4} />
       </mesh>
@@ -581,7 +671,6 @@ export default function PaperbackBook({
   return (
     <group ref={groupRef}>
       {openAmount < 0.15 ? (
-        // ━━━ CLOSED BOOK ━━━
         <ClosedPaperback
           trimWidth={trimWidth}
           trimHeight={trimHeight}
@@ -592,7 +681,6 @@ export default function PaperbackBook({
           metalness={coverMetalness}
         />
       ) : (
-        // ━━━ OPEN BOOK ━━━
         <OpenPaperback
           trimWidth={trimWidth}
           trimHeight={trimHeight}
