@@ -5,6 +5,7 @@ import {
   PreviewViewMode, OverlayType, PageAnalysis, PageIssue,
   BookPage, PreviewAssetCache, ProcessingStatus, PageIssueExtended,
   IssueFilter, SpreadModel, ValidationSummary, CheckStatus,
+  PreviewFlowStep, CameraPreset, DetectedConfig, GenerationProgress,
 } from '@/types/kdp';
 import { DEFAULT_BOOK_CONFIG, calculateMeasurements } from '@/engine/kdp-constants';
 import type { PDFAnalysisResult } from '@/engine/validator';
@@ -128,6 +129,18 @@ interface AppStore {
   // PDF analysis result (stored for re-validation when config changes)
   pdfAnalysis: PDFAnalysisResult | null;
   setPdfAnalysis: (analysis: PDFAnalysisResult | null) => void;
+
+  // 3D Preview flow state
+  previewFlowStep: PreviewFlowStep;
+  setPreviewFlowStep: (step: PreviewFlowStep) => void;
+  cameraPreset: CameraPreset;
+  setCameraPreset: (preset: CameraPreset) => void;
+  detectedConfig: DetectedConfig | null;
+  setDetectedConfig: (config: DetectedConfig | null) => void;
+  generationProgress: GenerationProgress;
+  setGenerationProgress: (progress: GenerationProgress) => void;
+  previewGenerated: boolean;
+  setPreviewGenerated: (generated: boolean) => void;
 
   // Reset
   reset: () => void;
@@ -306,6 +319,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
   pdfAnalysis: null,
   setPdfAnalysis: (analysis) => set({ pdfAnalysis: analysis }),
 
+  // 3D Preview flow state
+  previewFlowStep: 'import',
+  setPreviewFlowStep: (step) => set({ previewFlowStep: step }),
+  cameraPreset: 'free',
+  setCameraPreset: (preset) => set({ cameraPreset: preset }),
+  detectedConfig: null,
+  setDetectedConfig: (config) => set({ detectedConfig: config }),
+  generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
+  setGenerationProgress: (progress) => set({ generationProgress: progress }),
+  previewGenerated: false,
+  setPreviewGenerated: (generated) => set({ previewGenerated: generated }),
+
   // Reset
   reset: () =>
     set({
@@ -341,5 +366,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
       hasRestoredSession: false,
       sidebarCollapsed: false,
       pdfAnalysis: null,
+      previewFlowStep: 'import',
+      cameraPreset: 'free',
+      detectedConfig: null,
+      generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
+      previewGenerated: false,
     }),
 }));

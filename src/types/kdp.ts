@@ -1,5 +1,23 @@
 // KDP Book Types and Constants
 
+// 3D Preview flow steps
+export type PreviewFlowStep = 'import' | 'config' | 'generate' | 'preview';
+
+// Camera preset views for 3D preview
+export type CameraPreset = 'front' | 'back' | 'spine' | 'open-spread' | 'page-detail' | 'free';
+
+// Auto-detected configuration from uploaded files
+export interface DetectedConfig {
+  trimSize?: TrimSizeKey;
+  customWidth?: number;
+  customHeight?: number;
+  bleed?: BleedType;
+  pageCount?: number;
+  bookType?: BookType;
+  paper?: PaperType;
+  confidence: number; // 0-1
+}
+
 export type TrimSizeKey = '5x8' | '5.25x8' | '5.5x8.5' | '6x9' | '7x10' | '7.44x9.69' | '8x10' | '8.25x6' | '8.25x8.25' | '8.5x8.5' | '8.5x11' | 'custom';
 
 export type BleedType = 'bleed' | 'no-bleed';
@@ -11,6 +29,25 @@ export type InteriorType = 'black-white' | 'standard-color' | 'premium-color';
 export type BindingType = 'paperback' | 'hardcover';
 
 export type CheckStatus = 'pass' | 'safe' | 'warning' | 'risk' | 'fail';
+
+// Generation step for progressive 3D preview generation
+export type GenerationPhase =
+  | 'idle'
+  | 'analyzing'
+  | 'preparing-structure'
+  | 'rendering-interior'
+  | 'building-cover'
+  | 'optimizing'
+  | 'complete'
+  | 'error';
+
+export interface GenerationProgress {
+  phase: GenerationPhase;
+  phaseLabel: string;
+  phaseIcon: string;
+  progress: number; // 0-100
+  details?: string;
+}
 
 /** Real KDP risk level — how likely is this to cause problems on actual KDP? */
 export type KdpRiskLevel =

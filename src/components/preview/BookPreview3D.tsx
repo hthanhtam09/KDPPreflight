@@ -5,7 +5,7 @@ import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppStore } from '@/store/use-app-store';
-import { BookType } from '@/types/kdp';
+import { BookType, CameraPreset } from '@/types/kdp';
 import { CoverSegments } from '@/engine/cover-parser';
 import PaperbackBook from './books/PaperbackBook';
 import HardcoverBook from './books/HardcoverBook';
@@ -28,6 +28,7 @@ export interface Preview3DState {
   kindleDevice: 'paperwhite' | 'oasis' | 'tablet' | 'phone';
   darkMode: boolean;
   bookState: BookState;
+  cameraPreset: CameraPreset;
 }
 
 export interface Preview3DActions {
@@ -40,6 +41,7 @@ export interface Preview3DActions {
   toggleDarkMode: () => void;
   resetCamera: () => void;
   exportScreenshot: (highRes?: boolean) => void;
+  setCameraPreset: (preset: CameraPreset) => void;
 }
 
 export interface CoverTextures {
@@ -104,32 +106,64 @@ class TextureCache {
 const globalTextureCache = new TextureCache();
 
 // ---------------------------------------------------------------------------
-// Camera controller — smooth orbit with damping
+// Camera preset positions
 // ---------------------------------------------------------------------------
 
-function CameraController({ isOpen, bookType }: { isOpen: boolean; bookType: BookType }) {
+const CAMERA_PRESETS: Record<CameraPreset, { position: [number, number, number]; lookAt: [number, number, number] } | null> = {
+  front:       { position: [0, 0.5, 3.5],  lookAt: [0, 0, 0] },
+  back:        { position: [0, 0.5, -3.5], lookAt: [0, 0, 0] },
+  spine:       { position: [-3.5, 0.5, 0], lookAt: [0, 0, 0] },
+  'open-spread': { position: [0, 3.5, 2],  lookAt: [0, 0, 0] },
+  'page-detail': { position: [0, 1.5, 2],  lookAt: [0, 0, 0.2] },
+  free:        null, // No animation — user controls freely
+};
+
+// ---------------------------------------------------------------------------
+// Camera controller — smooth orbit with damping, supports presets
+// ---------------------------------------------------------------------------
+
+function CameraController({
+  isOpen,
+  bookType,
+  cameraPreset,
+  onUserInteract,
+}: {
+  isOpen: boolean;
+  bookType: BookType;
+  cameraPreset: CameraPreset;
+  onUserInteract: () => void;
+}) {
   const { camera } = useThree();
   const targetPos = useRef(new THREE.Vector3(2, 1.5, 3));
   const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const velocity = useRef(new THREE.Vector3(0, 0, 0));
+  const prevPreset = useRef<CameraPreset>(cameraPreset);
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.05); // Cap delta to prevent jumps
 
-    // Target camera position based on book state
+    // Determine target camera position
     let goal: THREE.Vector3;
-    if (bookType === 'kindle') {
+    let lookGoal: THREE.Vector3;
+
+    if (cameraPreset !== 'free' && CAMERA_PRESETS[cameraPreset]) {
+      // Use preset position
+      const preset = CAMERA_PRESETS[cameraPreset]!;
+      goal = new THREE.Vector3(...preset.position);
+      lookGoal = new THREE.Vector3(...preset.lookAt);
+    } else if (bookType === 'kindle') {
       goal = new THREE.Vector3(0, 0.3, 2.5);
+      lookGoal = new THREE.Vector3(0, 0, 0);
     } else if (isOpen) {
       goal = new THREE.Vector3(0, 2.5, 3.5);
+      lookGoal = new THREE.Vector3(0, 0, 0.1);
     } else {
       goal = new THREE.Vector3(2, 1.5, 3);
+      lookGoal = new THREE.Vector3(0, 0, 0);
     }
-    targetPos.current.copy(goal);
 
-    // Target look-at point
-    const lookGoal = new THREE.Vector3(0, 0, isOpen ? 0.1 : 0);
+    targetPos.current.copy(goal);
     targetLookAt.current.copy(lookGoal);
 
     // Smooth damped interpolation (velocity-based)
@@ -148,9 +182,47 @@ function CameraController({ isOpen, bookType }: { isOpen: boolean; bookType: Boo
     // Smooth look-at interpolation
     currentLookAt.current.lerp(targetLookAt.current, dt * 3);
     camera.lookAt(currentLookAt.current);
+
+    prevPreset.current = cameraPreset;
   });
 
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// OrbitControls wrapper that detects user interaction
+// ---------------------------------------------------------------------------
+
+function OrbitControlsWrapper({
+  isOpen,
+  bookType,
+  onUserInteract,
+}: {
+  isOpen: boolean;
+  bookType: BookType;
+  onUserInteract: () => void;
+}) {
+  const handleStart = useCallback(() => {
+    onUserInteract();
+  }, [onUserInteract]);
+
+  return (
+    <OrbitControls
+      enableDamping
+      dampingFactor={0.08}
+      minDistance={1.0}
+      maxDistance={8.0}
+      enablePan={true}
+      minPolarAngle={0}
+      maxPolarAngle={Math.PI}
+      minAzimuthAngle={-Infinity}
+      maxAzimuthAngle={Infinity}
+      target={[0, 0, isOpen ? 0.1 : 0]}
+      rotateSpeed={0.6}
+      zoomSpeed={0.8}
+      onStart={handleStart}
+    />
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -162,11 +234,13 @@ function SceneContent({
   coverTextures,
   pageTextures,
   onFlipComplete,
+  onUserCameraInteract,
 }: {
   state: Preview3DState;
   coverTextures: CoverTextures;
   pageTextures: Map<number, THREE.Texture | null>;
   onFlipComplete: (newPage: number) => void;
+  onUserCameraInteract: () => void;
 }) {
   const { bookConfig, measurements } = useAppStore();
   const scale = 0.3; // inches to scene units
@@ -194,8 +268,13 @@ function SceneContent({
       {/* Fill light from below for softer shadows */}
       <hemisphereLight args={['#b4c7e7', '#1a1a2e', 0.2]} />
 
-      {/* Camera auto-framing */}
-      <CameraController isOpen={state.isOpen} bookType={state.bookType} />
+      {/* Camera auto-framing with preset support */}
+      <CameraController
+        isOpen={state.isOpen}
+        bookType={state.bookType}
+        cameraPreset={state.cameraPreset}
+        onUserInteract={onUserCameraInteract}
+      />
 
       {/* Book Model */}
       {state.bookType === 'kindle' ? (
@@ -247,18 +326,11 @@ function SceneContent({
         far={4}
       />
 
-      {/* Orbit controls with smooth damping */}
-      <OrbitControls
-        enableDamping
-        dampingFactor={0.06}
-        minDistance={state.bookType === 'kindle' ? 1 : 0.8}
-        maxDistance={state.bookType === 'kindle' ? 5 : 8}
-        enablePan={true}
-        maxPolarAngle={Math.PI * 0.85}
-        minPolarAngle={Math.PI * 0.1}
-        target={[0, 0, state.isOpen ? 0.1 : 0]}
-        rotateSpeed={0.6}
-        zoomSpeed={0.8}
+      {/* Orbit controls with full 360° rotation */}
+      <OrbitControlsWrapper
+        isOpen={state.isOpen}
+        bookType={state.bookType}
+        onUserInteract={onUserCameraInteract}
       />
 
       {/* Performance optimization */}
@@ -291,6 +363,7 @@ interface BookPreview3DProps {
   state: Preview3DState;
   onStateChange: (updates: Partial<Preview3DState>) => void;
   onExportRef?: React.MutableRefObject<(() => void) | null>;
+  cameraPreset?: CameraPreset;
 }
 
 export default function BookPreview3D({
@@ -299,6 +372,7 @@ export default function BookPreview3D({
   state,
   onStateChange,
   onExportRef,
+  cameraPreset,
 }: BookPreview3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { pdfPageDataUrls, coverDataUrl } = useAppStore();
@@ -317,6 +391,11 @@ export default function BookPreview3D({
     startTime: null,
   });
   const isFlippingRef = useRef(false);
+
+  // ---- User camera interaction handler ----
+  const handleUserCameraInteract = useCallback(() => {
+    onStateChange({ cameraPreset: 'free' });
+  }, [onStateChange]);
 
   // ---- Load cover textures from segments ----
   useEffect(() => {
@@ -516,6 +595,7 @@ export default function BookPreview3D({
             coverTextures={coverTextures}
             pageTextures={pageTextures}
             onFlipComplete={onFlipComplete}
+            onUserCameraInteract={handleUserCameraInteract}
           />
         </PerformanceMonitor>
       </Suspense>

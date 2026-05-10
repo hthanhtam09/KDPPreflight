@@ -18,8 +18,13 @@ import {
   Download,
   Info,
   X,
+  Eye,
+  Grid3X3,
+  Columns2,
+  Search,
+  BookText,
 } from 'lucide-react';
-import { BookType } from '@/types/kdp';
+import { BookType, CameraPreset } from '@/types/kdp';
 import type { Preview3DState, Preview3DActions } from './BookPreview3D';
 
 interface PreviewToolbarProps {
@@ -34,15 +39,26 @@ interface PreviewToolbarProps {
   };
 }
 
+// Camera preset configuration
+const CAMERA_PRESETS: { key: CameraPreset; label: string; icon: React.ReactNode; shortLabel: string }[] = [
+  { key: 'front', label: 'Front Cover', icon: <Book className="w-3.5 h-3.5" />, shortLabel: 'Front' },
+  { key: 'back', label: 'Back Cover', icon: <BookMarked className="w-3.5 h-3.5" />, shortLabel: 'Back' },
+  { key: 'spine', label: 'Spine Edge', icon: <Columns2 className="w-3.5 h-3.5" />, shortLabel: 'Spine' },
+  { key: 'open-spread', label: 'Open Spread', icon: <BookOpen className="w-3.5 h-3.5" />, shortLabel: 'Open' },
+  { key: 'page-detail', label: 'Page Detail', icon: <BookText className="w-3.5 h-3.5" />, shortLabel: 'Detail' },
+];
+
 export default function PreviewToolbar({ state, actions, totalPages, measurements }: PreviewToolbarProps) {
   const [showInfo, setShowInfo] = useState(false);
   const [showDevicePicker, setShowDevicePicker] = useState(false);
+  const [showCameraPresets, setShowCameraPresets] = useState(false);
 
   const isKindle = state.bookType === 'kindle';
+  const activePreset = state.cameraPreset;
 
   return (
     <>
-      {/* Top bar - Book type selector */}
+      {/* ━━━ Top bar - Book type selector ━━━ */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <div className="flex items-center bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 p-1 gap-1">
           <BookTypeButton
@@ -66,7 +82,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
         </div>
       </div>
 
-      {/* Left toolbar - View controls */}
+      {/* ━━━ Left toolbar - View controls ━━━ */}
       <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
         <div className="flex flex-col gap-2 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 p-2">
           <ToolBarButton
@@ -103,6 +119,16 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
 
           <div className="w-6 h-px bg-white/10 mx-auto" />
 
+          {/* Camera presets toggle */}
+          <ToolBarButton
+            onClick={() => setShowCameraPresets(!showCameraPresets)}
+            icon={<Eye className="w-4 h-4" />}
+            tooltip="Camera views"
+            active={showCameraPresets || activePreset !== 'free'}
+          />
+
+          <div className="w-6 h-px bg-white/10 mx-auto" />
+
           <ToolBarButton
             onClick={() => setShowInfo(!showInfo)}
             icon={<Info className="w-4 h-4" />}
@@ -112,7 +138,43 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
         </div>
       </div>
 
-      {/* Device picker popup */}
+      {/* ━━━ Camera preset popup ━━━ */}
+      <AnimatePresence>
+        {showCameraPresets && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="absolute left-20 top-1/2 -translate-y-1/2 z-20"
+          >
+            <div className="bg-black/80 backdrop-blur-xl rounded-xl border border-white/10 p-2 space-y-1 min-w-[140px]">
+              <div className="text-[10px] text-white/30 uppercase tracking-wider px-2 pb-1 font-medium">
+                Camera Views
+              </div>
+              {CAMERA_PRESETS.map((preset) => (
+                <CameraPresetButton
+                  key={preset.key}
+                  active={activePreset === preset.key}
+                  onClick={() => {
+                    actions.setCameraPreset(preset.key);
+                  }}
+                  icon={preset.icon}
+                  label={preset.shortLabel}
+                />
+              ))}
+              <div className="w-full h-px bg-white/10 my-1" />
+              <CameraPresetButton
+                active={activePreset === 'free'}
+                onClick={() => actions.setCameraPreset('free')}
+                icon={<Search className="w-3.5 h-3.5" />}
+                label="Free orbit"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ━━━ Device picker popup ━━━ */}
       <AnimatePresence>
         {showDevicePicker && isKindle && (
           <motion.div
@@ -151,69 +213,91 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
         )}
       </AnimatePresence>
 
-      {/* Bottom bar - Page navigation + Export */}
+      {/* ━━━ Bottom bar - Camera presets quick access + Page navigation + Export ━━━ */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-        <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 px-4 py-2.5">
-          <button
-            onClick={actions.prevPage}
-            disabled={state.currentPage <= 0 || state.isFlipping}
-            className="text-white/60 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
-          <div className="flex items-center gap-3 min-w-[200px]">
-            <span className="text-white/60 text-xs font-mono w-8 text-right">
-              {state.currentPage + 1}
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={Math.max(totalPages - 1, 0)}
-              value={state.currentPage}
-              onChange={(e) => actions.goToPage(parseInt(e.target.value))}
-              disabled={state.isFlipping}
-              className="flex-1 h-1 bg-white/10 rounded-full appearance-none cursor-pointer
-                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
-                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white/80
-                [&::-webkit-slider-thumb]:hover:bg-white [&::-webkit-slider-thumb]:transition-colors
-                disabled:opacity-30 disabled:cursor-not-allowed"
-            />
-            <span className="text-white/60 text-xs font-mono w-8">
-              {totalPages}
-            </span>
+        <div className="flex flex-col gap-2 items-center">
+          {/* Camera preset quick buttons */}
+          <div className="flex items-center gap-1 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 px-2 py-1.5">
+            {CAMERA_PRESETS.map((preset) => (
+              <button
+                key={preset.key}
+                onClick={() => actions.setCameraPreset(preset.key)}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all ${
+                  activePreset === preset.key
+                    ? 'bg-white/15 text-white'
+                    : 'text-white/40 hover:text-white/80 hover:bg-white/5'
+                }`}
+                title={preset.label}
+              >
+                {preset.icon}
+                <span className="hidden sm:inline">{preset.shortLabel}</span>
+              </button>
+            ))}
           </div>
 
-          <button
-            onClick={actions.nextPage}
-            disabled={state.currentPage >= totalPages - 1 || state.isFlipping}
-            className="text-white/60 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+          {/* Page navigation + Export */}
+          <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 px-4 py-2.5">
+            <button
+              onClick={actions.prevPage}
+              disabled={state.currentPage <= 0 || state.isFlipping}
+              className="text-white/60 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
 
-          <div className="w-px h-5 bg-white/10" />
+            <div className="flex items-center gap-3 min-w-[200px]">
+              <span className="text-white/60 text-xs font-mono w-8 text-right">
+                {state.currentPage + 1}
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={Math.max(totalPages - 1, 0)}
+                value={state.currentPage}
+                onChange={(e) => actions.goToPage(parseInt(e.target.value))}
+                disabled={state.isFlipping}
+                className="flex-1 h-1 bg-white/10 rounded-full appearance-none cursor-pointer
+                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
+                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white/80
+                  [&::-webkit-slider-thumb]:hover:bg-white [&::-webkit-slider-thumb]:transition-colors
+                  disabled:opacity-30 disabled:cursor-not-allowed"
+              />
+              <span className="text-white/60 text-xs font-mono w-8">
+                {totalPages}
+              </span>
+            </div>
 
-          <button
-            onClick={() => actions.exportScreenshot()}
-            className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs"
-            title="Export PNG"
-          >
-            <Camera className="w-4 h-4" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-          <button
-            onClick={() => actions.exportScreenshot()}
-            className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs"
-            title="Export HD"
-          >
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">HD</span>
-          </button>
+            <button
+              onClick={actions.nextPage}
+              disabled={state.currentPage >= totalPages - 1 || state.isFlipping}
+              className="text-white/60 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            <div className="w-px h-5 bg-white/10" />
+
+            <button
+              onClick={() => actions.exportScreenshot()}
+              className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs"
+              title="Export PNG"
+            >
+              <Camera className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+            <button
+              onClick={() => actions.exportScreenshot()}
+              className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs"
+              title="Export HD"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">HD</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Right info panel */}
+      {/* ━━━ Right info panel ━━━ */}
       <AnimatePresence>
         {showInfo && (
           <motion.div
@@ -236,6 +320,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
                 <InfoRow label="Pages" value={String(measurements.pageCount)} />
                 <InfoRow label="State" value={state.isOpen ? 'Open' : 'Closed'} />
                 <InfoRow label="Page" value={`${state.currentPage + 1} / ${totalPages}`} />
+                <InfoRow label="View" value={activePreset === 'free' ? 'Free orbit' : activePreset.replace('-', ' ')} />
               </div>
             </div>
           </motion.div>
@@ -302,6 +387,32 @@ function ToolBarButton({
       }`}
     >
       {icon}
+    </button>
+  );
+}
+
+function CameraPresetButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${
+        active
+          ? 'bg-white/15 text-white'
+          : 'text-white/50 hover:text-white hover:bg-white/5'
+      }`}
+    >
+      {icon}
+      {label}
     </button>
   );
 }
