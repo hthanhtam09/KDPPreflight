@@ -9,6 +9,7 @@ import {
   Check, AlertTriangle, Info, ChevronDown, ShieldCheck,
   Ruler, Type, Image as ImageIcon, BookMarked,
   ClipboardCheck, Sparkles, FileOutput,
+  Lightbulb, Eye, X,
 } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import {
@@ -41,6 +42,192 @@ const STEPS = [
   { id: 5, label: 'Export Tips', icon: FileOutput },
   { id: 6, label: 'Publish Ready', icon: ClipboardCheck },
 ];
+
+// ─── Educational Concepts Data ────────────────────────────────────────────
+
+const CONCEPTS: Record<string, {
+  emoji: string;
+  title: string;
+  explanation: string;
+  whyItMatters: string;
+  recommendation?: string;
+}> = {
+  trimSize: {
+    emoji: '📏',
+    title: 'What Is Trim Size?',
+    explanation: 'Trim size is the final physical size of your printed book after cutting. For example, an 8.5" × 11" book means the final printed pages will measure 8.5 inches wide and 11 inches tall.',
+    whyItMatters: 'Your manuscript and cover must match this size exactly. Different trim sizes affect your layout, margins, spine width, and printing cost.',
+    recommendation: '6" × 9" is the most popular KDP trim size for novels. 8.5" × 11" is common for workbooks and textbooks.',
+  },
+  bleed: {
+    emoji: '🩸',
+    title: 'What Is Bleed?',
+    explanation: 'Bleed is extra artwork that extends beyond the final cut edge of the page. After printing, books are trimmed mechanically, and small cutting shifts can happen naturally.',
+    whyItMatters: 'Bleed prevents white edges appearing near page borders. If your artwork touches the edge of the page, bleed helps ensure the print still looks clean after trimming.',
+    recommendation: 'Enable bleed for coloring books, full-page artwork, or edge-to-edge designs. Usually NOT needed for simple text books or journals with white margins.',
+  },
+  safeArea: {
+    emoji: '🟩',
+    title: 'What Is Safe Area?',
+    explanation: 'Safe area is the zone where important content should remain. Text or artwork placed too close to the edge may appear cut off after printing.',
+    whyItMatters: 'Printing and trimming are never perfectly exact. Keeping content inside the safe area improves readability, print consistency, and professional appearance.',
+    recommendation: 'Keep text, page numbers, and important artwork inside the safe area whenever possible.',
+  },
+  spineWidth: {
+    emoji: '📘',
+    title: 'What Is Spine Width?',
+    explanation: 'The spine is the center section connecting the front and back cover. Its width depends mainly on page count and paper type. More pages = thicker spine.',
+    whyItMatters: 'Incorrect spine width can cause misaligned covers, shifted artwork, or rejected cover files.',
+    recommendation: 'Very thin books may not support readable spine text. KDP calculates spine width automatically based on your page count and paper choice.',
+  },
+  dpi: {
+    emoji: '🖼',
+    title: 'What Is DPI?',
+    explanation: 'DPI means "Dots Per Inch." It measures image print quality. Higher DPI = sharper printed images.',
+    whyItMatters: 'Low DPI images may appear blurry, look pixelated, or print poorly on paper. KDP recommends 300 DPI for best results.',
+    recommendation: 'Always design at 300 DPI from the start. Upscaling a low-resolution image later will not improve quality.',
+  },
+  gutter: {
+    emoji: '📖',
+    title: 'What Is Gutter Margin?',
+    explanation: 'The gutter is the inner margin near the spine. Books naturally curve inward near the center.',
+    whyItMatters: 'Text placed too close to the spine can become hard to read. Thicker books require larger gutter margins.',
+    recommendation: 'Increase your gutter margin for books with 150+ pages to keep text readable near the spine.',
+  },
+  barcode: {
+    emoji: '🏷',
+    title: 'What Is the Barcode Area?',
+    explanation: 'KDP usually places a barcode on the back cover of your book. This area is reserved for the ISBN barcode.',
+    whyItMatters: 'Important artwork or text placed here may become covered by the barcode. Keep this zone simple and uncluttered.',
+    recommendation: 'Leave the bottom-right 2" × 1.2" area of your back cover free of important content.',
+  },
+  hinge: {
+    emoji: '📚',
+    title: 'What Is the Hardcover Hinge Area?',
+    explanation: 'Hardcover books include fold/hinge areas near the spine. These areas bend when the book opens.',
+    whyItMatters: 'Important artwork crossing the hinge may distort visually when the book is opened. Avoid placing text across the hinge.',
+    recommendation: 'Keep text and important design elements away from hinge zones on hardcover covers.',
+  },
+};
+
+// ─── Educational Components ───────────────────────────────────────────────
+
+function ConceptExplainer({ conceptKey, children }: { conceptKey: string; children?: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const concept = CONCEPTS[conceptKey];
+  if (!concept) return null;
+
+  return (
+    <div className="mt-3">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1.5 text-[11px] text-blue-400/70 hover:text-blue-300 transition-colors"
+      >
+        <Lightbulb className="w-3 h-3" />
+        <span>{concept.emoji} {concept.title}</span>
+        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-blue-500/[0.06] border border-blue-500/15 rounded-xl p-3.5 mt-2 space-y-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">{concept.emoji}</span>
+                <span className="text-xs font-medium text-blue-300/80">{concept.title}</span>
+              </div>
+              <p className="text-[11px] text-white/50 leading-relaxed">{concept.explanation}</p>
+              <div className="flex gap-2 items-start bg-blue-500/[0.04] rounded-lg p-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400/60 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-medium text-blue-300/50 mb-0.5">Why it matters</p>
+                  <p className="text-[11px] text-white/45 leading-relaxed">{concept.whyItMatters}</p>
+                </div>
+              </div>
+              {concept.recommendation && (
+                <div className="flex gap-2 items-start">
+                  <Check className="w-3 h-3 text-emerald-400/60 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-white/40 leading-relaxed">{concept.recommendation}</p>
+                </div>
+              )}
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function BleedVisualDiagram() {
+  return (
+    <div className="flex justify-center mt-2 mb-1">
+      <svg width="180" height="130" viewBox="0 0 180 130" className="text-white">
+        {/* Bleed Zone - outermost */}
+        <rect x="10" y="10" width="160" height="110" rx="2" fill="rgba(239,68,68,0.1)" stroke="rgba(239,68,68,0.4)" strokeWidth="1" />
+        <text x="90" y="24" textAnchor="middle" className="text-[7px]" fill="rgba(239,68,68,0.6)">BLEED ZONE</text>
+
+        {/* Trim Size - middle */}
+        <rect x="25" y="25" width="130" height="80" rx="1" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
+        <text x="90" y="60" textAnchor="middle" className="text-[8px]" fill="rgba(255,255,255,0.45)">TRIM SIZE</text>
+        <text x="90" y="72" textAnchor="middle" className="text-[6px]" fill="rgba(255,255,255,0.25)">(final cut)</text>
+
+        {/* Safe Area - innermost */}
+        <rect x="40" y="35" width="100" height="60" rx="1" fill="rgba(34,197,94,0.05)" stroke="rgba(34,197,94,0.4)" strokeWidth="0.75" strokeDasharray="3 2" />
+        <text x="90" y="68" textAnchor="middle" className="text-[7px]" fill="rgba(34,197,94,0.6)">SAFE AREA</text>
+
+        {/* Arrow indicators */}
+        <line x1="10" y1="7" x2="25" y2="7" stroke="rgba(239,68,68,0.3)" strokeWidth="0.5" />
+        <text x="17" y="5" textAnchor="middle" className="text-[5px]" fill="rgba(239,68,68,0.4)">0.125"</text>
+      </svg>
+    </div>
+  );
+}
+
+function WhenToUse({ recommended, notRecommended }: { recommended: string[]; notRecommended: string[] }) {
+  return (
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mt-2.5">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-[10px] font-medium text-emerald-400/60 mb-2">Recommended For</p>
+          <div className="space-y-1.5">
+            {recommended.map((item) => (
+              <div key={item} className="flex items-center gap-1.5">
+                <Check className="w-3 h-3 text-emerald-500/50 shrink-0" />
+                <span className="text-[11px] text-white/45">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-[10px] font-medium text-red-400/60 mb-2">Usually NOT Needed For</p>
+          <div className="space-y-1.5">
+            {notRecommended.map((item) => (
+              <div key={item} className="flex items-center gap-1.5">
+                <X className="w-3 h-3 text-red-400/40 shrink-0" />
+                <span className="text-[11px] text-white/40">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RealKdpNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-amber-500/[0.06] border border-amber-500/15 rounded-lg p-2.5 flex gap-2 items-start mt-2">
+      <ShieldCheck className="w-3.5 h-3.5 text-amber-400/70 mt-0.5 shrink-0" />
+      <p className="text-[11px] text-white/50 leading-relaxed">{children}</p>
+    </div>
+  );
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -279,7 +466,23 @@ function StepPrintConfig() {
 
       <div className="max-w-2xl mx-auto space-y-4">
         {/* Trim Size */}
-        <ConfigCard icon={<Maximize2 className="w-4 h-4 text-emerald-400" />} label="Trim Size" help="Select a KDP-approved trim size. This determines your book's final printed dimensions and affects spine width.">
+        <ConfigCard
+          icon={<Maximize2 className="w-4 h-4 text-emerald-400" />}
+          label="Trim Size"
+          help="Select a KDP-approved trim size. This determines your book's final printed dimensions and affects spine width."
+          education={{
+            icon: <Maximize2 className="w-4 h-4 text-blue-400" />,
+            title: CONCEPTS.trimSize.title,
+            explanation: CONCEPTS.trimSize.explanation,
+            whyItMatters: CONCEPTS.trimSize.whyItMatters,
+            recommendation: CONCEPTS.trimSize.recommendation,
+            extraContent: (
+              <p className="text-[10px] text-white/35">
+                Your chosen trim size means your final book will be {formatInches(measurements.trimWidthIn)} × {formatInches(measurements.trimHeightIn)} after printing.
+              </p>
+            ),
+          }}
+        >
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {trimKeys.map((key) => {
               const size = TRIM_SIZES[key];
@@ -333,7 +536,27 @@ function StepPrintConfig() {
         </ConfigCard>
 
         {/* Bleed */}
-        <ConfigCard icon={<ScanLine className="w-4 h-4 text-emerald-400" />} label="Bleed" help={bookConfig.bleed === 'bleed' ? 'Adds 0.125" on each side for artwork extending to edges.' : 'White border around content. Choose if artwork stays within trim boundaries.'}>
+        <ConfigCard
+          icon={<ScanLine className="w-4 h-4 text-emerald-400" />}
+          label="Bleed"
+          help={bookConfig.bleed === 'bleed' ? 'Adds 0.125" on each side for artwork extending to edges.' : 'White border around content. Choose if artwork stays within trim boundaries.'}
+          education={{
+            icon: <ScanLine className="w-4 h-4 text-blue-400" />,
+            title: CONCEPTS.bleed.title,
+            explanation: CONCEPTS.bleed.explanation,
+            whyItMatters: CONCEPTS.bleed.whyItMatters,
+            recommendation: CONCEPTS.bleed.recommendation,
+            extraContent: (
+              <>
+                <BleedVisualDiagram />
+                <WhenToUse
+                  recommended={['Coloring books', 'Comic books', 'Full-page artwork', 'Photography books']}
+                  notRecommended={['Novels', 'Simple journals', 'Minimal text interiors']}
+                />
+              </>
+            ),
+          }}
+        >
           <div className="flex gap-2">
             <OptionBtn label="No Bleed" active={bookConfig.bleed === 'no-bleed'} onClick={() => updateBookConfig({ bleed: 'no-bleed' })} />
             <OptionBtn label="With Bleed" active={bookConfig.bleed === 'bleed'} onClick={() => updateBookConfig({ bleed: 'bleed' })} />
@@ -352,6 +575,7 @@ function StepPrintConfig() {
               />
             ))}
           </div>
+          <p className="text-[10px] text-white/25 mt-2">White paper is thinnest (0.002252&quot;/page), cream is thicker (0.0025&quot;/page), premium is also 0.0025&quot;/page.</p>
         </ConfigCard>
 
         {/* Interior Type */}
@@ -396,7 +620,13 @@ function StepPrintConfig() {
           <p className="text-[10px] text-white/25 mt-2">
             Spine: {formatInches(measurements.spineWidthIn)} • Must be even • Range: {MIN_PAGE_COUNT}–{maxPages}
           </p>
+          <RealKdpNote>
+            KDP requires even page numbers. Your spine width will be {formatInches(measurements.spineWidthIn)} based on {bookConfig.pageCount} pages of {bookConfig.paper} paper.
+          </RealKdpNote>
         </ConfigCard>
+
+        {/* Spine Width Concept Explainer */}
+        <ConceptExplainer conceptKey="spineWidth" />
 
         {/* Reading Direction + Cover Finish */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -463,14 +693,14 @@ function StepKdpSpecs() {
             label="Manuscript Size"
             value={`${formatInches(manuscriptWidth)} × ${formatInches(manuscriptHeight)}`}
             sub={m.bleedIn > 0 ? `Trim + ${formatInches(m.bleedIn)} bleed per edge` : 'Trim size (no bleed)'}
-            copyText={`${manuscriptWidth.toFixed(3)}" × ${manuscriptHeight.toFixed(3)}"`}
+            copyText={manuscriptWidth.toFixed(3) + '\u2033 \u00D7 ' + manuscriptHeight.toFixed(3) + '\u2033'}
           />
           <SpecCard
             emoji="📕"
             label="Cover Size"
             value={`${formatInches(m.fullCoverWidthIn)} × ${formatInches(m.fullCoverHeightIn)}`}
             sub={`${inchesToPixels(m.fullCoverWidthIn)} × ${inchesToPixels(m.fullCoverHeightIn)} px @ 300 DPI`}
-            copyText={`${m.fullCoverWidthIn.toFixed(3)}" × ${m.fullCoverHeightIn.toFixed(3)}"`}
+            copyText={m.fullCoverWidthIn.toFixed(3) + '\u2033 \u00D7 ' + m.fullCoverHeightIn.toFixed(3) + '\u2033'}
           />
           <SpecCard
             emoji="📗"
@@ -479,18 +709,21 @@ function StepKdpSpecs() {
             sub={`${inchesToMm(m.spineWidthIn).toFixed(2)} mm`}
             highlight
             copyText={formatInches(m.spineWidthIn)}
+            conceptId="spineWidth"
           />
           <SpecCard
             emoji="📙"
             label="Safe Area"
             value={`${formatInches(m.safeAreaIn)} from each edge`}
             sub="Keep text and important content inside"
+            conceptId="safeArea"
           />
           <SpecCard
             emoji="📒"
             label="Bleed Area"
             value={m.bleedIn > 0 ? `${formatInches(m.bleedIn)} per edge` : 'Disabled'}
             sub={m.bleedIn > 0 ? 'Artwork extends to this area' : 'No bleed selected'}
+            conceptId="bleed"
           />
           {isHardcover && (
             <>
@@ -499,6 +732,7 @@ function StepKdpSpecs() {
                 label="Hinge"
                 value={formatInches(m.hingeIn)}
                 sub="Required folding area for hardcover"
+                conceptId="hinge"
               />
               <SpecCard
                 emoji="🔶"
@@ -514,8 +748,14 @@ function StepKdpSpecs() {
               label="Barcode Area"
               value={`2.000" × 1.200"`}
               sub="Bottom-right of back cover — keep clear"
+              conceptId="barcode"
             />
           )}
+
+          {/* Real KDP Note */}
+          <RealKdpNote>
+            KDP often accepts small bleed variances, but using exact dimensions improves print reliability.
+          </RealKdpNote>
 
           {/* Download Template */}
           <DownloadTemplateButton />
@@ -582,6 +822,9 @@ function StepFilePrep() {
       </div>
 
       <div className="max-w-2xl mx-auto space-y-4">
+        {/* DPI Concept Explainer */}
+        <ConceptExplainer conceptKey="dpi" />
+
         {/* Manuscript Export */}
         <PrepCard title="Manuscript Export Size" icon={<FileText className="w-5 h-5 text-emerald-400" />}>
           <div className="space-y-3">
@@ -593,6 +836,10 @@ function StepFilePrep() {
               highlight
             />
             <PrepRow label="KDP Safe Area" value={`Keep content inside ${formatInches(safeW)} × ${formatInches(safeH)}`} />
+
+            {/* Gutter Concept Explainer */}
+            <ConceptExplainer conceptKey="gutter" />
+
             <PrepRow label="Recommended DPI" value="300" />
           </div>
         </PrepCard>
@@ -627,6 +874,11 @@ function StepFilePrep() {
             <PrepRow label="Spine" value={`${inchesToPixels(m.spineWidthIn)} px`} />
           </div>
         </PrepCard>
+
+        {/* Real KDP Note */}
+        <RealKdpNote>
+          Many Canva exports accidentally remove bleed during PDF export. Always verify your final PDF dimensions match the KDP requirements.
+        </RealKdpNote>
       </div>
     </div>
   );
@@ -658,6 +910,7 @@ function StepExportTips() {
         'Set custom dimensions to your exact cover size before designing',
         'Flatten all layers before export to avoid transparency issues',
       ],
+      kdpNote: 'Canva\'s PDF Standard export strips bleed. Always use PDF Print format for KDP covers.',
     },
     {
       id: 'photoshop',
@@ -671,6 +924,7 @@ function StepExportTips() {
         'Use CMYK color mode for print-accurate colors',
         'Verify final dimensions match KDP requirements exactly',
       ],
+      kdpNote: 'Photoshop\'s \'Save As PDF\' may not embed fonts correctly. Use \'Export As\' → PDF instead.',
     },
     {
       id: 'affinity',
@@ -684,6 +938,7 @@ function StepExportTips() {
         'Use facing pages with correct spine width for cover spreads',
         'Convert spot colors to CMYK before export',
       ],
+      kdpNote: 'Affinity Designer has excellent PDF/X export. Use PDF/X-1a:2001 for maximum KDP compatibility.',
     },
   ];
 
@@ -725,6 +980,9 @@ function StepExportTips() {
                           <p className="text-xs text-white/45 leading-relaxed">{item}</p>
                         </div>
                       ))}
+                      {tip.kdpNote && (
+                        <RealKdpNote>{tip.kdpNote}</RealKdpNote>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -760,13 +1018,17 @@ function StepPublishReady() {
     warnings.push('Low page count may result in a very thin book. Consider combining content.');
   }
 
-  // KDP behavior notes
+  // KDP behavior notes — expanded with more entries
   const kdpNotes = [
-    { label: 'Bleed', note: 'KDP may still accept slightly imperfect bleed, but full bleed dimensions reduce print risk significantly.' },
+    { label: 'Bleed', note: 'KDP often accepts small bleed variances, but using exact dimensions improves print reliability.' },
     { label: 'DPI', note: 'Images below 300 DPI may still upload, but printed quality can appear soft or blurry.' },
     { label: 'Safe Area', note: 'Text placed too close to trim edges may appear inconsistent after printing.' },
     { label: 'Spine', note: 'Spine width varies by paper type. Always recalculate when changing paper.' },
     { label: 'Page Count', note: 'KDP requires even page numbers. Minimum 24 pages for paperback.' },
+    { label: 'Gutter', note: 'Thicker books need wider gutters. If text disappears into the spine, increase your gutter margin.' },
+    { label: 'Cover', note: 'KDP may reject covers with incorrect dimensions. Always verify your cover template matches your book specs.' },
+    { label: 'Barcode', note: 'KDP adds a barcode automatically. Don\'t include your own barcode on the cover.' },
+    { label: 'Canva', note: 'Many Canva exports accidentally remove bleed. Always check your exported PDF dimensions.' },
   ];
 
   const bookTypeLabel = isKindle ? 'Kindle eBook' : isHardcover ? 'Hardcover' : 'Paperback';
@@ -805,6 +1067,20 @@ function StepPublishReady() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* When Should I Use Bleed? — only for print types */}
+        {!isKindle && (
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Eye className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-medium text-white/70">When Should I Use Bleed?</span>
+            </div>
+            <WhenToUse
+              recommended={['Coloring books', 'Comic books', 'Full-page artwork', 'Photography books']}
+              notRecommended={['Novels', 'Simple journals', 'Minimal text interiors', 'Workbooks with white margins']}
+            />
           </div>
         )}
 
@@ -859,6 +1135,11 @@ function StepPublishReady() {
             <SummaryRow label="Recommended" value="300 DPI PDF Print" />
           </div>
         </div>
+
+        {/* Educational Footer */}
+        <div className="text-center py-3">
+          <p className="text-[11px] text-white/30">You&apos;re ready to design! If you ever need to review these concepts, come back to Smart Setup anytime.</p>
+        </div>
       </div>
     </div>
   );
@@ -866,14 +1147,23 @@ function StepPublishReady() {
 
 // ─── Shared Sub-Components ────────────────────────────────────────────────
 
-function ConfigCard({ icon, label, help, children, accent }: {
+function ConfigCard({ icon, label, help, children, accent, education }: {
   icon: React.ReactNode;
   label: string;
   help?: string;
   children: React.ReactNode;
   accent?: boolean;
+  education?: {
+    icon: React.ReactNode;
+    title: string;
+    explanation: string;
+    whyItMatters: string;
+    recommendation?: string;
+    extraContent?: React.ReactNode;
+  };
 }) {
   const [showHelp, setShowHelp] = useState(false);
+  const [showEducation, setShowEducation] = useState(false);
 
   return (
     <div className={`rounded-xl border transition-all duration-300 ${
@@ -887,14 +1177,26 @@ function ConfigCard({ icon, label, help, children, accent }: {
             </div>
             <span className="text-sm font-medium text-white/80">{label}</span>
           </div>
-          {help && (
-            <button
-              onClick={() => setShowHelp(!showHelp)}
-              className="w-5 h-5 rounded-full flex items-center justify-center text-white/20 hover:text-white/50 hover:bg-white/[0.06] transition-colors"
-            >
-              <Info className="w-3.5 h-3.5" />
-            </button>
-          )}
+          <div className="flex items-center gap-1.5">
+            {education && (
+              <button
+                onClick={() => setShowEducation(!showEducation)}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] text-blue-400/60 hover:text-blue-300 hover:bg-blue-500/[0.06] transition-colors"
+                title="Learn more"
+              >
+                <BookOpen className="w-3 h-3" />
+                <span>Learn more</span>
+              </button>
+            )}
+            {help && (
+              <button
+                onClick={() => setShowHelp(!showHelp)}
+                className="w-5 h-5 rounded-full flex items-center justify-center text-white/20 hover:text-white/50 hover:bg-white/[0.06] transition-colors"
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
         {children}
         {help && showHelp && (
@@ -903,8 +1205,42 @@ function ConfigCard({ icon, label, help, children, accent }: {
             <p className="text-[11px] text-white/50 leading-relaxed">{help}</p>
           </div>
         )}
+        {/* Education Section */}
+        <AnimatePresence>
+          {education && showEducation && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-3 bg-blue-500/[0.06] border border-blue-500/15 rounded-xl p-3.5 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  {education.icon}
+                  <span className="text-xs font-medium text-blue-300/80">{education.title}</span>
+                </div>
+                <p className="text-[11px] text-white/50 leading-relaxed">{education.explanation}</p>
+                <div className="flex gap-2 items-start bg-blue-500/[0.04] rounded-lg p-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-400/60 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-medium text-blue-300/50 mb-0.5">Why it matters</p>
+                    <p className="text-[11px] text-white/45 leading-relaxed">{education.whyItMatters}</p>
+                  </div>
+                </div>
+                {education.recommendation && (
+                  <div className="flex gap-2 items-start">
+                    <Check className="w-3 h-3 text-emerald-400/60 mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-white/40 leading-relaxed">{education.recommendation}</p>
+                  </div>
+                )}
+                {education.extraContent}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      {help && !showHelp && (
+      {help && !showHelp && !showEducation && (
         <div className="px-4 pb-3">
           <p className="text-[10px] text-white/25 truncate">{help}</p>
         </div>
@@ -929,39 +1265,93 @@ function OptionBtn({ label, active, onClick }: { label: string; active: boolean;
   );
 }
 
-function SpecCard({ emoji, label, value, sub, highlight, copyText }: {
+function SpecCard({ emoji, label, value, sub, highlight, copyText, conceptId }: {
   emoji: string;
   label: string;
   value: string;
   sub?: string;
   highlight?: boolean;
   copyText?: string;
+  conceptId?: string;
 }) {
+  const [showConcept, setShowConcept] = useState(false);
+  const concept = conceptId ? CONCEPTS[conceptId] : null;
+
   return (
-    <div className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${
-      highlight ? 'bg-emerald-500/[0.08] border border-emerald-500/20' : 'bg-white/[0.03] border border-white/[0.06]'
-    }`}>
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <span className="text-base shrink-0">{emoji}</span>
-        <div className="min-w-0">
-          <p className="text-xs text-white/45">{label}</p>
-          {sub && <p className="text-[10px] text-white/25 truncate">{sub}</p>}
+    <div>
+      <div className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${
+        highlight ? 'bg-emerald-500/[0.08] border border-emerald-500/20' : 'bg-white/[0.03] border border-white/[0.06]'
+      }`}>
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <span className="text-base shrink-0">{emoji}</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs text-white/45">{label}</p>
+              {concept && (
+                <button
+                  onClick={() => setShowConcept(!showConcept)}
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-blue-400/50 hover:text-blue-300 hover:bg-blue-500/[0.08] transition-colors"
+                  title={`Learn about ${concept.title}`}
+                >
+                  <Info className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            {sub && <p className="text-[10px] text-white/25 truncate">{sub}</p>}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-3">
+          <p className={`text-sm font-mono font-medium ${highlight ? 'text-emerald-400' : 'text-white/80'}`}>
+            {value}
+          </p>
+          {copyText && (
+            <button
+              onClick={() => copyToClipboard(copyText)}
+              className="w-6 h-6 rounded-md flex items-center justify-center text-white/20 hover:text-white/50 hover:bg-white/[0.06] transition-colors"
+              title="Copy"
+            >
+              <Copy className="w-3 h-3" />
+            </button>
+          )}
         </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0 ml-3">
-        <p className={`text-sm font-mono font-medium ${highlight ? 'text-emerald-400' : 'text-white/80'}`}>
-          {value}
-        </p>
-        {copyText && (
-          <button
-            onClick={() => copyToClipboard(copyText)}
-            className="w-6 h-6 rounded-md flex items-center justify-center text-white/20 hover:text-white/50 hover:bg-white/[0.06] transition-colors"
-            title="Copy"
+      {/* Inline Concept Explainer */}
+      <AnimatePresence>
+        {concept && showConcept && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
           >
-            <Copy className="w-3 h-3" />
-          </button>
+            <div className="bg-blue-500/[0.06] border border-blue-500/15 rounded-xl p-3.5 mt-1.5 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">{concept.emoji}</span>
+                <span className="text-xs font-medium text-blue-300/80">{concept.title}</span>
+              </div>
+              <p className="text-[11px] text-white/50 leading-relaxed">{concept.explanation}</p>
+              <div className="flex gap-2 items-start bg-blue-500/[0.04] rounded-lg p-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400/60 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-medium text-blue-300/50 mb-0.5">Why it matters</p>
+                  <p className="text-[11px] text-white/45 leading-relaxed">{concept.whyItMatters}</p>
+                </div>
+              </div>
+              {concept.recommendation && (
+                <div className="flex gap-2 items-start">
+                  <Check className="w-3 h-3 text-emerald-400/60 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-white/40 leading-relaxed">{concept.recommendation}</p>
+                </div>
+              )}
+              {/* Safe Area inline diagram */}
+              {conceptId === 'safeArea' && (
+                <BleedVisualDiagram />
+              )}
+            </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -1094,6 +1484,8 @@ function CoverDiagram() {
   const barcodeH = BARCODE_AREA.height * scale;
   const barcodeX = backX + backW - safe - barcodeW;
   const barcodeY = backY + backH - safe - barcodeH;
+
+  const spineH = trimH;
 
   return (
     <div className="flex flex-col items-center">
@@ -1295,15 +1687,6 @@ export default function SetupFeature() {
 
   const handlePrev = () => goToStep(currentStep - 1);
   const handleNext = () => goToStep(currentStep + 1);
-
-  const stepDescriptions: Record<number, string> = {
-    1: 'Choose your publishing format',
-    2: 'Configure print specifications',
-    3: 'Review live measurements & diagram',
-    4: 'Prepare your files for upload',
-    5: 'Export tips for popular tools',
-    6: 'Final review & publish checklist',
-  };
 
   return (
     <div className="min-h-screen">
