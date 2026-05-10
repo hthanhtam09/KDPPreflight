@@ -5,14 +5,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Columns2,
   FileText,
   Eye,
   EyeOff,
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Rows3,
   ArrowLeft,
   Maximize2,
   BookOpen,
@@ -31,26 +29,20 @@ import {
   PanelLeftOpen,
   Image as ImageIcon,
   RotateCcw,
-  Clock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/use-app-store';
 import { loadPDF, renderSinglePage } from '@/engine/pdf-processor';
 import {
   OverlayType,
-  PageIssue,
   PreviewViewMode,
   CheckStatus,
   BookPage,
-  BookSection,
   ProcessingStatus,
   PageIssueExtended,
   IssueFilter,
-  IssueSeverityFilter,
-  IssueCategoryFilter,
   SpreadModel,
   ValidationSummary,
-  IssueCategory,
 } from '@/types/kdp';
 import { computeValidationSummary } from '@/engine/validator';
 import {
@@ -562,7 +554,7 @@ function SingleThumb({ page, small }: { page: BookPage; small?: boolean }) {
     );
   }
   if (page.dataUrl) {
-    return <img src={page.dataUrl} alt={page.label} className="w-full h-full object-cover" />;
+    return <img src={page.dataUrl} alt={page.label} className="w-full h-full object-contain" />;
   }
   return <FileText className={`${small ? 'w-3 h-3' : 'w-4 h-4'} text-white/10`} />;
 }
@@ -793,21 +785,21 @@ function ThumbnailSidebar({
                 onClick={() => spread.leftPageIndex !== null && onPageSelect(spread.leftPageIndex)}
                 className={`w-full rounded-lg overflow-hidden border transition-all duration-200 text-left ${
                   isActive
-                    ? 'border-emerald-500/50 ring-1 ring-emerald-500/20'
+                    ? 'border-emerald-400/60 ring-2 ring-emerald-500/25 bg-emerald-500/[0.03]'
                     : 'border-white/[0.06] hover:border-white/[0.12]'
                 }`}
               >
-                {/* Preview image */}
-                <div className="relative bg-white/[0.03] h-28 flex items-center justify-center">
+                {/* Preview image — aspect-ratio aware, no cropping */}
+                <div className="relative bg-white/[0.03] flex items-center justify-center p-1" style={{ aspectRatio: spread.isSingle ? '2/3' : '4/3' }}>
                   {spread.isSingle ? (
                     leftPage ? <SingleThumb page={leftPage} /> : null
                   ) : (
-                    <div className="flex w-full h-full">
-                      <div className="flex-1 overflow-hidden">
+                    <div className="flex w-full h-full gap-px">
+                      <div className="flex-1 overflow-hidden flex items-center justify-center">
                         {leftPage ? <SingleThumb page={leftPage} small /> : null}
                       </div>
-                      <div className="w-px bg-[#2a2b2e]" />
-                      <div className="flex-1 overflow-hidden">
+                      <div className="w-px bg-[#2a2b2e] self-stretch" />
+                      <div className="flex-1 overflow-hidden flex items-center justify-center">
                         {rightPage ? <SingleThumb page={rightPage} small /> : null}
                       </div>
                     </div>
@@ -819,18 +811,24 @@ function ThumbnailSidebar({
                   )}
                 </div>
 
-                {/* Label + issue count */}
+                {/* Label + issue badge */}
                 <div className="px-2 py-1.5 bg-white/[0.02]">
                   <div className="flex items-center justify-between gap-1">
                     <span className={`text-[9px] font-medium leading-tight truncate ${isActive ? 'text-emerald-400' : 'text-white/35'}`}>
                       {spread.label}
                     </span>
-                    {worstIssue && worstIssue !== 'pass' && worstIssue !== 'safe' && (
-                      <IssueDot severity={worstIssue} />
-                    )}
+                    <div className="flex items-center gap-1">
+                      {worstIssue && worstIssue !== 'pass' && worstIssue !== 'safe' && (
+                        <IssueDot severity={worstIssue} />
+                      )}
+                    </div>
                   </div>
                   {issueCount > 0 && (
-                    <span className="text-[8px] text-white/15 mt-0.5 block">
+                    <span className={`text-[8px] mt-0.5 block font-medium ${
+                      worstIssue === 'fail' ? 'text-red-400/50' :
+                      worstIssue === 'risk' ? 'text-orange-400/50' :
+                      'text-white/15'
+                    }`}>
                       {issueCount} issue{issueCount !== 1 ? 's' : ''}
                     </span>
                   )}
@@ -851,12 +849,12 @@ function ThumbnailSidebar({
                 onClick={() => onPageSelect(idx)}
                 className={`w-full rounded-lg overflow-hidden border transition-all duration-200 text-left ${
                   isActive
-                    ? 'border-emerald-500/50 ring-1 ring-emerald-500/20'
+                    ? 'border-emerald-400/60 ring-2 ring-emerald-500/25 bg-emerald-500/[0.03]'
                     : 'border-white/[0.06] hover:border-white/[0.12]'
                 }`}
               >
-                {/* Preview image */}
-                <div className="relative bg-white/[0.03] h-24 flex items-center justify-center">
+                {/* Preview image — aspect-ratio aware, no cropping */}
+                <div className="relative bg-white/[0.03] flex items-center justify-center p-1" style={{ aspectRatio: page.isCoverPage ? '3/2' : '2/3' }}>
                   <SingleThumb page={page} />
                   {worstIssue && worstIssue !== 'pass' && worstIssue !== 'safe' && (
                     <div className="absolute top-1 right-1">
@@ -865,7 +863,7 @@ function ThumbnailSidebar({
                   )}
                 </div>
 
-                {/* Label + issue count */}
+                {/* Label + issue badge */}
                 <div className="px-2 py-1.5 bg-white/[0.02]">
                   <div className="flex items-center justify-between gap-1">
                     <span className={`text-[9px] font-medium truncate ${isActive ? 'text-emerald-400' : 'text-white/30'}`}>
@@ -876,7 +874,11 @@ function ThumbnailSidebar({
                     )}
                   </div>
                   {issueCount > 0 && (
-                    <span className="text-[8px] text-white/15 mt-0.5 block">
+                    <span className={`text-[8px] mt-0.5 block font-medium ${
+                      worstIssue === 'fail' ? 'text-red-400/50' :
+                      worstIssue === 'risk' ? 'text-orange-400/50' :
+                      'text-white/15'
+                    }`}>
                       {issueCount} issue{issueCount !== 1 ? 's' : ''}
                     </span>
                   )}
@@ -940,11 +942,11 @@ function getSeverityColors(severity: CheckStatus) {
 
 function getSeverityLabel(severity: CheckStatus) {
   switch (severity) {
-    case 'pass': return 'SAFE';
-    case 'safe': return 'SAFE';
+    case 'pass': return 'OK';
+    case 'safe': return 'OK';
     case 'warning': return 'WARNING';
-    case 'risk': return 'RISK';
-    case 'fail': return 'FAIL';
+    case 'risk': return 'CRITICAL';
+    case 'fail': return 'CRITICAL';
     default: return severity.toUpperCase();
   }
 }
@@ -1015,7 +1017,7 @@ function FriendlyIssueCard({
             </p>
           </div>
           <div>
-            <span className="text-[9px] font-semibold text-emerald-400/40 uppercase tracking-wider">Recommended fix</span>
+            <span className="text-[10px] font-semibold text-emerald-400/50 uppercase tracking-wider">Recommended fix</span>
             <p className="text-[13px] text-emerald-400/40 leading-relaxed mt-0.5">
               {issue.suggestion || friendlyInfo.fixHint}
             </p>
@@ -1162,15 +1164,12 @@ function ValidationPanel({
     return issues;
   }, [pageIssuesExtended, issueFilter, beginnerFilter]);
 
-  // Group issues by category
-  const groupedIssues = useMemo(() => {
-    const groups: Record<string, PageIssueExtended[]> = {};
-    for (const issue of filteredIssues) {
-      const cat = issue.category;
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(issue);
-    }
-    return groups;
+  // Group issues by SEVERITY (not category) — 🔴 Critical, 🟡 Warning, 🟢 OK
+  const severityGroups = useMemo(() => {
+    const critical = filteredIssues.filter(i => i.severity === 'fail' || i.severity === 'risk');
+    const warnings = filteredIssues.filter(i => i.severity === 'warning');
+    const passed = filteredIssues.filter(i => i.severity === 'pass' || i.severity === 'safe');
+    return { critical, warnings, passed };
   }, [filteredIssues]);
 
   // Issues relevant to current spread
@@ -1215,18 +1214,6 @@ function ValidationPanel({
     { key: 'safe', label: 'Safe' },
   ];
 
-  const categoryOrder: IssueCategory[] = ['cover', 'size', 'bleed', 'dpi', 'margin', 'gutter', 'font', 'interior'];
-  const categoryLabels: Record<string, string> = {
-    cover: 'Cover',
-    interior: 'Interior',
-    bleed: 'Bleed',
-    dpi: 'DPI',
-    font: 'Fonts',
-    gutter: 'Gutter',
-    margin: 'Margins',
-    size: 'Layout',
-  };
-
   return (
     <div className="flex flex-col h-full bg-[#1a1b1e]">
       {/* ---- Section 1: Validation Status ---- */}
@@ -1260,22 +1247,25 @@ function ValidationPanel({
           <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/25 font-medium">{measurements.spineWidthIn.toFixed(3)}" spine</span>
         </div>
 
-        {/* Status pills */}
-        <div className="flex items-center gap-1 flex-wrap">
-          {validationSummary.fail > 0 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-semibold">{validationSummary.fail} fail</span>
-          )}
-          {validationSummary.risk > 0 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-semibold">{validationSummary.risk} risk</span>
+        {/* Status pills — severity grouped */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {validationSummary.fail + validationSummary.risk > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded bg-red-500/15 text-red-400 font-bold">
+              🔴 {validationSummary.fail + validationSummary.risk} Critical
+            </span>
           )}
           {validationSummary.warning > 0 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-semibold">{validationSummary.warning} warn</span>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold">
+              🟡 {validationSummary.warning} Warning{validationSummary.warning !== 1 ? 's' : ''}
+            </span>
           )}
-          {validationSummary.safe > 0 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400/60 font-medium">{validationSummary.safe} info</span>
+          {validationSummary.safe + validationSummary.pass > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded bg-green-500/10 text-green-400/60 font-medium">
+              🟢 {validationSummary.safe + validationSummary.pass} OK
+            </span>
           )}
           {validationSummary.total === 0 && (
-            <span className="text-[9px] text-emerald-400/50">No issues detected</span>
+            <span className="text-[10px] text-emerald-400/50">No issues detected</span>
           )}
         </div>
       </div>
@@ -1339,51 +1329,87 @@ function ValidationPanel({
         </div>
       )}
 
-      {/* ---- Section 4: All Issues (grouped by category, scrollable) ---- */}
+      {/* ---- Section 4: All Issues (grouped by SEVERITY: 🔴 Critical → 🟡 Warning → 🟢 OK) ---- */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
         {filteredIssues.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-2">
             {pageIssuesExtended.length === 0 ? (
               <>
                 <CheckCircle2 className="w-8 h-8 text-emerald-400/30" />
-                <span className="text-[11px] text-emerald-400/40 font-medium">Your book appears KDP-ready</span>
+                <span className="text-[12px] text-emerald-400/40 font-medium">Your book appears KDP-ready</span>
+                <span className="text-[10px] text-white/15">No issues detected</span>
               </>
             ) : (
               <>
                 <Search className="w-6 h-6 text-white/10" />
-                <span className="text-[10px] text-white/20">No issues match your filter</span>
+                <span className="text-[11px] text-white/20">No issues match your filter</span>
               </>
             )}
           </div>
         ) : (
-          <div className="p-3 space-y-4">
-            {categoryOrder.map(cat => {
-              const catIssues = groupedIssues[cat];
-              if (!catIssues || catIssues.length === 0) return null;
-
-              return (
-                <div key={cat}>
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-[10px] font-semibold text-white/30 uppercase tracking-wider">
-                      {categoryLabels[cat] || cat}
-                    </span>
-                    <span className="text-[8px] px-1 py-0.5 rounded bg-white/[0.04] text-white/15">
-                      {catIssues.length}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {catIssues.map(issue => (
-                      <FriendlyIssueCard
-                        key={issue.id}
-                        issue={issue}
-                        isSelected={selectedIssueId === issue.id}
-                        onClick={() => handleIssueClick(issue)}
-                      />
-                    ))}
-                  </div>
+          <div className="p-3 space-y-5">
+            {/* 🔴 CRITICAL ISSUES — Likely Rejected By KDP */}
+            {severityGroups.critical.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <span className="text-[13px]">🔴</span>
+                  <span className="text-[12px] font-semibold text-red-400/80">Critical Issues</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-bold">{severityGroups.critical.length}</span>
                 </div>
-              );
-            })}
+                <div className="space-y-2">
+                  {severityGroups.critical.map(issue => (
+                    <FriendlyIssueCard
+                      key={issue.id}
+                      issue={issue}
+                      isSelected={selectedIssueId === issue.id}
+                      onClick={() => handleIssueClick(issue)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 🟡 WARNINGS — Recommended Improvements */}
+            {severityGroups.warnings.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <span className="text-[13px]">🟡</span>
+                  <span className="text-[12px] font-semibold text-amber-400/80">Recommended Improvements</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold">{severityGroups.warnings.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {severityGroups.warnings.map(issue => (
+                    <FriendlyIssueCard
+                      key={issue.id}
+                      issue={issue}
+                      isSelected={selectedIssueId === issue.id}
+                      onClick={() => handleIssueClick(issue)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 🟢 PASSED CHECKS — Validated */}
+            {severityGroups.passed.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <span className="text-[13px]">🟢</span>
+                  <span className="text-[12px] font-semibold text-green-400/70">Passed Checks</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400/70 font-medium">{severityGroups.passed.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {severityGroups.passed.map(issue => (
+                    <FriendlyIssueCard
+                      key={issue.id}
+                      issue={issue}
+                      isSelected={selectedIssueId === issue.id}
+                      onClick={() => handleIssueClick(issue)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -2426,38 +2452,40 @@ export default function PreviewStep() {
           <SaveStatusIndicator status={saveStatus} />
         </div>
 
-        {/* Center: MODE SWITCHER — Large, prominent, top center */}
+        {/* Center: MODE SWITCHER — Always visible, prominent segmented control */}
         <div className="flex items-center gap-3">
-          {bookType !== 'kindle' && (
-            <div className="flex items-center bg-white/[0.04] rounded-xl p-1 border border-white/[0.08]">
-              <button
-                onClick={() => setPreviewViewMode('single')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 min-h-[40px] ${
-                  previewViewMode === 'single'
-                    ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30'
-                    : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
-                }`}
-                aria-label="Single Page View"
-                aria-pressed={previewViewMode === 'single'}
-              >
-                <span className="text-base">📄</span>
-                <span>Single</span>
-              </button>
-              <button
-                onClick={() => setPreviewViewMode('spread')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 min-h-[40px] ${
-                  previewViewMode === 'spread'
-                    ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30'
-                    : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
-                }`}
-                aria-label="Spread View"
-                aria-pressed={previewViewMode === 'spread'}
-              >
-                <span className="text-base">📖</span>
-                <span>Spread</span>
-              </button>
-            </div>
-          )}
+          <div className="flex items-center bg-white/[0.04] rounded-xl p-1 border border-white/[0.10] shadow-inner">
+            <button
+              onClick={() => bookType !== 'kindle' && setPreviewViewMode('single')}
+              disabled={bookType === 'kindle'}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 min-h-[40px] ${
+                previewViewMode === 'single'
+                  ? 'bg-emerald-500/25 text-emerald-200 shadow-sm border border-emerald-400/40'
+                  : 'text-white/35 hover:text-white/55 hover:bg-white/[0.06]'
+              }`}
+              aria-label="Single Page View"
+              aria-pressed={previewViewMode === 'single'}
+            >
+              <span className="text-[15px] leading-none">📄</span>
+              <span>Single</span>
+            </button>
+            <button
+              onClick={() => bookType !== 'kindle' && setPreviewViewMode('spread')}
+              disabled={bookType === 'kindle'}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 min-h-[40px] ${
+                previewViewMode === 'spread'
+                  ? 'bg-emerald-500/25 text-emerald-200 shadow-sm border border-emerald-400/40'
+                  : bookType === 'kindle'
+                    ? 'text-white/10 cursor-not-allowed'
+                    : 'text-white/35 hover:text-white/55 hover:bg-white/[0.06]'
+              }`}
+              aria-label="Spread View"
+              aria-pressed={previewViewMode === 'spread'}
+            >
+              <span className="text-[15px] leading-none">📖</span>
+              <span>Spread</span>
+            </button>
+          </div>
 
           {/* Onboarding hint: mode switcher */}
           <AnimatePresence>
