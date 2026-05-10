@@ -965,9 +965,12 @@ function FriendlyIssueCard({
   const pageLabel = issue.page ? `Page ${issue.page}` : '';
 
   return (
-    <motion.button
+    <motion.div
       onClick={onClick}
-      className={`w-full rounded-lg border text-left transition-all duration-150 ${
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      className={`w-full rounded-lg border text-left transition-all duration-150 cursor-pointer ${
         isSelected
           ? `${colors.bg} ${colors.border} ring-1 ${colors.glow}`
           : 'border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02]'
@@ -1022,13 +1025,16 @@ function FriendlyIssueCard({
         {/* BOTTOM SECTION: Technical details (collapsible) */}
         {(issue.actual || issue.expected) && (
           <div className="mt-2.5 ml-6">
-            <button
+            <div
               onClick={(e) => { e.stopPropagation(); setShowTechnical(!showTechnical); }}
-              className="flex items-center gap-1 text-[9px] text-white/15 hover:text-white/30 transition-colors"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setShowTechnical(!showTechnical); } }}
+              className="flex items-center gap-1 text-[9px] text-white/15 hover:text-white/30 transition-colors cursor-pointer"
             >
               <ChevronDown className={`w-2.5 h-2.5 transition-transform ${showTechnical ? 'rotate-180' : ''}`} />
               Technical Details
-            </button>
+            </div>
             <AnimatePresence>
               {showTechnical && (
                 <motion.div
@@ -1073,7 +1079,7 @@ function FriendlyIssueCard({
           </div>
         )}
       </div>
-    </motion.button>
+    </motion.div>
   );
 }
 
