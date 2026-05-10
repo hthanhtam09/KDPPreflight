@@ -1078,30 +1078,31 @@ export default function ConfigStep() {
 
         {/* Measurements Display */}
         <MeasurementsDisplay />
+      </div>
 
-        {/* Navigation */}
-        <div className="flex gap-3 pt-2 pb-4">
+      {/* ─── RIGHT: Live Visualization + Sticky Action ─── */}
+      <div className="flex-1 flex flex-col gap-4">
+        {/* Live Visualization */}
+        <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8 min-h-[500px] flex items-center justify-center">
+          <CoverVisualization />
+        </div>
+
+        {/* Sticky Navigation — always visible, no scrolling needed */}
+        <div className="flex gap-3">
           <button
             onClick={() => setCheckerStep('import')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-xs text-white/50 hover:text-white/70 transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-xs text-white/50 hover:text-white/70 transition-all duration-200"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Import
           </button>
           <button
             onClick={() => setCheckerStep('preview')}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-medium text-xs transition-all duration-200 shadow-lg shadow-emerald-500/20"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-all duration-200 shadow-lg shadow-emerald-500/25"
           >
-            Start Preview
-            <ArrowRight className="w-3.5 h-3.5" />
+            Start Review
+            <ArrowRight className="w-4 h-4" />
           </button>
-        </div>
-      </div>
-
-      {/* ─── RIGHT: Live Visualization ─── */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8 w-full h-full min-h-[500px] flex items-center justify-center">
-          <CoverVisualization />
         </div>
       </div>
     </div>

@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Loader2,
   ArrowLeft,
+  ArrowRight,
   Maximize2,
   BookOpen,
   Monitor,
@@ -29,6 +30,8 @@ import {
   PanelLeftOpen,
   Image as ImageIcon,
   RotateCcw,
+  Upload,
+  Settings,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/use-app-store';
@@ -1401,34 +1404,58 @@ function ValidationPanel({
 
   return (
     <div className="flex flex-col h-full bg-[#1a1b1e]">
-      {/* ---- Section 1: Validation Status ---- */}
-      <div className="shrink-0 border-b border-white/[0.06] px-4 py-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <h3 className="text-[11px] font-semibold text-white/35 uppercase tracking-wider">Validation</h3>
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/20 font-medium">
-              {isSpreadMode ? '📖 Spread' : '📄 Single'}
-            </span>
+      {/* ---- Section 1: PROMINENT STATUS BANNER ---- */}
+      <div className={`shrink-0 px-4 py-4 border-b ${
+        validationSummary.isReady
+          ? 'bg-emerald-500/[0.06] border-emerald-500/20'
+          : validationSummary.overallStatus === 'fail'
+          ? 'bg-red-500/[0.06] border-red-500/20'
+          : validationSummary.overallStatus === 'risk'
+          ? 'bg-orange-500/[0.06] border-orange-500/20'
+          : 'bg-amber-500/[0.04] border-amber-500/20'
+      }`}>
+        {/* Main status indicator — LARGE and CLEAR */}
+        <div className="flex items-center gap-3 mb-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+            validationSummary.isReady
+              ? 'bg-emerald-500/20'
+              : validationSummary.overallStatus === 'fail'
+              ? 'bg-red-500/20'
+              : validationSummary.overallStatus === 'risk'
+              ? 'bg-orange-500/20'
+              : 'bg-amber-500/15'
+          }`}>
+            {validationSummary.isReady ? <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+             : validationSummary.overallStatus === 'fail' ? <XCircle className="w-5 h-5 text-red-400" />
+             : validationSummary.overallStatus === 'risk' ? <AlertTriangle className="w-5 h-5 text-orange-400" />
+             : <AlertCircle className="w-5 h-5 text-amber-400" />}
           </div>
-          <div className="flex items-center gap-1">
-            {validationSummary.isReady ? (
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                <span className="text-[9px] text-emerald-400 font-medium">Safe for KDP</span>
-              </div>
-            ) : (
-              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStatusBg(validationSummary.overallStatus)}`}>
-                {validationSummary.overallStatus === 'fail' ? <XCircle className="w-3 h-3 text-red-400" /> :
-                 validationSummary.overallStatus === 'risk' ? <AlertTriangle className="w-3 h-3 text-orange-400" /> :
-                 <AlertCircle className="w-3 h-3 text-amber-400" />}
-                <span className={`text-[9px] font-medium ${getStatusColor(validationSummary.overallStatus)}`}>
-                  {validationSummary.overallStatus === 'fail' ? 'High Rejection Risk' :
-                   validationSummary.overallStatus === 'risk' ? 'Print Inconsistency Risk' :
-                   validationSummary.overallStatus === 'warning' ? 'Probably Acceptable' :
-                   validationSummary.overallStatus.toUpperCase()}
-                </span>
-              </div>
-            )}
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className={`text-[15px] font-bold ${
+                validationSummary.isReady ? 'text-emerald-400'
+                : validationSummary.overallStatus === 'fail' ? 'text-red-400'
+                : validationSummary.overallStatus === 'risk' ? 'text-orange-400'
+                : 'text-amber-400'
+              }`}>
+                {validationSummary.isReady ? '🟢 Safe for KDP'
+                 : validationSummary.overallStatus === 'fail' ? '🔴 High Rejection Risk'
+                 : validationSummary.overallStatus === 'risk' ? '🟠 Print Inconsistency Risk'
+                 : '🟡 Probably Acceptable'}
+              </span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/20 font-medium">
+                {isSpreadMode ? '📖 Spread' : '📄 Single'}
+              </span>
+            </div>
+            <p className="text-[11px] text-white/35 mt-0.5">
+              {validationSummary.isReady
+                ? 'Your book meets KDP requirements — no blocking issues found.'
+                : validationSummary.overallStatus === 'fail'
+                ? 'Significant issues found that may cause KDP to reject your file.'
+                : validationSummary.overallStatus === 'risk'
+                ? 'Some issues may cause print inconsistencies. Review recommended.'
+                : 'Minor issues found, but KDP will likely accept your file.'}
+            </p>
           </div>
         </div>
 
@@ -2718,21 +2745,37 @@ export default function PreviewStep() {
   return (
     <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#1e1f22]">
       {/* ================================================================== */}
-      {/* PRIMARY TOOLBAR (top, ~52px) — Core Navigation Controls            */}
-      {/* LEFT: ← Back to Config                                             */}
+      {/* PRIMARY TOOLBAR (top, ~52px) — Breadcrumb + Mode + Navigation      */}
+      {/* LEFT: Import → Configure → Review breadcrumb                       */}
       {/* CENTER: 📄 Single View | 📖 Spread View                           */}
       {/* RIGHT: ◀ Previous | Page X / Y | Next ▶                          */}
       {/* ================================================================== */}
       <div className="shrink-0 h-[52px] flex items-center justify-between px-3 border-b border-white/[0.06] bg-[#232529]">
-        {/* LEFT: Back to Config — prominent, safe-feeling */}
-        <button
-          onClick={() => setCheckerStep('config')}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium text-white/45 hover:text-white/75 hover:bg-white/[0.06] transition-all duration-200 border border-white/[0.08] hover:border-white/[0.15] min-h-[36px]"
-          title="Return to Configuration (preserves all progress)"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Back to Config</span>
-        </button>
+        {/* LEFT: Breadcrumb — Import → Configure → Review */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setCheckerStep('import')}
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium text-white/25 hover:text-white/45 hover:bg-white/[0.04] transition-all duration-200"
+            title="Back to Import"
+          >
+            <Upload className="w-3 h-3" />
+            <span className="hidden sm:inline">Import</span>
+          </button>
+          <ChevronRight className="w-3 h-3 text-white/10" />
+          <button
+            onClick={() => setCheckerStep('config')}
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium text-white/25 hover:text-white/45 hover:bg-white/[0.04] transition-all duration-200"
+            title="Back to Configure"
+          >
+            <Settings className="w-3 h-3" />
+            <span className="hidden sm:inline">Configure</span>
+          </button>
+          <ChevronRight className="w-3 h-3 text-emerald-500/40" />
+          <span className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+            <BookOpen className="w-3 h-3" />
+            <span className="hidden sm:inline">Review</span>
+          </span>
+        </div>
 
         {/* CENTER: MODE SWITCHER — Most prominent control */}
         <div className="flex items-center gap-3">

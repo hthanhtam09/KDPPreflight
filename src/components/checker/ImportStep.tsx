@@ -921,11 +921,15 @@ export default function ImportStep() {
   const showManuscriptZone = bookType === 'paperback' || bookType === 'hardcover';
 
   const canContinue = (() => {
+    // Only block if the INITIAL file analysis is still running (not background preview)
     if (isStepProcessing || coverProcessing || manuscriptProcessing) return false;
     if (bookType === 'kindle') return !!uploadedManuscript;
     // Paperback / Hardcover – at least manuscript needed
     return !!uploadedManuscript;
   })();
+
+  // Continue is allowed even while background processing runs
+  // Background preview processing will continue in the store regardless of navigation
 
   const anyProcessing = coverProcessing || manuscriptProcessing || isStepProcessing;
 
@@ -1051,14 +1055,14 @@ export default function ImportStep() {
         />
       )}
 
-      {/* ---- Continue button (always visible at bottom when files present but no detection yet) ---- */}
-      {!detectionInfo && !anyProcessing && canContinue && (
-        <div className="flex justify-end">
+      {/* ---- Continue button (visible when files are uploaded, NOT blocked by bg processing) ---- */}
+      {canContinue && (
+        <div className="sticky bottom-4 flex justify-end z-10">
           <button
             onClick={handleContinue}
-            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-semibold rounded-xl transition-colors duration-200"
+            className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-semibold rounded-xl transition-colors duration-200 shadow-lg shadow-emerald-500/25"
           >
-            Continue to Config
+            Continue to Configure
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>

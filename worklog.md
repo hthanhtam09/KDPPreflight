@@ -6,43 +6,35 @@ Agent: Main
 Task: Upgrade Validation System — Realistic KDP Behavior
 
 Work Log:
-- Read and analyzed all current validation code: engine/validator.ts, types/kdp.ts, store/use-app-store.ts, components/checker/PreviewStep.tsx, engine/kdp-constants.ts
-- Identified core issues: tolerance too strict (0.05" → should be 0.125"), severity too alarmist, no dual-dimension evaluation, messages too robotic
-- Added KdpRiskLevel type to types/kdp.ts: 'safe' | 'probably-ok' | 'print-risk' | 'high-rejection'
-- Added dual-dimension fields to PageIssueExtended: specAccuracy, kdpRisk, realWorldImpact, isInformational
-- Completely rewrote engine/validator.ts with:
-  - Updated tolerance: TOLERANCE_WARNING_IN from 0.05" to 0.125"
-  - evaluateDimension() now returns dual-dimension results (specAccuracy + kdpRisk)
-  - New assessBleedIssue() function — content-aware bleed intelligence
-  - Enhanced diagnoseExportIssue() — detects partial bleed, missing bleed, wrong trim sizes, A4 format
-  - All messages rewritten: calm, realistic, helpful (not alarmist)
-  - Cover spine validation: slight offset → warning (not critical), completely wrong → critical
-  - DPI check: 200-300 → "probably ok" not "risk", 150-200 → "print risk", <150 → "high rejection"
-  - Blank pages: contextual (front matter = safe, chapter starts = ok, unexpected = warning)
-  - Gutter: only show when tight (<0.1"), not for every page
-  - Trim safe area: marked as isInformational=true, de-emphasized in UI
-  - computeValidationSummary() now filters out informational issues from counts
-  - generateSummary() uses calm, realistic language
-- Updated PreviewStep.tsx:
-  - New getKdpRiskLabel() function with emoji + color: 🟢 Safe for KDP, 🟡 Probably acceptable, 🟠 May cause print inconsistencies, 🔴 High rejection risk
-  - New getSpecAccuracyLabel() function: Matches spec / Slightly outside spec / Significantly outside spec
-  - getSeverityLabel() now uses realistic labels: "SAFE FOR KDP", "PROBABLY OK", "PRINT RISK", "HIGH REJECTION RISK"
-  - CATEGORY_FRIENDLY rewritten with calm, realistic descriptions
-  - FriendlyIssueCard now shows dual-dimension (Spec + KDP) inline
-  - FriendlyIssueCard shows realWorldImpact in italic below
-  - Informational issues (safe/pass) get de-emphasized styling (smaller, less prominent)
-  - Dimension comparison table uses 3-tier tolerance (🟢 ≤0.02", 🟡 ≤0.125", 🔴 >0.125")
-  - ValidationPanel header shows realistic KDP risk labels instead of uppercase status
-  - Status pills: "Rejection Risk", "Probably OK", "Safe"
-  - Severity group headers: "High Rejection Risk", "Probably Acceptable", "Safe for KDP"
-- Updated kdp-constants.ts: Added DIMENSION_WARNING_TOLERANCE_IN = 0.125
+- Rewrote engine/validator.ts with realistic KDP behavior (tolerance 0.125, dual-dimension, bleed intelligence)
+- Added KdpRiskLevel type and dual-dimension fields to types/kdp.ts
+- Updated FriendlyIssueCard with dual-dimension display (Spec + KDP Risk)
+- Updated severity labels and group headers with realistic KDP language
+- All lint and compilation checks passed
 
 Stage Summary:
-- Complete validation philosophy change from "binary spec checker" to "realistic KDP publishing assistant"
-- Dual-dimension evaluation: every issue shows both Spec Accuracy and Real KDP Risk
-- Tolerance widened: 0.02" OK, 0.02-0.125" warning (probably ok), >0.125" critical
-- Bleed intelligence: content-aware assessment, not all-critical
-- Smart export detection: detects partial bleed, missing bleed, wrong format
-- All messages calm, helpful, realistic — no false panic
-- Informational issues de-emphasized in UI to reduce noise
-- Lint passes, app compiles and loads successfully
+- Validation philosophy changed from "binary spec checker" to "realistic KDP publishing assistant"
+- Dual-dimension: every issue shows Spec Accuracy + Real KDP Risk
+- Tolerance: ±0.02" OK, 0.02-0.125" warning, >0.125" critical
+- Bleed intelligence, smart export detection, calm messages
+
+---
+Task ID: 2
+Agent: Main
+Task: Fix UI/UX issues — navigation, import, config, preview status, breadcrumb
+
+Work Log:
+- Fixed page.tsx: Clicking "Checker" nav goes to checker view; syncs view state with checkerStep changes
+- Fixed CheckerFeature: StepIndicator now allows navigating to past steps and forward when data exists; uses ChevronRight separators
+- Fixed ImportStep: Continue button always visible (sticky bottom) when files uploaded; NOT blocked by background processing
+- Fixed ConfigStep: Moved "Start Review" button from bottom of scrollable left panel to right side under visualization — always visible, no scrolling needed
+- Fixed PreviewStep ValidationPanel: Replaced small status header with large prominent status banner — color-coded background, big icon, bold text, descriptive subtitle
+- Fixed PreviewStep toolbar: Replaced "Back to Config" button with breadcrumb: Import → Configure → Review (clickable past steps)
+- Added Upload, Settings, ArrowRight imports to PreviewStep
+- All lint and compilation checks passed
+
+Stage Summary:
+- Navigation: Checker nav click → checker view; step indicator allows going back/forward
+- Import: Continue button always visible, not blocked by bg processing
+- Config: Start Review button prominent on right side under visualization
+- Preview: Large status banner with icon, bold text, description; breadcrumb toolbar matching Import/Config steps

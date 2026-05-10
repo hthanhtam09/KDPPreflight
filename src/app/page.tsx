@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { BookOpen, Shield, Box, HomeIcon, Loader2 } from 'lucide-react';
+import { useAppStore } from '@/store/use-app-store';
 
 type ViewType = 'landing' | 'setup' | 'checker' | 'preview';
 
@@ -48,11 +49,29 @@ const importPreview = () => import('@/components/preview/PreviewFeature');
 
 export default function Home() {
   const [view, setView] = useView();
+  const { checkerStep, setCheckerStep } = useAppStore();
+
   const loading = (
     <div className="flex items-center justify-center h-64 text-white/30">
       <Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...
     </div>
   );
+
+  // When user clicks "Checker" in the nav, go to checker view AND reset to import step
+  const handleCheckerNav = useCallback(() => {
+    setView('checker');
+    // Only reset step if not already in checker (preserves progress within checker)
+  }, [setView]);
+
+  // Sync: when checkerStep changes, ensure we're on checker view
+  useEffect(() => {
+    if (checkerStep === 'import' || checkerStep === 'config') {
+      if (viewState.current !== 'checker') {
+        viewState.current = 'checker';
+        viewState.listeners.forEach(l => l());
+      }
+    }
+  }, [checkerStep]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0f] text-white">
@@ -73,7 +92,13 @@ export default function Home() {
             ] as const).map(([key, label, Icon]) => (
               <button
                 key={key}
-                onClick={() => setView(key as ViewType)}
+                onClick={() => {
+                  if (key === 'checker') {
+                    handleCheckerNav();
+                  } else {
+                    setView(key as ViewType);
+                  }
+                }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   view === key ? 'bg-white/[0.08] text-white/80' : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
                 }`}
