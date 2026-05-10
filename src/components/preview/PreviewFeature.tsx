@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Upload,
@@ -157,6 +157,58 @@ export default function PreviewFeature() {
   const handleStateChange = useCallback((updates: Partial<Preview3DState>) => {
     setPreviewState(prev => ({ ...prev, ...updates }));
   }, []);
+
+  // ---- Keyboard navigation for 3D Preview ----
+  useEffect(() => {
+    if (previewFlowStep !== 'preview') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't capture when user is typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) return;
+
+      switch (e.key) {
+        case 'ArrowRight':
+          e.preventDefault();
+          actions.nextPage();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          actions.prevPage();
+          break;
+        case 'o':
+        case 'O':
+          actions.toggleOpen();
+          break;
+        case 'f':
+        case 'F':
+          actions.setCameraPreset('front');
+          break;
+        case 'b':
+        case 'B':
+          actions.setCameraPreset('back');
+          break;
+        case 's':
+        case 'S':
+          actions.setCameraPreset('spine');
+          break;
+        case 'r':
+        case 'R':
+          actions.resetCamera();
+          break;
+        case 'e':
+        case 'E':
+          actions.exportScreenshot();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewFlowStep, actions]);
 
   // ---- Step navigation: can go back, not forward ----
   const canGoToStep = useCallback((step: PreviewFlowStep): boolean => {

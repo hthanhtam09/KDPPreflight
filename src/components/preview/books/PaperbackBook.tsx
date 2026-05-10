@@ -60,6 +60,24 @@ const RENDER_ORDER = {
 };
 
 // ---------------------------------------------------------------------------
+// Helper: Create a stable MeshStandardMaterial with z-fighting prevention
+// ---------------------------------------------------------------------------
+
+function createPageMaterial(texture: THREE.Texture | null, opts?: { side?: THREE.Side; polyOffset?: number }) {
+  return new THREE.MeshStandardMaterial({
+    color: texture ? 0xffffff : 0xf5f0e8,
+    map: texture,
+    roughness: 0.92,
+    metalness: 0,
+    side: opts?.side ?? THREE.FrontSide,
+    polygonOffset: true,
+    polygonOffsetFactor: opts?.polyOffset ?? -1,
+    polygonOffsetUnit: -1,
+    depthWrite: true,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Closed Paperback Book — unified structure with multi-material covers
 // ---------------------------------------------------------------------------
 
@@ -225,30 +243,19 @@ function PageSurface({
     gutterApplied.current = true;
   }, [isLeftPage, segments]);
 
-  // Create stable material — own material per page side (prevents shared material bugs)
+  // Create material — recreated when texture changes (stable, no mutation)
   const material = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({
+    return new THREE.MeshStandardMaterial({
       color: texture ? 0xffffff : 0xf5f0e8,
       map: texture,
       roughness: 0.92,
       metalness: 0,
-      // Z-fighting prevention
       polygonOffset: true,
       polygonOffsetFactor: -1,
       polygonOffsetUnit: -1,
       depthWrite: true,
     });
-    return mat;
   }, [texture]);
-
-  // Update texture if it changes (without recreating material)
-  useEffect(() => {
-    if (material.map !== texture) {
-      material.map = texture;
-      material.color.set(texture ? 0xffffff : 0xf5f0e8);
-      material.needsUpdate = true;
-    }
-  }, [material, texture]);
 
   return (
     <mesh
@@ -328,23 +335,6 @@ function FlippingPage({
     });
   }, [backTexture]);
 
-  // Update textures when they change
-  useEffect(() => {
-    if (frontMaterial.map !== frontTexture) {
-      frontMaterial.map = frontTexture;
-      frontMaterial.color.set(frontTexture ? 0xffffff : 0xf5f0e8);
-      frontMaterial.needsUpdate = true;
-    }
-  }, [frontMaterial, frontTexture]);
-
-  useEffect(() => {
-    if (backMaterial.map !== backTexture) {
-      backMaterial.map = backTexture;
-      backMaterial.color.set(backTexture ? 0xffffff : 0xf5f0e8);
-      backMaterial.needsUpdate = true;
-    }
-  }, [backMaterial, backTexture]);
-
   // Deform vertices based on flip progress
   useFrame(() => {
     if (!meshRef.current) return;
@@ -386,7 +376,6 @@ function FlippingPage({
     for (let i = 0; i < posAttr.count; i++) {
       const i3 = i * 3;
       const origX = origPositions[i3];
-      const origZ = origPositions[i3 + 2];
 
       const col = i % (segments + 1);
       const t = col / segments; // 0 to 1 across page width

@@ -260,6 +260,7 @@ function PageSurface({
     gutterApplied.current = true;
   }, [isLeftPage, segments]);
 
+  // Create material — recreated when texture changes (stable, no mutation)
   const material = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       color: texture ? 0xffffff : 0xf5f0e8,
@@ -272,14 +273,6 @@ function PageSurface({
       depthWrite: true,
     });
   }, [texture]);
-
-  useEffect(() => {
-    if (material.map !== texture) {
-      material.map = texture;
-      material.color.set(texture ? 0xffffff : 0xf5f0e8);
-      material.needsUpdate = true;
-    }
-  }, [material, texture]);
 
   return (
     <mesh
@@ -326,6 +319,7 @@ function HardcoverFlippingPage({
     return arr;
   }, [width, height, segments]);
 
+  // Create two materials: front side and back side of the page
   const frontMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       color: frontTexture ? 0xffffff : 0xf5f0e8,
@@ -353,22 +347,6 @@ function HardcoverFlippingPage({
       depthWrite: true,
     });
   }, [backTexture]);
-
-  useEffect(() => {
-    if (frontMaterial.map !== frontTexture) {
-      frontMaterial.map = frontTexture;
-      frontMaterial.color.set(frontTexture ? 0xffffff : 0xf5f0e8);
-      frontMaterial.needsUpdate = true;
-    }
-  }, [frontMaterial, frontTexture]);
-
-  useEffect(() => {
-    if (backMaterial.map !== backTexture) {
-      backMaterial.map = backTexture;
-      backMaterial.color.set(backTexture ? 0xffffff : 0xf5f0e8);
-      backMaterial.needsUpdate = true;
-    }
-  }, [backMaterial, backTexture]);
 
   useFrame(() => {
     if (!meshRef.current) return;
