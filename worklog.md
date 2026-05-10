@@ -65,3 +65,33 @@ Stage Summary:
 - RealKdpNote component provides practical real-world KDP behavior tips throughout
 - All educational content is collapsed by default (clean UI, educational on demand)
 - Educational components use blue accents to distinguish from config (emerald) and warnings (amber)
+
+---
+Task ID: 3
+Agent: main
+Task: Build Advanced Realistic 3D Book Preview System (Three.js + React Three Fiber)
+
+Work Log:
+- Analyzed existing BookPreview3D.tsx (257 lines, simple closed book model)
+- Designed modular architecture with separate book type components
+- Created PaperbackBook.tsx (~300 lines): Closed/open states, textured cover, page block, spine, page edges, dynamic page stack (left/right), page flip with curl deformation (rolling cylinder model), front cover open/close animation
+- Created HardcoverBook.tsx (~270 lines): Rigid board covers with thickness, cover overhang, endpapers, spine board, hinge behavior, stiffer page flip animation, slower deliberate opening
+- Created KindleDevice.tsx (~190 lines): 4 device types (Paperwhite, Oasis, Tablet, Phone), realistic device dimensions, screen with page content, digital page transitions (slide/fade, NOT paper curl), e-ink simulation, screen glow in dark mode, power button, USB-C port, Oasis asymmetric grip
+- Created BookPreview3D.tsx (~460 lines): Canvas with WebGL renderer (preserveDrawingBuffer, antialias, alpha, ACESFilmicToneMapping), texture streaming system (loads ±4 pages around current, LRU eviction), cover texture management, page flip animation (800ms ease-in-out cubic), studio lighting (key + fill + rim), ContactShadows, Environment preset, OrbitControls with damping, AdaptiveDpr/AdaptiveEvents, PerformanceMonitor, transparent PNG export (standard + HD), CameraAutoFrame
+- Created PreviewToolbar.tsx (~280 lines): Premium floating UI overlay — book type selector (Paperback/Hardcover/Kindle), left toolbar (reset view, open/close, dark mode, device picker, info panel), bottom page navigation (prev/next + slider), export buttons (PNG + HD), right info panel with book dimensions, device picker popup for Kindle
+- Created PreviewFeature.tsx (~350 lines): Main feature wrapper with collapsible sidebar, cover upload (drag-drop), book type quick select, dimensions display, interior page info, quick actions (open/close, export PNG, export HD), controls info, empty state with premium design
+- Updated preview/page.tsx: Full viewport height layout
+- Fixed lint issues: Removed sync setState in effect, cleaned up unused eslint-disable directives
+- All lint checks pass, preview page compiles and serves with HTTP 200
+
+Stage Summary:
+- Complete 3D book preview system with 3 distinct book types
+- Paperback: Flexible spine, page curl flip, dynamic page stacks
+- Hardcover: Rigid boards, endpapers, hinge behavior, stiffer flips
+- Kindle: 4 device mockups, digital page transitions, dark/light mode, e-ink simulation
+- Texture streaming: Loads nearby pages, unloads distant ones, LRU eviction
+- Page flip: Rolling cylinder deformation model with ease-in-out cubic easing
+- Studio lighting: Key + fill + rim lights, ContactShadows, HDRI environment
+- Export: Transparent PNG (standard + HD resolution)
+- Premium UI: Floating toolbar, page slider, device picker, info panel
+- Camera: OrbitControls with auto-framing based on book state
