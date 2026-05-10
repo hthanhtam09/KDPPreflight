@@ -364,11 +364,9 @@ interface DetectionInfo {
 
 function DetectionResults({
   info,
-  onContinue,
   processingActive,
 }: {
   info: DetectionInfo;
-  onContinue: () => void;
   processingActive: boolean;
 }) {
   const confidencePct = Math.round(info.confidence * 100);
@@ -420,22 +418,13 @@ function DetectionResults({
         ))}
       </div>
 
-      {/* Continue button */}
-      <div className="px-5 py-4 border-t border-white/[0.06] flex justify-end items-center gap-3">
-        {processingActive && (
-          <span className="flex items-center gap-2 text-xs text-white/40">
-            <Loader2 className="w-3.5 h-3.5 text-emerald-400/60 animate-spin" />
-            Preparing preview…
-          </span>
-        )}
-        <button
-          onClick={onContinue}
-          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-semibold rounded-xl transition-colors duration-200"
-        >
-          Review &amp; Continue
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
+      {/* Processing indicator (no duplicate button) */}
+      {processingActive && (
+        <div className="px-5 py-3 border-t border-white/[0.06] flex items-center gap-2">
+          <Loader2 className="w-3.5 h-3.5 text-emerald-400/60 animate-spin" />
+          <span className="text-xs text-white/40">Preparing preview…</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -894,22 +883,48 @@ export default function ImportStep() {
   ]);
 
   // -----------------------------------------------------------------------
+  // Reconstruct detectionInfo from store data when returning to Import step
+  // -----------------------------------------------------------------------
+  useEffect(() => {
+    // If detectionInfo is null but we have uploaded files (user came back),
+    // reconstruct detectionInfo from the store's bookConfig and measurements
+    if (detectionInfo || !uploadedManuscript) return;
+
+    const m = measurements;
+    const hasBleed = bookConfig.bleed === 'bleed';
+    const trim = TRIM_SIZES[bookConfig.trimSize as TrimSizeKey];
+
+    setDetectionInfo({
+      trimSize: trim?.label ?? `${m.trimWidthIn}" × ${m.trimHeightIn}"`,
+      widthIn: m.trimWidthIn,
+      heightIn: m.trimHeightIn,
+      pageCount: bookConfig.pageCount,
+      bleed: hasBleed ? 'With Bleed (0.125")' : 'No Bleed',
+      dpi: 300,
+      orientation: m.trimHeightIn >= m.trimWidthIn ? 'portrait' : 'landscape',
+      confidence: 0.85, // Restored from previous session
+    });
+  }, [detectionInfo, uploadedManuscript, measurements, bookConfig]);
+
+  // -----------------------------------------------------------------------
   // Continue to Config step – update store with detected values
   // -----------------------------------------------------------------------
   const handleContinue = useCallback(() => {
-    if (!detectionInfo) return;
+    if (detectionInfo) {
+      // Fresh upload: use detected values
+      const { key: trimKey } = matchTrimSize(detectionInfo.widthIn, detectionInfo.heightIn);
+      const hasBleed = detectionInfo.bleed.includes('With Bleed');
 
-    const { key: trimKey } = matchTrimSize(detectionInfo.widthIn, detectionInfo.heightIn);
-    const hasBleed = detectionInfo.bleed.includes('With Bleed');
-
-    updateBookConfig({
-      trimSize: trimKey,
-      bleed: hasBleed ? 'bleed' : 'no-bleed',
-      pageCount: detectionInfo.pageCount,
-      bookType,
-      binding: bookType === 'hardcover' ? 'hardcover' : 'paperback',
-    });
-
+      updateBookConfig({
+        trimSize: trimKey,
+        bleed: hasBleed ? 'bleed' : 'no-bleed',
+        pageCount: detectionInfo.pageCount,
+        bookType,
+        binding: bookType === 'hardcover' ? 'hardcover' : 'paperback',
+      });
+    }
+    // Even without detectionInfo (e.g. returning to Import),
+    // the bookConfig is already set from a previous continue, so just navigate.
     setCheckerStep('config');
   }, [detectionInfo, bookType, updateBookConfig, setCheckerStep]);
 
@@ -1046,16 +1061,15 @@ export default function ImportStep() {
         </div>
       )}
 
-      {/* ---- Detection results ---- */}
+      {/* ---- Detection results (no continue button — that's in the sticky footer) ---- */}
       {detectionInfo && !anyProcessing && (
         <DetectionResults
           info={detectionInfo}
-          onContinue={handleContinue}
           processingActive={bgProcessingActive}
         />
       )}
 
-      {/* ---- Continue button (visible when files are uploaded, NOT blocked by bg processing) ---- */}
+      {/* ---- Single Continue button (sticky, always visible when eligible) ---- */}
       {canContinue && (
         <div className="sticky bottom-4 flex justify-end z-10">
           <button
