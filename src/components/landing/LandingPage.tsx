@@ -1,9 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BookOpen, Shield, Box, ArrowRight, CheckCircle2, AlertTriangle, ChevronDown, X } from 'lucide-react';
-import { useAppStore } from '@/store/use-app-store';
-import { AppView } from '@/types/kdp';
+import { BookOpen, Shield, Box, ArrowRight, CheckCircle2, AlertTriangle, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -20,19 +19,19 @@ function FeatureCard({
   icon: Icon, 
   title, 
   description, 
-  view 
+  href
 }: { 
   icon: React.ElementType; 
   title: string; 
   description: string; 
-  view: AppView;
+  href: string;
 }) {
-  const { setView } = useAppStore();
+  const router = useRouter();
   
   return (
     <motion.button
       variants={fadeIn}
-      onClick={() => setView(view)}
+      onClick={() => router.push(href)}
       className="group text-left bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
     >
       <div className="w-10 h-10 rounded-xl bg-white/[0.06] flex items-center justify-center mb-4 group-hover:bg-white/[0.1] transition-colors">
@@ -124,7 +123,7 @@ function FAQSection() {
 
 // --- Landing Page ---
 export default function LandingPage() {
-  const { setView } = useAppStore();
+  const router = useRouter();
   
   return (
     <div className="min-h-screen">
@@ -149,14 +148,14 @@ export default function LandingPage() {
             
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
-                onClick={() => setView('checker')}
+                onClick={() => router.push('/checker')}
                 className="px-6 py-3 bg-white text-black rounded-xl font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
               >
                 Check My Book
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setView('setup')}
+                onClick={() => router.push('/setup')}
                 className="px-6 py-3 bg-white/[0.06] text-white/70 rounded-xl font-medium hover:bg-white/[0.1] hover:text-white/90 transition-all border border-white/[0.08]"
               >
                 Setup New Book
@@ -179,19 +178,19 @@ export default function LandingPage() {
             icon={BookOpen}
             title="Book Setup"
             description="Configure trim size, bleed, paper type, and page count. Get instant spine width calculations and visual cover layout."
-            view="setup"
+            href="/setup"
           />
           <FeatureCard
             icon={Shield}
             title="Format Checker"
             description="Upload your cover or manuscript and get a detailed KDP validation report with practical tolerance-based results."
-            view="checker"
+            href="/checker"
           />
           <FeatureCard
             icon={Box}
             title="3D Preview"
             description="See your book rendered in realistic 3D. Rotate, zoom, inspect the spine, and export transparent PNG snapshots."
-            view="preview"
+            href="/preview"
           />
         </motion.div>
       </section>
@@ -261,7 +260,7 @@ export default function LandingPage() {
             <h2 className="text-3xl font-bold text-white/90 mb-4">Ready to preflight?</h2>
             <p className="text-white/40 mb-6">Stop guessing. Start validating.</p>
             <button
-              onClick={() => setView('checker')}
+              onClick={() => router.push('/checker')}
               className="px-8 py-3.5 bg-white text-black rounded-xl font-medium hover:bg-white/90 transition-colors inline-flex items-center gap-2"
             >
               Check My Book Now
