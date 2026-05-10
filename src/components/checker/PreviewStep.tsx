@@ -43,6 +43,7 @@ import {
   IssueFilter,
   SpreadModel,
   ValidationSummary,
+  KdpRiskLevel,
 } from '@/types/kdp';
 import { computeValidationSummary, analyzePagesForIssues, PDFAnalysisResult } from '@/engine/validator';
 import {
@@ -898,14 +899,14 @@ function ThumbnailSidebar({
 
 // Category → friendly problem/why/fix descriptions
 const CATEGORY_FRIENDLY: Record<string, { problemPrefix: string; whyItMatters: string; fixHint: string; icon: typeof AlertTriangle }> = {
-  margin: { problemPrefix: 'Content is positioned too close to the page edge.', whyItMatters: 'During printing, pages are trimmed — content near edges may be cut off or appear uneven.', fixHint: 'Move important text and images further inward from the page edge.', icon: Ruler },
-  bleed: { problemPrefix: 'Artwork does not extend into the bleed area.', whyItMatters: 'Without bleed, tiny shifts during printing can leave unprinted white strips at the edges of your book.', fixHint: 'Extend background colors or images 0.125" beyond the trim line on all sides.', icon: AlertTriangle },
-  dpi: { problemPrefix: 'Image resolution is too low for quality printing.', whyItMatters: 'Low-resolution images will appear blurry, pixelated, or soft in the final printed book.', fixHint: 'Replace with a higher resolution image (300 DPI at the printed size is recommended).', icon: ImageIcon },
-  font: { problemPrefix: 'A font issue was detected in the document.', whyItMatters: 'Missing or unembedded fonts may cause text to render incorrectly or be replaced during KDP processing.', fixHint: 'Embed all fonts in your PDF before uploading to KDP.', icon: FileText },
-  gutter: { problemPrefix: 'Content is too close to the inner edge (gutter/spine).', whyItMatters: 'Text near the spine can be difficult to read when the book is open — it curves into the binding.', fixHint: 'Increase the inner margin so text is at least 0.1" away from the gutter edge.', icon: BookOpen },
-  size: { problemPrefix: 'Page dimensions do not match the selected KDP trim size.', whyItMatters: 'Incorrect page size may cause KDP to reject the file, or result in unexpected cropping and scaling.', fixHint: 'Export your document at the correct dimensions for the selected trim size (plus bleed if enabled).', icon: Ruler },
-  interior: { problemPrefix: 'An interior page issue was detected.', whyItMatters: 'This may affect the quality, readability, or printability of your book.', fixHint: 'Review the page and make adjustments as needed.', icon: FileText },
-  cover: { problemPrefix: 'A cover issue was detected.', whyItMatters: 'Cover problems may cause your book to be rejected by KDP or result in printing quality issues.', fixHint: 'Review the cover file and ensure it meets KDP specifications for size, bleed, and resolution.', icon: AlertTriangle },
+  margin: { problemPrefix: 'Content is positioned close to the page edge.', whyItMatters: 'During printing, pages are trimmed — content very near edges could be slightly cut. However, KDP rarely rejects files for tight margins alone.', fixHint: 'Move important text and images further inward from the page edge for best results.', icon: Ruler },
+  bleed: { problemPrefix: 'Artwork may not extend fully into the bleed area.', whyItMatters: 'Without full bleed, tiny shifts during printing can leave thin white strips at page edges. However, this mainly affects pages with edge-to-edge artwork — if your content doesn\'t touch the edges, it\'s usually fine.', fixHint: 'Extend background colors or images 0.125" beyond the trim line on all sides for maximum compatibility.', icon: AlertTriangle },
+  dpi: { problemPrefix: 'Image resolution is below the recommended quality level.', whyItMatters: 'Lower resolution images may appear slightly soft in print, but KDP commonly accepts them. The difference is most noticeable on close inspection.', fixHint: 'Replace with a higher resolution image (300 DPI at the printed size) for the sharpest results, but don\'t worry if you can\'t — KDP will still print it.', icon: ImageIcon },
+  font: { problemPrefix: 'A font issue was detected in the document.', whyItMatters: 'Missing or unembedded fonts may cause text to render differently during KDP processing, though KDP often handles common fonts correctly.', fixHint: 'Embed all fonts in your PDF before uploading for the most predictable results.', icon: FileText },
+  gutter: { problemPrefix: 'Content is close to the inner edge (gutter/spine).', whyItMatters: 'Text near the spine can be harder to read when the book is open — it curves into the binding. This is a readability concern, not a rejection risk.', fixHint: 'Increase the inner margin so text is at least 0.1" away from the gutter edge for better readability.', icon: BookOpen },
+  size: { problemPrefix: 'Page dimensions differ slightly from the selected KDP trim size.', whyItMatters: 'Small size differences are usually caused by export rounding and are commonly accepted by KDP. Large differences may indicate wrong export settings.', fixHint: 'Export your document at the correct dimensions for the selected trim size (plus bleed if enabled) for maximum compatibility.', icon: Ruler },
+  interior: { problemPrefix: 'An interior page issue was detected.', whyItMatters: 'This may affect the quality or readability of your book, but most interior issues won\'t cause KDP rejection.', fixHint: 'Review the page and make adjustments as needed — this is likely a quality improvement, not a blocking issue.', icon: FileText },
+  cover: { problemPrefix: 'A cover issue was detected.', whyItMatters: 'Cover problems can range from minor quality concerns to potential upload issues. Most common cover issues are warnings, not rejection risks.', fixHint: 'Review the cover file and address any significant issues. Small imperfections are usually acceptable.', icon: AlertTriangle },
 };
 
 function getSeverityIcon(severity: CheckStatus) {
@@ -942,12 +943,33 @@ function getSeverityColors(severity: CheckStatus) {
 
 function getSeverityLabel(severity: CheckStatus) {
   switch (severity) {
-    case 'pass': return 'OK';
-    case 'safe': return 'OK';
-    case 'warning': return 'WARNING';
-    case 'risk': return 'REJECT RISK';
-    case 'fail': return 'REJECT RISK';
+    case 'pass': return 'SAFE FOR KDP';
+    case 'safe': return 'SAFE FOR KDP';
+    case 'warning': return 'PROBABLY OK';
+    case 'risk': return 'PRINT RISK';
+    case 'fail': return 'HIGH REJECTION RISK';
     default: return severity.toUpperCase();
+  }
+}
+
+/** Get realistic KDP risk label with emoji */
+function getKdpRiskLabel(kdpRisk?: KdpRiskLevel): { label: string; emoji: string; color: string } {
+  switch (kdpRisk) {
+    case 'safe': return { label: 'Safe for KDP', emoji: '🟢', color: 'text-green-400' };
+    case 'probably-ok': return { label: 'Probably acceptable', emoji: '🟡', color: 'text-amber-400' };
+    case 'print-risk': return { label: 'May cause print inconsistencies', emoji: '🟠', color: 'text-orange-400' };
+    case 'high-rejection': return { label: 'High rejection risk', emoji: '🔴', color: 'text-red-400' };
+    default: return { label: '', emoji: '', color: '' };
+  }
+}
+
+/** Get spec accuracy label */
+function getSpecAccuracyLabel(accuracy?: 'exact' | 'slight-variance' | 'major-variance'): string {
+  switch (accuracy) {
+    case 'exact': return 'Matches spec';
+    case 'slight-variance': return 'Slightly outside spec';
+    case 'major-variance': return 'Significantly outside spec';
+    default: return '';
   }
 }
 
@@ -966,8 +988,13 @@ function FriendlyIssueCard({
   const [showTechnical, setShowTechnical] = useState(false);
   const colors = getSeverityColors(issue.severity);
   const friendlyInfo = CATEGORY_FRIENDLY[issue.category] || CATEGORY_FRIENDLY['interior'];
+  const kdpRiskInfo = getKdpRiskLabel(issue.kdpRisk);
+  const specLabel = getSpecAccuracyLabel(issue.specAccuracy);
 
   const pageLabel = locationLabel || (issue.page ? `Page ${issue.page}` : '');
+
+  // Informational (safe) issues get de-emphasized styling
+  const isInfo = issue.isInformational || issue.severity === 'safe' || issue.severity === 'pass';
 
   return (
     <motion.div
@@ -978,19 +1005,21 @@ function FriendlyIssueCard({
       className={`w-full rounded-lg border text-left transition-all duration-150 cursor-pointer ${
         isSelected
           ? `${colors.bg} ${colors.border} ring-1 ${colors.glow}`
+          : isInfo
+          ? 'border-white/[0.03] hover:border-white/[0.06]'
           : 'border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02]'
       }`}
       layout
     >
-      <div className="p-4">
+      <div className={isInfo ? 'p-3' : 'p-4'}>
         {/* TOP ROW: Severity badge + title + affected page */}
         <div className="flex items-start gap-2">
-          <span className={`shrink-0 mt-0.5 ${colors.text}`}>
-            {getSeverityIcon(issue.severity)}
+          <span className={`shrink-0 mt-0.5 ${isInfo ? 'text-green-400/40' : colors.text}`}>
+            {isInfo ? <CheckCircle2 className="w-3.5 h-3.5" /> : getSeverityIcon(issue.severity)}
           </span>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${colors.bg} ${colors.text}`}>
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isInfo ? 'bg-green-500/10 text-green-400/60' : `${colors.bg} ${colors.text}`}`}>
                 {getSeverityLabel(issue.severity)}
               </span>
               {pageLabel && (
@@ -999,36 +1028,73 @@ function FriendlyIssueCard({
                 </span>
               )}
             </div>
-            <p className={`text-[14px] font-medium leading-relaxed ${isSelected ? 'text-white/80' : 'text-white/60'}`}>
+            <p className={`text-[13px] font-medium leading-relaxed ${isInfo ? 'text-white/40' : isSelected ? 'text-white/80' : 'text-white/60'}`}>
               {issue.message}
             </p>
           </div>
         </div>
 
-        {/* MIDDLE SECTION: Beginner-friendly Problem / Why / Fix */}
-        <div className="mt-3 ml-7 space-y-3">
-          <div>
-            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Problem</span>
-            <p className="text-[13px] text-white/45 leading-relaxed mt-0.5">
-              {friendlyInfo.problemPrefix}
+        {/* DUAL-DIMENSION DISPLAY: Spec Accuracy + Real KDP Risk */}
+        {(issue.specAccuracy || issue.kdpRisk) && !isInfo && (
+          <div className="mt-2.5 ml-6 flex items-center gap-3">
+            {specLabel && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wider">Spec:</span>
+                <span className={`text-[10px] font-medium ${
+                  issue.specAccuracy === 'exact' ? 'text-green-400/60'
+                  : issue.specAccuracy === 'slight-variance' ? 'text-amber-400/60'
+                  : 'text-red-400/60'
+                }`}>
+                  {issue.specAccuracy === 'exact' ? '✓' : issue.specAccuracy === 'slight-variance' ? '⚠' : '✗'} {specLabel}
+                </span>
+              </div>
+            )}
+            {kdpRiskInfo.label && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wider">KDP:</span>
+                <span className={`text-[10px] font-medium ${kdpRiskInfo.color}/70`}>
+                  {kdpRiskInfo.emoji} {kdpRiskInfo.label}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Real-world impact explanation */}
+        {issue.realWorldImpact && !isInfo && (
+          <div className="mt-2 ml-6">
+            <p className="text-[12px] text-white/35 leading-relaxed italic">
+              {issue.realWorldImpact}
             </p>
           </div>
-          <div>
-            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Why it matters</span>
-            <p className="text-[13px] text-white/45 leading-relaxed mt-0.5">
-              {friendlyInfo.whyItMatters}
-            </p>
+        )}
+
+        {/* MIDDLE SECTION: Problem / Why / Fix — only for non-informational issues */}
+        {!isInfo && (
+          <div className="mt-3 ml-7 space-y-3">
+            <div>
+              <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Problem</span>
+              <p className="text-[13px] text-white/45 leading-relaxed mt-0.5">
+                {friendlyInfo.problemPrefix}
+              </p>
+            </div>
+            <div>
+              <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Why it matters</span>
+              <p className="text-[13px] text-white/45 leading-relaxed mt-0.5">
+                {friendlyInfo.whyItMatters}
+              </p>
+            </div>
+            <div>
+              <span className="text-[10px] font-semibold text-emerald-400/50 uppercase tracking-wider">Recommended fix</span>
+              <p className="text-[13px] text-emerald-400/40 leading-relaxed mt-0.5 whitespace-pre-line">
+                {issue.suggestion || friendlyInfo.fixHint}
+              </p>
+            </div>
           </div>
-          <div>
-            <span className="text-[10px] font-semibold text-emerald-400/50 uppercase tracking-wider">Recommended fix</span>
-            <p className="text-[13px] text-emerald-400/40 leading-relaxed mt-0.5">
-              {issue.suggestion || friendlyInfo.fixHint}
-            </p>
-          </div>
-        </div>
+        )}
 
         {/* BOTTOM SECTION: Actual vs Expected comparison table */}
-        {(issue.actual || issue.expected) && (
+        {(issue.actual || issue.expected) && !isInfo && (
           <div className="mt-2.5 ml-6">
             <div
               onClick={(e) => { e.stopPropagation(); setShowTechnical(!showTechnical); }}
@@ -1069,22 +1135,25 @@ function FriendlyIssueCard({
                         const actH = parseFloat(actMatch[2]);
                         const expW = parseFloat(expMatch[1]);
                         const expH = parseFloat(expMatch[2]);
-                        const wOk = Math.abs(actW - expW) <= 0.02;
-                        const hOk = Math.abs(actH - expH) <= 0.02;
+                        const wDiff = Math.abs(actW - expW);
+                        const hDiff = Math.abs(actH - expH);
+                        // Use realistic tolerances for the comparison
+                        const wStatus = wDiff <= 0.02 ? 'ok' : wDiff <= 0.125 ? 'warn' : 'bad';
+                        const hStatus = hDiff <= 0.02 ? 'ok' : hDiff <= 0.125 ? 'warn' : 'bad';
 
                         return (
                           <>
                             <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1 border-b border-white/[0.02]">
                               <span className="text-white/25">Width</span>
-                              <span className={`font-mono ${wOk ? 'text-green-400/50' : 'text-red-400/60'}`}>{actW.toFixed(3)}"</span>
+                              <span className={`font-mono ${wStatus === 'ok' ? 'text-green-400/50' : wStatus === 'warn' ? 'text-amber-400/60' : 'text-red-400/60'}`}>{actW.toFixed(3)}"</span>
                               <span className="font-mono text-white/30">{expW.toFixed(3)}"</span>
-                              <span className="text-center">{wOk ? '🟢' : '🔴'}</span>
+                              <span className="text-center">{wStatus === 'ok' ? '🟢' : wStatus === 'warn' ? '🟡' : '🔴'}</span>
                             </div>
                             <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1">
                               <span className="text-white/25">Height</span>
-                              <span className={`font-mono ${hOk ? 'text-green-400/50' : 'text-red-400/60'}`}>{actH.toFixed(3)}"</span>
+                              <span className={`font-mono ${hStatus === 'ok' ? 'text-green-400/50' : hStatus === 'warn' ? 'text-amber-400/60' : 'text-red-400/60'}`}>{actH.toFixed(3)}"</span>
                               <span className="font-mono text-white/30">{expH.toFixed(3)}"</span>
-                              <span className="text-center">{hOk ? '🟢' : '🔴'}</span>
+                              <span className="text-center">{hStatus === 'ok' ? '🟢' : hStatus === 'warn' ? '🟡' : '🔴'}</span>
                             </div>
                           </>
                         );
@@ -1345,7 +1414,7 @@ function ValidationPanel({
             {validationSummary.isReady ? (
               <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                 <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                <span className="text-[9px] text-emerald-400 font-medium">KDP-Ready</span>
+                <span className="text-[9px] text-emerald-400 font-medium">Safe for KDP</span>
               </div>
             ) : (
               <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${getStatusBg(validationSummary.overallStatus)}`}>
@@ -1353,7 +1422,10 @@ function ValidationPanel({
                  validationSummary.overallStatus === 'risk' ? <AlertTriangle className="w-3 h-3 text-orange-400" /> :
                  <AlertCircle className="w-3 h-3 text-amber-400" />}
                 <span className={`text-[9px] font-medium ${getStatusColor(validationSummary.overallStatus)}`}>
-                  {validationSummary.overallStatus.toUpperCase()}
+                  {validationSummary.overallStatus === 'fail' ? 'High Rejection Risk' :
+                   validationSummary.overallStatus === 'risk' ? 'Print Inconsistency Risk' :
+                   validationSummary.overallStatus === 'warning' ? 'Probably Acceptable' :
+                   validationSummary.overallStatus.toUpperCase()}
                 </span>
               </div>
             )}
@@ -1368,21 +1440,21 @@ function ValidationPanel({
           <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/25 font-medium">{measurements.spineWidthIn.toFixed(3)}" spine</span>
         </div>
 
-        {/* Status pills — severity grouped */}
+        {/* Status pills — severity grouped with realistic KDP labels */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {validationSummary.fail + validationSummary.risk > 0 && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-red-500/15 text-red-400 font-bold">
-              🔴 {validationSummary.fail + validationSummary.risk} Critical
+              🔴 {validationSummary.fail + validationSummary.risk} Rejection Risk
             </span>
           )}
           {validationSummary.warning > 0 && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold">
-              🟡 {validationSummary.warning} Warning{validationSummary.warning !== 1 ? 's' : ''}
+              🟡 {validationSummary.warning} Probably OK
             </span>
           )}
           {validationSummary.safe + validationSummary.pass > 0 && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-green-500/10 text-green-400/60 font-medium">
-              🟢 {validationSummary.safe + validationSummary.pass} OK
+              🟢 {validationSummary.safe + validationSummary.pass} Safe
             </span>
           )}
           {validationSummary.total === 0 && (
@@ -1455,7 +1527,7 @@ function ValidationPanel({
             {pageIssuesExtended.length === 0 ? (
               <>
                 <CheckCircle2 className="w-8 h-8 text-emerald-400/30" />
-                <span className="text-[12px] text-emerald-400/40 font-medium">Your book appears KDP-ready</span>
+                <span className="text-[12px] text-emerald-400/40 font-medium">Looks good for KDP</span>
                 <span className="text-[10px] text-white/15">No issues detected</span>
               </>
             ) : (
@@ -1561,12 +1633,12 @@ function ValidationPanel({
           /* SINGLE MODE: Group by severity (original behavior)                 */
           /* ────────────────────────────────────────────────────────────────── */
           <div className="p-3 space-y-5">
-            {/* 🔴 CRITICAL ISSUES — Likely Rejected By KDP */}
+            {/* 🔴 HIGH REJECTION RISK — May be rejected by KDP */}
             {severityGroups.critical.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <span className="text-[13px]">🔴</span>
-                  <span className="text-[12px] font-semibold text-red-400/80">Critical Issues</span>
+                  <span className="text-[12px] font-semibold text-red-400/80">High Rejection Risk</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-bold">{severityGroups.critical.length}</span>
                 </div>
                 <div className="space-y-2">
@@ -1582,12 +1654,12 @@ function ValidationPanel({
               </div>
             )}
 
-            {/* 🟡 WARNINGS — Recommended Improvements */}
+            {/* 🟡 PROBABLY OK — KDP likely accepts, improvements recommended */}
             {severityGroups.warnings.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <span className="text-[13px]">🟡</span>
-                  <span className="text-[12px] font-semibold text-amber-400/80">Recommended Improvements</span>
+                  <span className="text-[12px] font-semibold text-amber-400/80">Probably Acceptable</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold">{severityGroups.warnings.length}</span>
                 </div>
                 <div className="space-y-2">
@@ -1603,12 +1675,12 @@ function ValidationPanel({
               </div>
             )}
 
-            {/* 🟢 PASSED CHECKS — Validated */}
+            {/* 🟢 SAFE FOR KDP — No practical concerns */}
             {severityGroups.passed.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <span className="text-[13px]">🟢</span>
-                  <span className="text-[12px] font-semibold text-green-400/70">Passed Checks</span>
+                  <span className="text-[12px] font-semibold text-green-400/70">Safe for KDP</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400/70 font-medium">{severityGroups.passed.length}</span>
                 </div>
                 <div className="space-y-2">
@@ -3015,7 +3087,7 @@ export default function PreviewStep() {
             previewReady && (
               <div className="flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-emerald-400/50" />
-                <span className="text-[9px] text-emerald-400/40">KDP-ready</span>
+                <span className="text-[9px] text-emerald-400/40">Safe for KDP</span>
               </div>
             )
           )}

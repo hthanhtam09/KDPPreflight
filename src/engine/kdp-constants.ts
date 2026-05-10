@@ -40,7 +40,8 @@ export const MIN_INTERIOR_DPI = 300;
 export const RECOMMENDED_DPI = 300;
 
 // KDP tolerance
-export const DIMENSION_TOLERANCE_IN = 0.02; // ±0.02 inch acceptable variance
+export const DIMENSION_TOLERANCE_IN = 0.02; // ±0.02 inch — perfect match
+export const DIMENSION_WARNING_TOLERANCE_IN = 0.125; // 0.02–0.125" — slight variance, KDP usually accepts
 export const SPINE_TOLERANCE_IN = 0.01; // ±0.01 inch spine tolerance
 
 // Page count limits

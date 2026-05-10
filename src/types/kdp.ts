@@ -12,6 +12,13 @@ export type BindingType = 'paperback' | 'hardcover';
 
 export type CheckStatus = 'pass' | 'safe' | 'warning' | 'risk' | 'fail';
 
+/** Real KDP risk level — how likely is this to cause problems on actual KDP? */
+export type KdpRiskLevel =
+  | 'safe'              // 🟢 Safe for KDP — no practical concern
+  | 'probably-ok'       // 🟡 Probably acceptable, but improvement recommended
+  | 'print-risk'        // 🟠 May cause print inconsistencies
+  | 'high-rejection';   // 🔴 High rejection risk
+
 // Book type for the checker workflow
 export type BookType = 'kindle' | 'paperback' | 'hardcover';
 
@@ -254,6 +261,14 @@ export interface PageIssueExtended extends PageIssue {
     heightIn: number;
   };
   suggestion: string;
+  /** How far from spec? (spec accuracy dimension) */
+  specAccuracy?: 'exact' | 'slight-variance' | 'major-variance';
+  /** Real-world KDP risk assessment */
+  kdpRisk?: KdpRiskLevel;
+  /** Human-readable explanation of WHY this matters in practice */
+  realWorldImpact?: string;
+  /** Is this issue just informational (safe) and should be de-emphasized? */
+  isInformational?: boolean;
 }
 
 // Spread model for book preview

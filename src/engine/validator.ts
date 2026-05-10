@@ -1,29 +1,42 @@
-import { BookConfig, CalculatedMeasurements, ValidationCheck, CheckStatus, PageIssue, PageIssueExtended, ValidationSummary, IssueCategory } from '@/types/kdp';
+import { BookConfig, CalculatedMeasurements, ValidationCheck, CheckStatus, PageIssue, PageIssueExtended, ValidationSummary, IssueCategory, KdpRiskLevel } from '@/types/kdp';
 import { DIMENSION_TOLERANCE_IN, SPINE_TOLERANCE_IN, MIN_COVER_DPI, SAFE_AREA_IN, BARCODE_AREA, BLEED_SIZE_IN } from './kdp-constants';
 
 // ---------------------------------------------------------------------------
 // KDP-Realistic Dimension Tolerances
 // ---------------------------------------------------------------------------
 
-/** ±0.02" — Within KDP accepted variance */
+/** ±0.02" — Perfect match, well within KDP accepted variance */
 const TOLERANCE_OK_IN = 0.02;
 
-/** 0.02"–0.05" — Possible export rounding, usually accepted but improvement recommended */
-const TOLERANCE_WARNING_IN = 0.05;
+/** 0.02"–0.125" — Slight variance, usually still accepted by KDP.
+ *  KDP often accepts files with minor dimensional differences because:
+ *  - Export rounding in tools like Canva, Word, InDesign
+ *  - KDP's own processing pipeline has tolerance
+ *  - Print production variance is normal
+ */
+const TOLERANCE_WARNING_IN = 0.125;
 
-/** >0.05" — Wrong export settings or incorrect trim setup, likely rejection */
+/** >0.125" — Major variance, likely wrong export settings */
 // Anything above TOLERANCE_WARNING_IN is critical
 
 // ---------------------------------------------------------------------------
-// Evaluate a dimension against expected value with KDP-realistic tolerances
+// Spec Accuracy & KDP Risk — Dual Dimension Evaluation
 // ---------------------------------------------------------------------------
 
 interface DimensionEval {
   status: CheckStatus;
   message: string;
   diffIn: number;
+  specAccuracy: 'exact' | 'slight-variance' | 'major-variance';
+  kdpRisk: KdpRiskLevel;
 }
 
+/**
+ * Evaluate a dimension against expected value with KDP-realistic tolerances.
+ *
+ * PHILOSOPHY: "Will this realistically cause problems on KDP?"
+ * NOT: "Does this perfectly match spec?"
+ */
 function evaluateDimension(
   actual: number,
   expected: number,
@@ -36,22 +49,31 @@ function evaluateDimension(
       status: diff <= TOLERANCE_OK_IN * 0.5 ? 'pass' : 'safe',
       message: diff <= TOLERANCE_OK_IN * 0.5
         ? `Exactly matches KDP specification.`
-        : `Within acceptable KDP tolerance (±${TOLERANCE_OK_IN.toFixed(2)}").`,
+        : `Within KDP accepted tolerance (±${TOLERANCE_OK_IN.toFixed(2)}"). This is perfectly fine.`,
       diffIn: diff,
+      specAccuracy: 'exact',
+      kdpRisk: 'safe',
     };
   } else if (diff <= TOLERANCE_WARNING_IN) {
+    // Slight variance — KDP almost always accepts these
     return {
       status: 'warning',
-      message: `Slightly outside KDP specification — ${direction === 'small' ? 'smaller' : 'larger'} than expected by ${diff.toFixed(3)}". This may be due to export rounding and is usually accepted.`,
+      message: `Slightly outside official dimensions — ${direction === 'small' ? 'smaller' : 'larger'} by ${diff.toFixed(3)}". This is commonly caused by export rounding and KDP usually accepts it without issues.`,
       diffIn: diff,
+      specAccuracy: 'slight-variance',
+      kdpRisk: 'probably-ok',
     };
   } else {
-    // >0.05" — Critical
-    const severity: CheckStatus = diff > 0.5 ? 'fail' : 'risk';
+    // Major variance — likely wrong export settings
+    const isExtreme = diff > 0.5;
     return {
-      status: severity,
-      message: `Significantly ${direction === 'small' ? 'smaller' : 'larger'} than KDP specification by ${diff.toFixed(3)}". ${severity === 'fail' ? 'Will likely be rejected by KDP.' : 'May cause issues during upload.'}`,
+      status: isExtreme ? 'fail' : 'risk',
+      message: isExtreme
+        ? `Significantly ${direction === 'small' ? 'smaller' : 'larger'} than KDP specification by ${diff.toFixed(3)}". This likely indicates wrong export settings and may cause upload rejection or severe print scaling.`
+        : `Page dimensions differ from your selected trim size by ${diff.toFixed(3)}". This is likely due to incorrect export settings. KDP may reject this or apply unwanted scaling.`,
       diffIn: diff,
+      specAccuracy: 'major-variance',
+      kdpRisk: isExtreme ? 'high-rejection' : 'print-risk',
     };
   }
 }
@@ -88,10 +110,15 @@ interface ExportDiagnosis {
   likelyCause: string;
   /** How to fix it */
   fixHint: string;
+  /** How KDP will likely handle this */
+  kdpBehavior: string;
+  /** Is this a partial bleed situation? */
+  isPartialBleed?: boolean;
 }
 
 /**
  * Detect common export mistakes by comparing actual vs expected dimensions.
+ * Provides intelligent, context-aware diagnosis.
  */
 function diagnoseExportIssue(
   actualW: number,
@@ -110,34 +137,52 @@ function diagnoseExportIssue(
 
     if (matchesTrimExactly) {
       return {
-        likelyCause: 'This PDF appears to be exported WITHOUT bleed enabled, but your KDP configuration requires bleed.',
-        fixHint: `Re-export your manuscript with bleed enabled. The page size should be ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}" (trim ${trimW}" × ${trimH}" plus 0.125" bleed on each side). In Canva, enable "Show print bleed" before exporting. In InDesign, include bleed in the export settings.`,
+        likelyCause: 'This PDF appears to be exported WITHOUT bleed, but your KDP configuration has bleed enabled.',
+        fixHint: `Re-export with bleed enabled. The page size should be ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}" (trim ${trimW}" × ${trimH}" plus 0.125" bleed on each side). In Canva, enable "Show print bleed" before exporting. In InDesign, include bleed in the export settings.`,
+        kdpBehavior: 'KDP may still accept this file if your artwork doesn\'t extend to the page edges. However, if you have full-bleed backgrounds or edge-to-edge images, white strips may appear after trimming.',
+        isPartialBleed: false,
       };
     }
 
     // Heuristic: Width is close to trim + one-side bleed only (0.125" instead of 0.25")
     const oneSideBleedW = trimW + BLEED_SIZE_IN;
     const oneSideBleedH = trimH + BLEED_SIZE_IN;
-    const matchesOneSideBleed =
-      Math.abs(actualW - oneSideBleedW) < TOLERANCE_OK_IN ||
-      Math.abs(actualH - oneSideBleedH) < TOLERANCE_OK_IN;
+    const widthMatchesOneSide = Math.abs(actualW - oneSideBleedW) < TOLERANCE_OK_IN;
+    const heightMatchesOneSide = Math.abs(actualH - oneSideBleedH) < TOLERANCE_OK_IN;
 
-    if (matchesOneSideBleed) {
+    if (widthMatchesOneSide || heightMatchesOneSide) {
+      const dimension = widthMatchesOneSide ? 'horizontal' : 'vertical';
       return {
-        likelyCause: 'This PDF appears to include bleed on only one side instead of all sides.',
-        fixHint: `Ensure bleed is added symmetrically on ALL sides (0.125" on each edge). Expected size: ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}".`,
+        likelyCause: `This PDF appears to include bleed on only one side in the ${dimension} dimension, instead of both sides.`,
+        fixHint: `Ensure bleed is added symmetrically on ALL sides (0.125" on each edge). Expected size with full bleed: ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}".`,
+        kdpBehavior: 'KDP may accept this, but the side with missing bleed could result in thin white edges or slight cropping after trimming.',
+        isPartialBleed: true,
+      };
+    }
+
+    // Heuristic: Only one dimension has bleed
+    const hasWidthBleed = Math.abs(actualW - (trimW + BLEED_SIZE_IN * 2)) < TOLERANCE_WARNING_IN;
+    const hasHeightBleed = Math.abs(actualH - (trimH + BLEED_SIZE_IN * 2)) < TOLERANCE_WARNING_IN;
+    if (hasWidthBleed !== hasHeightBleed) {
+      const missingDimension = hasWidthBleed ? 'vertical (height)' : 'horizontal (width)';
+      return {
+        likelyCause: `This PDF has bleed in one dimension but appears to be missing it in the ${missingDimension} dimension.`,
+        fixHint: `Ensure bleed is added on ALL sides. Expected size: ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}".`,
+        kdpBehavior: 'Partial bleed is a common export issue. KDP may still process the file, but the dimension without bleed risks white edges or content clipping.',
+        isPartialBleed: true,
       };
     }
   }
 
   // Heuristic: PDF matches a common KDP trim size that isn't the selected one
-  // (e.g., user exported at 6×9 but selected 8.5×11)
   const commonSizes = [
     { w: 6, h: 9, label: '6" × 9"' },
     { w: 8.5, h: 11, label: '8.5" × 11"' },
     { w: 8, h: 10, label: '8" × 10"' },
     { w: 5.5, h: 8.5, label: '5.5" × 8.5"' },
     { w: 7, h: 10, label: '7" × 10"' },
+    { w: 5.06, h: 7.81, label: 'Digest (5.06" × 7.81")' },
+    { w: 8.27, h: 11.69, label: 'A4 (8.27" × 11.69")' },
   ];
 
   for (const size of commonSizes) {
@@ -147,13 +192,101 @@ function diagnoseExportIssue(
       (Math.abs(trimW - size.w) > TOLERANCE_OK_IN || Math.abs(trimH - size.h) > TOLERANCE_OK_IN)
     ) {
       return {
-        likelyCause: `This PDF matches the ${size.label} trim size, but your selected trim size is ${trimW}" × ${trimH}". The document was likely created for a different book format.`,
+        likelyCause: `This PDF matches the ${size.label} format, but you selected ${trimW}" × ${trimH}". The document was likely created for a different book format.`,
         fixHint: `Either re-export the document at ${trimW}" × ${trimH}"${hasBleed ? ` (with bleed: ${(trimW + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(trimH + BLEED_SIZE_IN * 2).toFixed(3)}")` : ''}, or change the trim size setting to match your document.`,
+        kdpBehavior: 'KDP will likely detect the mismatch and either reject the upload or scale the document to fit, which may distort your layout.',
       };
     }
   }
 
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Bleed Intelligence — Content-Aware Analysis
+// ---------------------------------------------------------------------------
+
+interface BleedAssessment {
+  /** Should this bleed issue be downgraded from critical? */
+  canDowngrade: boolean;
+  /** What kind of bleed problem is this? */
+  problemType: 'missing' | 'partial' | 'incorrect-size';
+  /** Practical risk explanation */
+  practicalRisk: string;
+  /** KDP risk level */
+  kdpRisk: KdpRiskLevel;
+}
+
+/**
+ * Assess bleed issues with content-aware intelligence.
+ * Instead of treating ALL bleed mismatches as critical,
+ * evaluate based on practical printing impact.
+ */
+function assessBleedIssue(
+  actualW: number,
+  actualH: number,
+  expectedW: number,
+  expectedH: number,
+  hasBleed: boolean,
+  trimW: number,
+  trimH: number,
+): BleedAssessment {
+  if (!hasBleed) {
+    return {
+      canDowngrade: false,
+      problemType: 'missing',
+      practicalRisk: 'No bleed is required for this configuration.',
+      kdpRisk: 'safe',
+    };
+  }
+
+  const widthDiff = Math.abs(actualW - expectedW);
+  const heightDiff = Math.abs(actualH - expectedH);
+  const maxDiff = Math.max(widthDiff, heightDiff);
+
+  // Is it exactly trim size? → Missing bleed entirely
+  const matchesTrim =
+    Math.abs(actualW - trimW) < TOLERANCE_OK_IN &&
+    Math.abs(actualH - trimH) < TOLERANCE_OK_IN;
+
+  if (matchesTrim) {
+    // Missing bleed — but KDP often still accepts if content doesn't touch edges
+    return {
+      canDowngrade: true, // Downgrade from critical to warning
+      problemType: 'missing',
+      practicalRisk: 'Your document does not include bleed area, but KDP may still accept this file if:\n• Artwork is not edge-critical\n• Important content remains inside safe areas\n• No visible white edges appear after trimming\n\nPotential risks:\n• Slight edge cropping\n• Inconsistent bleed on printed copies\n\nRecommendation: Use full bleed dimensions for maximum compatibility.',
+      kdpRisk: 'probably-ok',
+    };
+  }
+
+  // Is it close but slightly off?
+  if (maxDiff <= TOLERANCE_WARNING_IN) {
+    return {
+      canDowngrade: true,
+      problemType: 'incorrect-size',
+      practicalRisk: `Bleed dimensions are slightly off (${maxDiff.toFixed(3)}" variance). KDP commonly accepts files with this level of variance — it's typically caused by export rounding. If your artwork extends to the edges, there's a minor risk of thin white strips.`,
+      kdpRisk: 'probably-ok',
+    };
+  }
+
+  // Partial bleed detection
+  const diagnosis = diagnoseExportIssue(actualW, actualH, expectedW, expectedH, true, trimW, trimH);
+  if (diagnosis?.isPartialBleed) {
+    return {
+      canDowngrade: true,
+      problemType: 'partial',
+      practicalRisk: `Partial bleed detected. ${diagnosis.kdpBehavior}`,
+      kdpRisk: 'probably-ok',
+    };
+  }
+
+  // Major bleed variance
+  return {
+    canDowngrade: maxDiff < 0.25,
+    problemType: 'incorrect-size',
+    practicalRisk: `Bleed dimensions differ significantly from specification. This may cause print inconsistencies or edge issues on final copies.`,
+    kdpRisk: maxDiff < 0.25 ? 'print-risk' : 'high-rejection',
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -184,6 +317,18 @@ export function validateCover(
   // 1. Cover Width Check
   const expectedWidth = measurements.fullCoverWidthIn;
   const widthEval = evaluateDimension(analysis.widthIn, expectedWidth);
+  const trimLabel = config.trimSize === 'custom'
+    ? `${config.customWidth}" × ${config.customHeight}"`
+    : config.trimSize.replace('x', '" × ') + '"';
+
+  const widthKdpBehavior = widthEval.kdpRisk === 'safe'
+    ? 'KDP will accept this without issues.'
+    : widthEval.kdpRisk === 'probably-ok'
+    ? 'KDP will likely accept this, but minor adjustments are recommended.'
+    : widthEval.kdpRisk === 'print-risk'
+    ? 'May cause print inconsistencies or scaling issues.'
+    : 'High likelihood of upload rejection.';
+
   checks.push({
     id: 'cover-width',
     category: 'cover',
@@ -192,7 +337,9 @@ export function validateCover(
     status: widthEval.status,
     message: `Cover width is ${analysis.widthIn.toFixed(3)}", expected ${expectedWidth.toFixed(3)}". ${widthEval.message}`,
     suggestion: widthEval.status === 'fail' || widthEval.status === 'risk'
-      ? `Adjust your cover width to ${expectedWidth.toFixed(3)}" for ${config.trimSize === 'custom' ? `${config.customWidth}" × ${config.customHeight}"` : config.trimSize.replace('x', '" × ')}" with ${measurements.spineWidthIn.toFixed(3)}" spine. This includes: front (${measurements.trimWidthIn}") + spine (${measurements.spineWidthIn.toFixed(3)}") + back (${measurements.trimWidthIn}") + bleed + wrap.`
+      ? `Adjust your cover width to ${expectedWidth.toFixed(3)}" for ${trimLabel} with ${measurements.spineWidthIn.toFixed(3)}" spine. This includes: front (${measurements.trimWidthIn}") + spine (${measurements.spineWidthIn.toFixed(3)}") + back (${measurements.trimWidthIn}") + bleed + wrap.`
+      : widthEval.status === 'warning'
+      ? `For best results, set cover width to ${expectedWidth.toFixed(3)}". ${widthKdpBehavior}`
       : undefined,
     value: analysis.widthIn,
     expected: expectedWidth,
@@ -201,6 +348,15 @@ export function validateCover(
   // 2. Cover Height Check
   const expectedHeight = measurements.fullCoverHeightIn;
   const heightEval = evaluateDimension(analysis.heightIn, expectedHeight);
+
+  const heightKdpBehavior = heightEval.kdpRisk === 'safe'
+    ? 'KDP will accept this without issues.'
+    : heightEval.kdpRisk === 'probably-ok'
+    ? 'KDP will likely accept this, but minor adjustments are recommended.'
+    : heightEval.kdpRisk === 'print-risk'
+    ? 'May cause print inconsistencies or scaling issues.'
+    : 'High likelihood of upload rejection.';
+
   checks.push({
     id: 'cover-height',
     category: 'cover',
@@ -209,26 +365,50 @@ export function validateCover(
     status: heightEval.status,
     message: `Cover height is ${analysis.heightIn.toFixed(3)}", expected ${expectedHeight.toFixed(3)}". ${heightEval.message}`,
     suggestion: heightEval.status === 'fail' || heightEval.status === 'risk'
-      ? `Adjust your cover height to ${expectedHeight.toFixed(3)}" for ${config.trimSize === 'custom' ? `${config.customWidth}" × ${config.customHeight}"` : config.trimSize.replace('x', '" × ')}" with ${config.bleed === 'bleed' ? 'bleed enabled' : 'no bleed'}.`
+      ? `Adjust your cover height to ${expectedHeight.toFixed(3)}" for ${trimLabel} with ${config.bleed === 'bleed' ? 'bleed enabled' : 'no bleed'}.`
+      : heightEval.status === 'warning'
+      ? `For best results, set cover height to ${expectedHeight.toFixed(3)}". ${heightKdpBehavior}`
       : undefined,
     value: analysis.heightIn,
     expected: expectedHeight,
   });
 
-  // 3. Spine Width Check
+  // 3. Spine Width Check — Practical realism
   const expectedSpine = measurements.spineWidthIn;
   const actualSpine = analysis.widthIn - (2 * measurements.trimWidthIn) - (2 * measurements.bleedIn) - (2 * measurements.wrapAroundIn);
-  const spineEval = evaluateDimension(actualSpine, expectedSpine);
+  const spineDiff = Math.abs(actualSpine - expectedSpine);
+
+  let spineStatus: CheckStatus;
+  let spineKdpRisk: KdpRiskLevel;
+  let spineMessage: string;
+  let spineSuggestion: string | undefined;
+
+  if (spineDiff <= 0.01) {
+    spineStatus = 'pass';
+    spineKdpRisk = 'safe';
+    spineMessage = `Spine width is ${actualSpine.toFixed(3)}", matching the calculated ${expectedSpine.toFixed(3)}" for ${config.pageCount} pages on ${config.paper} paper.`;
+  } else if (spineDiff <= 0.05) {
+    // Slight spine offset — usually fine on KDP
+    spineStatus = 'warning';
+    spineKdpRisk = 'probably-ok';
+    spineMessage = `Spine width is slightly off (${actualSpine.toFixed(3)}" vs expected ${expectedSpine.toFixed(3)}"). This small variance is common and KDP typically accepts it.`;
+    spineSuggestion = `For precision, update spine to ${expectedSpine.toFixed(3)}". However, this small difference rarely causes problems.`;
+  } else {
+    // Completely wrong spine width
+    spineStatus = spineDiff > 0.25 ? 'fail' : 'risk';
+    spineKdpRisk = spineDiff > 0.25 ? 'high-rejection' : 'print-risk';
+    spineMessage = `Spine width is significantly off (${actualSpine.toFixed(3)}" vs expected ${expectedSpine.toFixed(3)}"). ${spineDiff > 0.25 ? 'This may cause KDP to reject the cover.' : 'Text on the spine may not align correctly when printed.'}`;
+    spineSuggestion = `For ${config.pageCount} pages on ${config.paper} paper, spine should be approximately ${expectedSpine.toFixed(3)}". Update your page count or cover template accordingly.`;
+  }
+
   checks.push({
     id: 'spine-width',
     category: 'cover',
     name: 'Spine Width',
     description: `Calculated spine width based on page count and paper type`,
-    status: spineEval.status,
-    message: `Calculated spine width is ${actualSpine.toFixed(3)}", expected ${expectedSpine.toFixed(3)}" for ${config.pageCount} pages on ${config.paper} paper. ${spineEval.message}`,
-    suggestion: spineEval.status !== 'pass' && spineEval.status !== 'safe'
-      ? `For ${config.pageCount} pages on ${config.paper} paper, spine should be approximately ${expectedSpine.toFixed(3)}". Update your page count setting if needed.`
-      : undefined,
+    status: spineStatus,
+    message: spineMessage,
+    suggestion: spineSuggestion,
     value: actualSpine,
     expected: expectedSpine,
   });
@@ -240,50 +420,68 @@ export function validateCover(
     category: 'cover',
     name: 'Bleed Area',
     description: 'Bleed area extends artwork beyond trim line',
-    status: hasBleed ? (analysis.hasBleed ? 'pass' : 'warning') : (analysis.hasBleed ? 'warning' : 'pass'),
+    status: hasBleed ? (analysis.hasBleed ? 'pass' : 'warning') : (analysis.hasBleed ? 'safe' : 'pass'),
     message: hasBleed
-      ? (analysis.hasBleed ? 'Bleed area detected on cover.' : 'Bleed is enabled but no bleed area detected. Ensure artwork extends 0.125" beyond trim.')
-      : (analysis.hasBleed ? 'No bleed selected but bleed area detected. This is fine if intentional.' : 'No bleed required, and none detected.'),
-    suggestion: hasBleed && !analysis.hasBleed ? 'Add 0.125" bleed on each side of your cover.' : undefined,
+      ? (analysis.hasBleed ? 'Bleed area detected on cover — looks good.' : 'Bleed is enabled but no bleed area detected. This is usually fine if artwork doesn\'t extend to the edges, but adding 0.125" bleed is recommended for maximum compatibility.')
+      : (analysis.hasBleed ? 'No bleed is selected, but bleed area was detected. This won\'t cause problems.' : 'No bleed required, and none detected — all good.'),
+    suggestion: hasBleed && !analysis.hasBleed ? 'Adding 0.125" bleed on each side of your cover ensures artwork extends properly for trimming. However, KDP commonly accepts covers without explicit bleed if edge content is minimal.' : undefined,
   };
   checks.push(bleedCheck);
 
-  // 5. Resolution / DPI Check
-  const dpiStatus: CheckStatus = analysis.dpi >= MIN_COVER_DPI ? 'pass' : analysis.dpi >= 200 ? 'warning' : analysis.dpi >= 150 ? 'risk' : 'fail';
+  // 5. Resolution / DPI Check — Realistic assessment
+  const dpiStatus: CheckStatus = analysis.dpi >= MIN_COVER_DPI ? 'pass' : analysis.dpi >= 200 ? 'warning' : analysis.dpi >= 150 ? 'warning' : 'risk';
+  const dpiKdpRisk: KdpRiskLevel = analysis.dpi >= MIN_COVER_DPI ? 'safe' : analysis.dpi >= 200 ? 'probably-ok' : analysis.dpi >= 150 ? 'print-risk' : 'high-rejection';
+
+  let dpiMessage: string;
+  let dpiSuggestion: string | undefined;
+
+  if (analysis.dpi >= MIN_COVER_DPI) {
+    dpiMessage = `Cover resolution is ${analysis.dpi} DPI — excellent quality for printing.`;
+  } else if (analysis.dpi >= 200) {
+    dpiMessage = `Cover resolution is approximately ${analysis.dpi} DPI. This is below the recommended 300 DPI, but KDP typically accepts it. Print quality may be slightly softened on close inspection.`;
+    dpiSuggestion = 'For the sharpest print results, use 300 DPI. However, 200+ DPI usually prints acceptably and KDP rarely rejects for this alone.';
+  } else if (analysis.dpi >= 150) {
+    dpiMessage = `Cover resolution is approximately ${analysis.dpi} DPI. This is noticeably below recommended quality and may appear blurry in print.`;
+    dpiSuggestion = 'Increase resolution to at least 300 DPI for reliable print quality. At this DPI, text and fine details may appear soft.';
+  } else {
+    dpiMessage = `Cover resolution is very low at approximately ${analysis.dpi} DPI. This will likely produce visibly blurry printing and may result in KDP quality warnings.`;
+    dpiSuggestion = 'Increase your cover resolution to at least 300 DPI. At this resolution, the cover will look noticeably pixelated in print.';
+  }
+
   checks.push({
     id: 'cover-dpi',
     category: 'cover',
     name: 'Image Resolution',
-    description: 'Cover resolution should be at least 300 DPI for quality printing',
+    description: 'Cover resolution for quality printing',
     status: dpiStatus,
-    message: `Cover resolution is approximately ${analysis.dpi} DPI.`,
-    suggestion: dpiStatus !== 'pass' ? 'Increase your cover resolution to at least 300 DPI for best print quality.' : undefined,
+    message: dpiMessage,
+    suggestion: dpiSuggestion,
     value: analysis.dpi,
     expected: MIN_COVER_DPI,
   });
 
-  // 6. Transparency Check
+  // 6. Transparency Check — Downgraded from risk to warning
   if (analysis.hasTransparency) {
     checks.push({
       id: 'cover-transparency',
       category: 'cover',
       name: 'Transparency',
       description: 'KDP does not support transparent elements in PDF covers',
-      status: 'risk',
-      message: 'Transparency detected in cover PDF. KDP may not process this correctly.',
-      suggestion: 'Flatten all transparency before uploading to KDP. Export as a flattened PDF without layers.',
+      status: 'warning',
+      message: 'Transparency detected in cover PDF. KDP may flatten this automatically, but results can be unpredictable.',
+      suggestion: 'Flatten all transparency before uploading for the most predictable results. Export as a flattened PDF without layers.',
     });
   }
 
-  // 7. Barcode Safe Zone
+  // 7. Barcode Safe Zone — Informational, not alarming
   checks.push({
     id: 'barcode-zone',
     category: 'cover',
     name: 'Barcode Safe Zone',
-    description: `Bottom-right ${BARCODE_AREA.width}" × ${BARCODE_AREA.height}" area must be clear for KDP barcode`,
+    description: `Bottom-right ${BARCODE_AREA.width}" × ${BARCODE_AREA.height}" area for KDP barcode`,
     status: 'safe',
-    message: 'Ensure the bottom-right area of your back cover is clear for the KDP barcode. This area is automatically added by Amazon.',
-    suggestion: 'Keep the bottom-right 2" × 1.2" area of your back cover free of important text or images.',
+    message: `Ensure the bottom-right ${BARCODE_AREA.width}" × ${BARCODE_AREA.height}" area of your back cover is clear for the KDP barcode. Amazon adds this automatically during publishing.`,
+    suggestion: 'Keep the bottom-right area free of important text or images. KDP will overlay the barcode here.',
   });
 
   // 8. Color Mode Check
@@ -294,8 +492,8 @@ export function validateCover(
       name: 'Color Mode',
       description: 'Cover appears to be grayscale but color interior is selected',
       status: 'warning',
-      message: 'Your cover appears to be in grayscale mode, but you selected a color interior type.',
-      suggestion: 'Consider using a color cover for better visual appeal with color interiors.',
+      message: 'Your cover appears to be in grayscale, but you selected a color interior. This won\'t cause rejection, but a color cover typically sells better with color interiors.',
+      suggestion: 'Consider using a color cover for better visual appeal. This is a marketing suggestion, not a technical requirement.',
     });
   }
 
@@ -316,7 +514,7 @@ export function validateManuscript(
   // Calculate expected manuscript dimensions (bleed-aware!)
   const expected = getExpectedManuscriptDimensions(config, measurements);
 
-  // 1. Trim Size Check (bleed-aware)
+  // 1. Trim Size Check (bleed-aware, realistic)
   const widthEval = evaluateDimension(analysis.widthIn, expected.widthIn);
   const heightEval = evaluateDimension(analysis.heightIn, expected.heightIn);
 
@@ -328,13 +526,15 @@ export function validateManuscript(
     id: 'manuscript-trim-width',
     category: 'manuscript',
     name: 'Page Width',
-    description: `Manuscript page width must match selected trim size${expected.includesBleed ? ' plus bleed' : ''}`,
+    description: `Manuscript page width${expected.includesBleed ? ' (including bleed)' : ''}`,
     status: widthEval.status,
-    message: `Manuscript width is ${analysis.widthIn.toFixed(3)}", expected ${expected.widthIn.toFixed(3)}"${expected.includesBleed ? ` (trim ${measurements.trimWidthIn}" + ${measurements.bleedIn}" bleed × 2)` : ''}. ${widthEval.message}`,
+    message: `Manuscript width is ${analysis.widthIn.toFixed(3)}", expected ${expected.widthIn.toFixed(3)}"${expected.includesBleed ? ` (trim ${measurements.trimWidthIn}" + bleed)` : ''}. ${widthEval.message}`,
     suggestion: widthEval.status === 'fail' || widthEval.status === 'risk'
       ? expected.includesBleed
-        ? `Export your manuscript at ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" for ${trimLabel} books with bleed enabled. This is the trim size (${measurements.trimWidthIn}" × ${measurements.trimHeightIn}") plus 0.125" bleed on each side.`
+        ? `Export your manuscript at ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" for ${trimLabel} with bleed. This is the trim size (${measurements.trimWidthIn}" × ${measurements.trimHeightIn}") plus 0.125" bleed on each side.`
         : `Set your document page size to ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" to match the KDP ${trimLabel} trim size.`
+      : widthEval.status === 'warning'
+      ? `For best compatibility, set page width to ${expected.widthIn.toFixed(3)}". KDP usually accepts small variances like this.`
       : undefined,
     value: analysis.widthIn,
     expected: expected.widthIn,
@@ -344,13 +544,15 @@ export function validateManuscript(
     id: 'manuscript-trim-height',
     category: 'manuscript',
     name: 'Page Height',
-    description: `Manuscript page height must match selected trim size${expected.includesBleed ? ' plus bleed' : ''}`,
+    description: `Manuscript page height${expected.includesBleed ? ' (including bleed)' : ''}`,
     status: heightEval.status,
-    message: `Manuscript height is ${analysis.heightIn.toFixed(3)}", expected ${expected.heightIn.toFixed(3)}"${expected.includesBleed ? ` (trim ${measurements.trimHeightIn}" + ${measurements.bleedIn}" bleed × 2)` : ''}. ${heightEval.message}`,
+    message: `Manuscript height is ${analysis.heightIn.toFixed(3)}", expected ${expected.heightIn.toFixed(3)}"${expected.includesBleed ? ` (trim ${measurements.trimHeightIn}" + bleed)` : ''}. ${heightEval.message}`,
     suggestion: heightEval.status === 'fail' || heightEval.status === 'risk'
       ? expected.includesBleed
-        ? `Export your manuscript at ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" for ${trimLabel} books with bleed enabled.`
+        ? `Export your manuscript at ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" for ${trimLabel} with bleed.`
         : `Set your document page size to ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}" to match the KDP ${trimLabel} trim size.`
+      : heightEval.status === 'warning'
+      ? `For best compatibility, set page height to ${expected.heightIn.toFixed(3)}". KDP usually accepts small variances like this.`
       : undefined,
     value: analysis.heightIn,
     expected: expected.heightIn,
@@ -374,11 +576,11 @@ export function validateManuscript(
       description: 'Smart analysis of detected vs expected dimensions',
       status: widthEval.status === 'fail' || heightEval.status === 'fail' ? 'risk' : 'warning',
       message: diagnosis.likelyCause,
-      suggestion: diagnosis.fixHint,
+      suggestion: `${diagnosis.fixHint}\n\nReal KDP behavior: ${diagnosis.kdpBehavior}`,
     });
   }
 
-  // 3. Page Count Check
+  // 3. Page Count Check — Realistic
   if (config.pageCount !== analysis.pageCount) {
     const diff = Math.abs(config.pageCount - analysis.pageCount);
     const status: CheckStatus = diff <= 2 ? 'safe' : diff <= 10 ? 'warning' : 'risk';
@@ -388,39 +590,44 @@ export function validateManuscript(
       name: 'Page Count',
       description: 'Actual page count vs configured page count',
       status,
-      message: `Manuscript has ${analysis.pageCount} pages, but you configured ${config.pageCount}. ${status === 'safe' ? 'This small difference is acceptable.' : 'Update your page count to match.'}`,
-      suggestion: `Update the page count in Book Setup to ${analysis.pageCount} for accurate spine calculation.`,
+      message: `Manuscript has ${analysis.pageCount} pages, but you configured ${config.pageCount}. ${status === 'safe' ? 'This small difference is normal and won\'t cause issues.' : status === 'warning' ? 'This difference is noticeable but KDP will still accept the file. The spine width calculation may be slightly off.' : 'This large difference may cause significant spine width calculation errors.'}`,
+      suggestion: status !== 'safe' ? `Update the page count in Book Setup to ${analysis.pageCount} for accurate spine calculation.` : undefined,
       value: analysis.pageCount,
       expected: config.pageCount,
     });
   }
 
-  // 4. Bleed Consistency Check
+  // 4. Bleed Consistency Check — Intelligent, not alarmist
   const hasBleed = config.bleed === 'bleed';
   if (hasBleed && !analysis.hasBleed) {
+    const bleedAssessment = assessBleedIssue(
+      analysis.widthIn, analysis.heightIn,
+      expected.widthIn, expected.heightIn,
+      true, measurements.trimWidthIn, measurements.trimHeightIn,
+    );
     checks.push({
       id: 'manuscript-bleed',
       category: 'manuscript',
       name: 'Bleed Consistency',
-      description: 'Manuscript should have bleed when bleed is enabled',
-      status: 'warning',
-      message: 'Bleed is enabled but manuscript pages do not appear to include bleed area.',
-      suggestion: `Add 0.125" bleed to each edge of your manuscript pages. Expected page size with bleed: ${(measurements.trimWidthIn + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(measurements.trimHeightIn + BLEED_SIZE_IN * 2).toFixed(3)}".`,
+      description: 'Manuscript bleed area analysis',
+      status: bleedAssessment.kdpRisk === 'high-rejection' ? 'risk' : 'warning',
+      message: `Bleed is enabled but manuscript pages don't appear to include bleed area. ${bleedAssessment.practicalRisk.split('\n')[0]}`,
+      suggestion: `Add 0.125" bleed to each edge of your manuscript pages. Expected page size with bleed: ${(measurements.trimWidthIn + BLEED_SIZE_IN * 2).toFixed(3)}" × ${(measurements.trimHeightIn + BLEED_SIZE_IN * 2).toFixed(3)}".\n\nHowever, if your artwork doesn't extend to the page edges, KDP will likely still accept this file.`,
     });
   }
 
-  // 5. Margin Safety Check
+  // 5. Margin Safety Check — Informational only
   checks.push({
     id: 'manuscript-margins',
     category: 'manuscript',
     name: 'Margin Safety',
     description: `Content should stay within ${SAFE_AREA_IN}" from edges`,
     status: 'safe',
-    message: `Ensure all important content stays at least ${SAFE_AREA_IN}" from page edges to avoid trimming issues.`,
-    suggestion: 'Keep text and important images at least 0.25" from all page edges.',
+    message: `Keep all important content at least ${SAFE_AREA_IN}" from page edges. This is a general guideline — KDP doesn't reject files for tight margins alone.`,
+    suggestion: undefined,
   });
 
-  // 6. Blank Pages Check
+  // 6. Blank Pages Check — Context-aware
   if (analysis.blankPages.length > 0) {
     const ratio = analysis.blankPages.length / analysis.pageCount;
     const status: CheckStatus = ratio < 0.05 ? 'safe' : ratio < 0.15 ? 'warning' : 'risk';
@@ -430,8 +637,8 @@ export function validateManuscript(
       name: 'Blank Pages',
       description: 'Blank pages detected in manuscript',
       status,
-      message: `${analysis.blankPages.length} blank page(s) detected out of ${analysis.pageCount} total pages. ${status === 'safe' ? 'This is normal for many book layouts.' : 'A high percentage of blank pages may indicate issues.'}`,
-      suggestion: status !== 'safe' ? 'Review blank pages to ensure they are intentional (e.g., chapter starts on right-hand pages).' : undefined,
+      message: `${analysis.blankPages.length} blank page(s) out of ${analysis.pageCount} total. ${status === 'safe' ? 'This is completely normal — many professional book layouts have intentional blank pages.' : status === 'warning' ? 'A notable number of blank pages. This may be intentional (chapter starts on right-hand pages) or may indicate missing content.' : 'A high percentage of blank pages may indicate missing content or a formatting issue.'}`,
+      suggestion: status !== 'safe' ? 'Review blank pages to ensure they are intentional.' : undefined,
       value: analysis.blankPages.length,
     });
   }
@@ -446,23 +653,26 @@ export function validateManuscript(
       name: 'Page Size Consistency',
       description: 'All pages should have consistent dimensions',
       status: 'warning',
-      message: 'Inconsistent page sizes detected in manuscript. This may cause issues during KDP processing.',
-      suggestion: 'Ensure all pages in your manuscript have the same dimensions.',
+      message: 'Inconsistent page sizes detected. KDP may still process this, but it could cause alignment issues in the final print.',
+      suggestion: 'Ensure all pages in your manuscript have the same dimensions for the most predictable results.',
     });
   }
 
-  // 8. Resolution Check
+  // 8. Resolution Check — Realistic
   const lowResPages = analysis.imageResolutions.filter(r => r.dpi < MIN_COVER_DPI);
   if (lowResPages.length > 0) {
-    const status: CheckStatus = lowResPages.length <= 2 ? 'warning' : 'risk';
+    const veryLowRes = lowResPages.filter(r => r.dpi < 150);
+    const status: CheckStatus = veryLowRes.length > 0 ? 'risk' : 'warning';
     checks.push({
       id: 'manuscript-resolution',
       category: 'manuscript',
       name: 'Image Resolution',
-      description: 'Images should be at least 300 DPI for quality printing',
+      description: 'Image quality check',
       status,
-      message: `${lowResPages.length} page(s) contain images below 300 DPI. This may result in blurry printing.`,
-      suggestion: 'Replace low-resolution images with higher-quality versions (at least 300 DPI).',
+      message: `${lowResPages.length} page(s) with images below 300 DPI. ${veryLowRes.length > 0 ? `${veryLowRes.length} of these are significantly below 200 DPI and may appear blurry in print.` : 'While below the recommended 300 DPI, these images are usually acceptable for print — they may appear slightly soft on close inspection but KDP rarely rejects for this.'}`,
+      suggestion: status === 'risk'
+        ? 'Replace very low-resolution images (below 150 DPI) with higher-quality versions. These will be visibly blurry in print.'
+        : 'Consider replacing with higher resolution images for the best print quality, but don\'t worry too much — KDP accepts these in most cases.',
     });
   }
 
@@ -511,13 +721,15 @@ export function getOverallStatus(checks: ValidationCheck[]): CheckStatus {
 }
 
 // ---------------------------------------------------------------------------
-// Per-page issue analysis (bleed-aware, config-driven)
+// Per-page issue analysis (bleed-aware, config-driven, KDP-realistic)
 // ---------------------------------------------------------------------------
 
 /**
  * Analyze pages and generate per-page issues for the preview UX.
  * ALWAYS uses active config + measurements as the source of truth.
  * Bleed-aware: when bleed is enabled, expected dimensions = trim + bleed*2.
+ *
+ * PHILOSOPHY: "Will this realistically cause problems on KDP?"
  */
 export function analyzePagesForIssues(
   pdfAnalysis: PDFAnalysisResult,
@@ -539,7 +751,7 @@ export function analyzePagesForIssues(
   for (let i = 0; i < pdfAnalysis.pageCount; i++) {
     const pageNum = i + 1;
 
-    // 1. Page size mismatch — BLEED-AWARE comparison
+    // 1. Page size mismatch — BLEED-AWARE comparison with realistic tolerances
     const pageW = pdfAnalysis.pageWidths[i] ?? expected.widthIn;
     const pageH = pdfAnalysis.pageHeights[i] ?? expected.heightIn;
     const widthDiff = Math.abs(pageW - expected.widthIn);
@@ -548,10 +760,31 @@ export function analyzePagesForIssues(
     if (widthDiff > TOLERANCE_OK_IN || heightDiff > TOLERANCE_OK_IN) {
       // Determine severity using KDP-realistic tolerances
       const maxDiff = Math.max(widthDiff, heightDiff);
-      const severity: CheckStatus =
-        maxDiff > TOLERANCE_WARNING_IN * 2 ? 'fail'
-        : maxDiff > TOLERANCE_WARNING_IN ? 'risk'
-        : 'warning';
+
+      let severity: CheckStatus;
+      let specAccuracy: 'exact' | 'slight-variance' | 'major-variance';
+      let kdpRisk: KdpRiskLevel;
+      let realWorldImpact: string;
+
+      if (maxDiff <= TOLERANCE_WARNING_IN) {
+        // Slight variance — KDP usually accepts
+        severity = 'warning';
+        specAccuracy = 'slight-variance';
+        kdpRisk = 'probably-ok';
+        realWorldImpact = 'KDP commonly accepts files with this level of dimensional variance. It\'s typically caused by export rounding in tools like Canva, Word, or InDesign. You likely don\'t need to fix this unless you want maximum precision.';
+      } else if (maxDiff <= 0.5) {
+        // Moderate variance — may cause issues
+        severity = 'risk';
+        specAccuracy = 'major-variance';
+        kdpRisk = 'print-risk';
+        realWorldImpact = 'This variance may cause KDP to apply scaling or show a warning during upload. The printed result may have slight dimensional inconsistencies.';
+      } else {
+        // Major variance — likely rejection
+        severity = 'fail';
+        specAccuracy = 'major-variance';
+        kdpRisk = 'high-rejection';
+        realWorldImpact = 'This large dimensional difference likely indicates wrong export settings. KDP may reject the file or apply significant unwanted scaling.';
+      }
 
       // Smart export detection for this page
       const diagnosis = diagnoseExportIssue(
@@ -562,29 +795,52 @@ export function analyzePagesForIssues(
       );
 
       const contextHint = hasBleed
-        ? ` for ${trimLabel} books with bleed enabled`
-        : ` for ${trimLabel} books`;
+        ? ` for ${trimLabel} with bleed`
+        : ` for ${trimLabel}`;
+
+      let suggestion: string;
+      if (diagnosis) {
+        suggestion = diagnosis.fixHint;
+        if (diagnosis.kdpBehavior) {
+          suggestion += `\n\nReal KDP behavior: ${diagnosis.kdpBehavior}`;
+        }
+        // If diagnosis says this is probably OK, downgrade severity
+        if (diagnosis.isPartialBleed && severity === 'risk') {
+          severity = 'warning';
+          kdpRisk = 'probably-ok';
+        }
+      } else {
+        suggestion = maxDiff <= TOLERANCE_WARNING_IN
+          ? `Resize to ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"${contextHint} for maximum compatibility. However, this small variance is usually fine.`
+          : `Resize page ${pageNum} to ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"${contextHint}.`;
+      }
 
       issues.push({
         id: `page-${pageNum}-size`,
         page: pageNum,
         type: 'inconsistent-size',
         severity,
-        message: `Page ${pageNum} size (${pageW.toFixed(3)}" × ${pageH.toFixed(3)}") doesn't match expected dimensions${contextHint}`,
-        description: `Expected ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"${hasBleed ? ` (trim ${trimWidthIn}" × ${trimHeightIn}" + 0.125" bleed each side)` : ''}`,
+        message: maxDiff <= TOLERANCE_WARNING_IN
+          ? `Page ${pageNum} size is slightly off (${pageW.toFixed(3)}" × ${pageH.toFixed(3)}" vs expected ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}")`
+          : `Page ${pageNum} size (${pageW.toFixed(3)}" × ${pageH.toFixed(3)}") doesn't match expected dimensions${contextHint}`,
+        description: maxDiff <= TOLERANCE_WARNING_IN
+          ? `Minor variance of ${maxDiff.toFixed(3)}" — commonly caused by export rounding`
+          : `Expected ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"${hasBleed ? ` (trim ${trimWidthIn}" × ${trimHeightIn}" + bleed)` : ''}`,
         category: 'size',
         actual: `${pageW.toFixed(3)}" × ${pageH.toFixed(3)}"`,
         expected: `${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"`,
         region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
-        suggestion: diagnosis
-          ? `${diagnosis.fixHint}`
-          : `Resize page ${pageNum} to ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}"${contextHint}.`,
+        suggestion,
+        specAccuracy,
+        kdpRisk,
+        realWorldImpact,
       });
     }
 
-    // 2. Blank page detection
+    // 2. Blank page detection — contextual
     if (pdfAnalysis.blankPages.includes(pageNum)) {
       const isFrontMatter = pageNum <= 2;
+      const isChapterStart = pageNum > 2 && pageNum % 2 === 1;
       issues.push({
         id: `page-${pageNum}-blank`,
         page: pageNum,
@@ -592,25 +848,46 @@ export function analyzePagesForIssues(
         severity: isFrontMatter ? 'safe' : 'warning',
         message: `Page ${pageNum} appears to be blank`,
         description: isFrontMatter
-          ? 'Front matter blank pages are normal'
-          : 'Unexpected blank page may indicate missing content',
+          ? 'Front matter blank pages are normal and expected'
+          : isChapterStart
+          ? 'Blank pages before chapter starts are common in professional layouts'
+          : 'Unexpected blank page — may be intentional or may indicate missing content',
         category: 'interior',
-        actual: 'No content detected on this page',
-        expected: isFrontMatter
-          ? 'Blank front matter pages are acceptable'
-          : 'Content should be present on interior pages',
+        actual: 'No content detected',
+        expected: isFrontMatter || isChapterStart
+          ? 'Blank pages are acceptable here'
+          : 'Content should typically be present',
         region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
-        suggestion: isFrontMatter
-          ? 'This blank page is typical for front matter and is acceptable for KDP.'
-          : 'Review this page — if intentionally blank (e.g., chapter starts on a right-hand page), this is fine. Otherwise, add content.',
+        suggestion: isFrontMatter || isChapterStart
+          ? 'This is fine — blank pages in this position are standard practice in book publishing.'
+          : 'Check if this blank page is intentional (e.g., chapter starts on a right-hand page). If not, add the missing content.',
+        specAccuracy: 'exact',
+        kdpRisk: 'safe',
+        isInformational: isFrontMatter,
       });
     }
 
-    // 3. Low resolution images
+    // 3. Low resolution images — realistic assessment
     const lowRes = pdfAnalysis.imageResolutions.find(r => r.page === pageNum);
     if (lowRes && lowRes.dpi < MIN_COVER_DPI) {
-      const severity: CheckStatus =
-        lowRes.dpi < 150 ? 'fail' : lowRes.dpi < 200 ? 'risk' : 'warning';
+      let severity: CheckStatus;
+      let kdpRisk: KdpRiskLevel;
+      let realWorldImpact: string;
+
+      if (lowRes.dpi < 150) {
+        severity = 'risk';
+        kdpRisk = 'print-risk';
+        realWorldImpact = 'At this resolution, images will appear noticeably blurry in print. However, KDP rarely rejects files for low DPI alone — they typically just print as-is.';
+      } else if (lowRes.dpi < 200) {
+        severity = 'warning';
+        kdpRisk = 'probably-ok';
+        realWorldImpact = 'Images below 200 DPI may appear slightly soft in print, but KDP accepts them. Most readers won\'t notice unless comparing side-by-side with a higher DPI version.';
+      } else {
+        severity = 'warning';
+        kdpRisk = 'probably-ok';
+        realWorldImpact = 'Images at this DPI are close enough to 300 DPI that the difference is barely visible in print. KDP accepts these routinely.';
+      }
+
       const imgW = pageW * 0.6;
       const imgH = pageH * 0.6;
       const imgX = pageW * 0.2;
@@ -620,54 +897,56 @@ export function analyzePagesForIssues(
         page: pageNum,
         type: 'low-dpi',
         severity,
-        message: `Page ${pageNum} has low resolution images (${lowRes.dpi} DPI)`,
-        description: 'Images below 300 DPI may appear blurry in print',
+        message: `Page ${pageNum} has images at ${lowRes.dpi} DPI (recommended: 300 DPI)`,
+        description: severity === 'risk'
+          ? 'Significantly below recommended resolution — will appear blurry'
+          : 'Below recommended but usually prints acceptably',
         category: 'dpi',
         actual: `${lowRes.dpi} DPI`,
-        expected: '300 DPI minimum',
+        expected: '300 DPI recommended',
         region: { xIn: imgX, yIn: imgY, widthIn: imgW, heightIn: imgH },
-        suggestion:
-          severity === 'fail'
-            ? `Replace the image on page ${pageNum} with a version at 300 DPI or higher. Current ${lowRes.dpi} DPI will produce visibly blurry printing.`
-            : `Consider replacing the image on page ${pageNum} with a higher resolution version. At ${lowRes.dpi} DPI, printed quality may be noticeably degraded.`,
+        suggestion: lowRes.dpi < 150
+          ? `Replace the image on page ${pageNum} with a higher resolution version if possible. At ${lowRes.dpi} DPI, the printed result will be noticeably blurry.`
+          : `The image on page ${pageNum} is below 300 DPI but will likely print acceptably. Consider upgrading for best quality, but this isn't urgent.`,
+        specAccuracy: 'slight-variance',
+        kdpRisk,
+        realWorldImpact,
       });
     }
 
-    // 4. Bleed issues — category: 'bleed'
+    // 4. Bleed issues — INTELLIGENT, content-aware
     if (hasBleed) {
       const hasBleedArea = pdfAnalysis.hasBleed;
       if (!hasBleedArea && pageNum > 2) {
+        // Missing bleed — but assess whether this is actually critical
+        const bleedAssessment = assessBleedIssue(
+          pageW, pageH,
+          expected.widthIn, expected.heightIn,
+          true, trimWidthIn, trimHeightIn,
+        );
+
         issues.push({
           id: `page-${pageNum}-bleed`,
           page: pageNum,
           type: 'bleed-problem',
-          severity: 'warning',
-          message: `Page ${pageNum}: No bleed area detected — artwork may not extend to bleed edge`,
-          description: `Content should extend ${bleedIn}" beyond trim on all sides`,
+          severity: bleedAssessment.kdpRisk === 'high-rejection' ? 'risk' : 'warning',
+          message: `Page ${pageNum}: No bleed area detected`,
+          description: bleedAssessment.practicalRisk.split('\n')[0],
           category: 'bleed',
           actual: 'No bleed area detected',
           expected: `${bleedIn}" bleed on all sides`,
           region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
-          suggestion: `Extend artwork on page ${pageNum} by ${bleedIn}" beyond the trim line on all sides so background colors/images bleed off the page edge. For ${trimLabel} books, the full page with bleed should be ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}".`,
-        });
-      } else if (hasBleedArea && pageNum > 2) {
-        issues.push({
-          id: `page-${pageNum}-bleed-ok`,
-          page: pageNum,
-          type: 'bleed-problem',
-          severity: 'safe',
-          message: `Page ${pageNum}: Verify artwork extends into bleed area`,
-          description: `Content should extend ${bleedIn}" beyond trim on all sides`,
-          category: 'bleed',
-          actual: `${bleedIn}" bleed area present`,
-          expected: `${bleedIn}" bleed on all sides`,
-          region: { xIn: 0, yIn: 0, widthIn: pageW, heightIn: pageH },
-          suggestion: `Confirm that page ${pageNum} background extends fully into the ${bleedIn}" bleed zone on all sides.`,
+          suggestion: `Extend artwork by ${bleedIn}" beyond the trim line on all sides for full bleed compatibility. For ${trimLabel} books, the full page with bleed should be ${expected.widthIn.toFixed(3)}" × ${expected.heightIn.toFixed(3)}".\n\nHowever, KDP may still accept this if your content doesn't extend to the page edges.`,
+          specAccuracy: 'major-variance',
+          kdpRisk: bleedAssessment.kdpRisk,
+          realWorldImpact: bleedAssessment.practicalRisk,
         });
       }
+      // Note: We DON'T add a "bleed OK" informational issue for every page
+      // to reduce noise. Only show bleed issues when there's actually a problem.
     }
 
-    // 5. Margin safety
+    // 5. Margin safety — Only warn when there's actual danger
     const estimatedMarginSafety = safeAreaIn;
     const marginDanger = estimatedMarginSafety < 0.125;
     if (marginDanger) {
@@ -676,8 +955,8 @@ export function analyzePagesForIssues(
         page: pageNum,
         type: 'margin-danger',
         severity: 'warning',
-        message: `Page ${pageNum}: Content may be too close to the trim edge`,
-        description: `Content is approximately ${(estimatedMarginSafety * 100).toFixed(0)} mils from trim edge`,
+        message: `Page ${pageNum}: Content may be close to the trim edge`,
+        description: 'Content near the trim edge could be cut during printing',
         category: 'margin',
         actual: `${estimatedMarginSafety.toFixed(3)}" from trim edge`,
         expected: `Minimum ${SAFE_AREA_IN}"`,
@@ -687,60 +966,73 @@ export function analyzePagesForIssues(
           widthIn: pageW - safeAreaIn * 2,
           heightIn: pageH - safeAreaIn * 2,
         },
-        suggestion: `Move content on page ${pageNum} at least ${SAFE_AREA_IN}" inward from all page edges to avoid being trimmed during printing.`,
+        suggestion: `Move content on page ${pageNum} at least ${SAFE_AREA_IN}" inward from page edges to ensure it's not trimmed during printing. However, KDP rarely rejects files for tight margins — this is more of a print quality concern.`,
+        specAccuracy: 'slight-variance',
+        kdpRisk: 'probably-ok',
+        realWorldImpact: 'Tight margins may result in content being slightly cut off during printing, but KDP typically accepts these files. The risk is primarily visual quality.',
       });
     }
 
-    // 6. Gutter tightness
+    // 6. Gutter — Informational, not alarming
+    // Only show if gutter is notably tight; skip informational "safe" gutter entries
     const isLeftPage = pageNum % 2 === 0;
-    const isRightPage = !isLeftPage;
-    if (gutterIn > 0 && (isLeftPage || isRightPage)) {
+    if (gutterIn > 0 && gutterIn < 0.1) {
       const gutterSide = isLeftPage ? 'left' : 'right';
       const gutterEdgeX = isLeftPage ? pageW - gutterIn : 0;
-      const isTight = gutterIn < 0.1;
       issues.push({
         id: `page-${pageNum}-gutter`,
         page: pageNum,
         type: 'margin-danger',
-        severity: isTight ? 'warning' : 'safe',
-        message: `Page ${pageNum}: ${isTight ? 'Content within gutter clearance area' : 'Verify inner margin content is clear of gutter area'}`,
-        description: `Gutter margin is ${gutterIn}" — text too close to spine may be hidden`,
+        severity: 'warning',
+        message: `Page ${pageNum}: Tight gutter margin on ${gutterSide} side`,
+        description: 'Text near the gutter may be harder to read when the book is bound',
         category: 'gutter',
-        actual: isTight
-          ? `Content within ${(gutterIn * 100).toFixed(0)} mils of gutter`
-          : `${gutterIn}" gutter clearance`,
-        expected: '0.1" minimum gutter clearance',
+        actual: `${(gutterIn * 100).toFixed(0)} mils from gutter`,
+        expected: '0.1" minimum recommended',
         region: {
           xIn: gutterEdgeX,
           yIn: 0,
           widthIn: gutterIn,
           heightIn: pageH,
         },
-        suggestion: isTight
-          ? `Increase the inner margin on page ${pageNum} so text is at least 0.1" away from the ${gutterSide} (gutter) edge. Content in the gutter can be hidden by the binding.`
-          : `Ensure important content on page ${pageNum} stays out of the ${gutterIn}" gutter zone on the ${gutterSide} edge.`,
+        suggestion: `Consider increasing the inner margin on page ${pageNum}. Text in the gutter can be harder to read, but KDP doesn't reject files for this — it's a readability improvement.`,
+        specAccuracy: 'slight-variance',
+        kdpRisk: 'probably-ok',
+        realWorldImpact: 'Content in the gutter area may be difficult to read when the book is open, but this won\'t cause KDP rejection.',
       });
     }
 
-    // 7. Trim danger
-    issues.push({
-      id: `page-${pageNum}-trim`,
-      page: pageNum,
-      type: 'trim-risk',
-      severity: 'safe',
-      message: `Page ${pageNum}: Verify content stays within ${safeAreaIn}" safe area`,
-      description: 'Content near the trim edge may be cut during printing',
-      category: 'margin',
-      actual: `Safe area is ${safeAreaIn}" from trim`,
-      expected: `Minimum ${SAFE_AREA_IN}" safe area from all edges`,
-      region: {
-        xIn: safeAreaIn,
-        yIn: safeAreaIn,
-        widthIn: pageW - safeAreaIn * 2,
-        heightIn: pageH - safeAreaIn * 2,
-      },
-      suggestion: `Keep all important text and images on page ${pageNum} at least ${safeAreaIn}" from every edge. The outer ${safeAreaIn}" strip may be trimmed during production.`,
-    });
+    // 7. Trim danger — INFORMATIONAL ONLY (de-emphasized)
+    // We only add this if there are no other size issues for this page,
+    // and we mark it as informational so the UI can de-emphasize it
+    if (widthDiff <= TOLERANCE_OK_IN && heightDiff <= TOLERANCE_OK_IN) {
+      // Page size is correct, but add a soft informational about trim safe area
+      // ONLY if there are no other issues for this page already
+      const hasOtherIssues = issues.some(iss => iss.page === pageNum && iss.id !== `page-${pageNum}-trim`);
+      if (!hasOtherIssues) {
+        issues.push({
+          id: `page-${pageNum}-trim`,
+          page: pageNum,
+          type: 'trim-risk',
+          severity: 'safe',
+          message: `Page ${pageNum}: Content within ${safeAreaIn}" safe area`,
+          description: 'Content should stay within the safe area for best print results',
+          category: 'margin',
+          actual: `Safe area is ${safeAreaIn}" from trim`,
+          expected: `Minimum ${SAFE_AREA_IN}" safe area`,
+          region: {
+            xIn: safeAreaIn,
+            yIn: safeAreaIn,
+            widthIn: pageW - safeAreaIn * 2,
+            heightIn: pageH - safeAreaIn * 2,
+          },
+          suggestion: `Keep important text and images at least ${safeAreaIn}" from every edge. This is a general best practice — not a strict KDP requirement.`,
+          specAccuracy: 'exact',
+          kdpRisk: 'safe',
+          isInformational: true,
+        });
+      }
+    }
   }
 
   return issues;
@@ -763,7 +1055,10 @@ export function computeValidationSummary(issues: PageIssueExtended[]): Validatio
   let safe = 0;
   let pass = 0;
 
-  for (const issue of issues) {
+  // Count non-informational issues for summary (informational ones are de-emphasized)
+  const significantIssues = issues.filter(i => !i.isInformational);
+
+  for (const issue of significantIssues) {
     switch (issue.severity) {
       case 'fail': fail++; break;
       case 'risk': risk++; break;
@@ -776,7 +1071,7 @@ export function computeValidationSummary(issues: PageIssueExtended[]): Validatio
     }
   }
 
-  const total = issues.length;
+  const total = significantIssues.length;
 
   let overallStatus: CheckStatus = 'pass';
   if (fail > 0) overallStatus = 'fail';
@@ -784,6 +1079,7 @@ export function computeValidationSummary(issues: PageIssueExtended[]): Validatio
   else if (warning > 0) overallStatus = 'warning';
   else if (safe > 0) overallStatus = 'safe';
 
+  // isReady = true when there are no rejection-risk issues
   const isReady = fail === 0 && risk === 0;
 
   return {
@@ -800,7 +1096,7 @@ export function computeValidationSummary(issues: PageIssueExtended[]): Validatio
 }
 
 // ---------------------------------------------------------------------------
-// Generate summary text
+// Generate summary text — Calm, realistic, publisher-friendly
 // ---------------------------------------------------------------------------
 
 export function generateSummary(checks: ValidationCheck[]): string {
@@ -817,12 +1113,12 @@ export function generateSummary(checks: ValidationCheck[]): string {
   const problems = counts.warning + counts.risk + counts.fail;
 
   if (problems === 0) {
-    return `All ${total} checks passed. Your file looks ready for KDP upload.`;
+    return `All ${total} checks passed. Your file looks ready for KDP upload — no issues detected.`;
   } else if (counts.fail > 0) {
-    return `${counts.fail} critical issue(s) found that will likely cause KDP rejection. ${counts.warning + counts.risk} other items need attention.`;
+    return `${counts.fail} critical issue(s) found that may cause KDP rejection. ${counts.risk + counts.warning} other items to review. ${good} checks passed.`;
   } else if (counts.risk > 0) {
-    return `${counts.risk} high-priority issue(s) found. ${counts.warning} warnings to review. ${good} checks passed.`;
+    return `${counts.risk} issue(s) that may cause print inconsistencies. ${counts.warning} minor items worth reviewing. ${good} checks passed.`;
   } else {
-    return `${counts.warning} warning(s) found. These are commonly accepted but worth reviewing. ${good} checks passed.`;
+    return `${counts.warning} minor item(s) found. These are commonly accepted by KDP but worth reviewing for best results. ${good} checks passed.`;
   }
 }
