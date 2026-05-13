@@ -223,10 +223,10 @@ export default function PreviewFeature() {
   const isInPreviewStep = previewFlowStep === 'preview';
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-transparent text-[#f7f1e7]">
+    <div className="flex h-full min-h-0 flex-col bg-transparent text-foreground">
       {/* ─── Step Indicator ─── */}
       {!isInPreviewStep && (
-        <div className="flex items-center justify-between gap-3 border-b border-[#f4efe5]/10 bg-[#080a0d]/75 px-4 py-3 backdrop-blur-xl">
+        <div className="flex items-center justify-between gap-3 overflow-x-auto border-b border-border bg-surface-glass px-3 py-3 backdrop-blur-xl sm:px-4">
           <StepProgress
             steps={STEPS.map((step) => ({ key: step.key, label: step.label }))}
             current={previewFlowStep}
@@ -287,7 +287,7 @@ export default function PreviewFeature() {
               className="h-full relative"
             >
               {/* 3D Viewport */}
-              <div className="h-full bg-[#0a0a0f]">
+              <div className="h-full ds-page-stage">
                 <BookPreview3D
                   coverUrl={coverUrl}
                   coverSegments={coverSegments}
@@ -313,7 +313,7 @@ export default function PreviewFeature() {
                 {/* Back to Config button */}
                 <button
                   onClick={() => setPreviewFlowStep('config')}
-                  className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 px-3 py-2 text-white/50 hover:text-white/80 hover:bg-black/80 transition-all flex items-center gap-2 text-xs"
+                  className="ds-focus ds-control absolute right-3 top-[4.25rem] z-10 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:right-4 sm:top-4"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Config
@@ -321,10 +321,10 @@ export default function PreviewFeature() {
 
                 {/* Processing overlay */}
                 {isProcessing && (
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-30">
-                    <div className="bg-black/80 rounded-2xl border border-white/10 px-6 py-4 flex items-center gap-3">
-                      <Loader2 className="w-5 h-5 text-white/60 animate-spin" />
-                      <span className="text-white/80 text-sm">{processingMessage || 'Processing...'}</span>
+                  <div className="absolute inset-0 z-30 flex items-center justify-center bg-overlay backdrop-blur-sm">
+                    <div className="ds-card-glass flex items-center gap-3 px-6 py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <span className="text-sm text-foreground/80">{processingMessage || 'Processing...'}</span>
                     </div>
                   </div>
                 )}
@@ -332,9 +332,9 @@ export default function PreviewFeature() {
                 {/* Generation progress overlay (during re-generation) */}
                 {generationProgress.phase !== 'idle' && generationProgress.phase !== 'complete' && (
                   <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-black/70 backdrop-blur-xl rounded-xl border border-white/10 px-4 py-2 flex items-center gap-3">
-                      <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
-                      <span className="text-white/70 text-xs">{generationProgress.phaseLabel} — {generationProgress.progress}%</span>
+                    <div className="ds-card-glass flex items-center gap-3 rounded-xl px-4 py-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <span className="text-xs text-muted-foreground">{generationProgress.phaseLabel} — {generationProgress.progress}%</span>
                     </div>
                   </div>
                 )}

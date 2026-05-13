@@ -156,21 +156,21 @@ function TypeSwitcher({
   ];
 
   return (
-    <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 border border-white/[0.06]">
+    <div className="grid w-full grid-cols-3 gap-1 rounded-xl border border-foreground/[0.18] bg-foreground/[0.18] p-1 dark:bg-foreground/[0.04] dark:border-foreground/[0.06] sm:inline-grid sm:w-auto">
       {options.map(({ key, label, icon: Icon }) => {
         const active = bookType === key;
         return (
           <button
             key={key}
             onClick={() => setBookType(key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
               active
-                ? 'bg-white/[0.08] text-white/90 shadow-sm'
-                : 'text-white/40 hover:text-white/60 hover:bg-white/[0.03]'
+                ? 'bg-foreground/[0.16] dark:bg-foreground/[0.08] text-foreground/90 shadow-sm'
+                : 'text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 hover:text-foreground/85 dark:text-foreground/60 hover:bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03]'
             }`}
           >
             <Icon className="w-4 h-4" />
-            <span>{label}</span>
+            <span className="truncate">{label}</span>
           </button>
         );
       })}
@@ -227,14 +227,14 @@ function UploadZone({
       onDragLeave={() => setDragActive(false)}
       onDrop={handleDrop}
       onClick={() => !isProcessing && inputRef.current?.click()}
-      className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer min-h-[180px] flex flex-col items-center justify-center gap-3 ${
+      className={`relative flex min-h-[170px] cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-5 text-center transition-all duration-300 sm:min-h-[180px] sm:p-8 ${
         isProcessing
-          ? 'border-emerald-500/20 bg-emerald-500/[0.03] cursor-wait'
+          ? 'border-success/20 bg-success/[0.03] cursor-wait'
           : dragActive
-            ? 'border-emerald-500/40 bg-emerald-500/[0.06] scale-[1.01]'
+            ? 'border-success/40 bg-success/[0.06] scale-[1.01]'
             : uploadedFile
-              ? 'border-emerald-500/20 bg-emerald-500/[0.03]'
-              : 'border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
+              ? 'border-success/20 bg-success/[0.03]'
+              : 'border-foreground/25 dark:border-foreground/10 hover:border-foreground/30 dark:border-foreground/20 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]'
       }`}
     >
       <input
@@ -250,38 +250,38 @@ function UploadZone({
 
       {isProcessing ? (
         <>
-          <Loader2 className="w-10 h-10 text-emerald-400/60 animate-spin" />
-          <p className="text-sm text-white/50">Analyzing file…</p>
+          <Loader2 className="w-10 h-10 text-success/60 animate-spin" />
+          <p className="text-sm text-foreground/80 dark:text-foreground/50">Analyzing file…</p>
         </>
       ) : uploadedFile ? (
         <>
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
+            <CheckCircle2 className="w-6 h-6 text-success" />
           </div>
-          <div>
-            <p className="text-sm text-emerald-400 font-medium">{uploadedFile.name}</p>
-            <p className="text-xs text-white/30 mt-0.5">
+          <div className="min-w-0 max-w-full">
+            <p className="truncate text-sm font-medium text-success">{uploadedFile.name}</p>
+            <p className="text-xs text-foreground/65 dark:text-foreground/30 mt-0.5">
               {formatSize(uploadedFile.size)}
               {uploadedFile.pageCount ? ` · ${uploadedFile.pageCount} pages` : ''}
             </p>
           </div>
-          <p className="text-[11px] text-white/20 mt-1">Click or drop to replace</p>
+          <p className="text-[11px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 mt-1">Click or drop to replace</p>
         </>
       ) : (
         <>
           <div
             className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-300 ${
-              dragActive ? 'bg-emerald-500/10' : 'bg-white/[0.04]'
+              dragActive ? 'bg-success/10' : 'bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04]'
             }`}
           >
             <ZoneIcon
               className={`w-7 h-7 transition-colors duration-300 ${
-                dragActive ? 'text-emerald-400' : 'text-white/20'
+                dragActive ? 'text-success' : 'text-foreground/20'
               }`}
             />
           </div>
-          <p className="text-sm text-white/60">{label}</p>
-          <p className="text-xs text-white/25">Drop file or click to browse</p>
+          <p className="text-sm text-foreground/85 dark:text-foreground/60">{label}</p>
+          <p className="text-xs text-foreground/65 dark:text-foreground/25">Drop file or click to browse</p>
         </>
       )}
     </div>
@@ -302,10 +302,10 @@ const PROCESSING_STEPS: Omit<ProcessingStep, 'status'>[] = [
 
 function ProcessingOverlay({ steps }: { steps: ProcessingStep[] }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 space-y-3">
+    <div className="space-y-3 rounded-2xl border border-foreground/[0.18] bg-foreground/[0.16] p-4 dark:bg-foreground/[0.03] dark:border-foreground/[0.06] sm:p-6">
       <div className="flex items-center gap-2 mb-4">
-        <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
-        <span className="text-sm font-medium text-white/70">Processing</span>
+        <Loader2 className="w-4 h-4 text-success animate-spin" />
+        <span className="text-sm font-medium text-foreground/85 dark:text-foreground/70">Processing</span>
       </div>
       {steps.map((step) => {
         const isActive = step.status === 'active';
@@ -323,20 +323,20 @@ function ProcessingOverlay({ steps }: { steps: ProcessingStep[] }) {
           >
             <div className="w-5 h-5 flex items-center justify-center shrink-0">
               {isComplete ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <CheckCircle2 className="w-4 h-4 text-success" />
               ) : isActive ? (
-                <Loader2 className="w-4 h-4 text-emerald-400/80 animate-spin" />
+                <Loader2 className="w-4 h-4 text-success/80 animate-spin" />
               ) : (
-                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                <div className="w-1.5 h-1.5 rounded-full bg-foreground/20" />
               )}
             </div>
             <span
               className={`text-sm transition-colors duration-300 ${
                 isComplete
-                  ? 'text-emerald-400/60 line-through'
+                  ? 'text-success/60 line-through'
                   : isActive
-                    ? 'text-white/80'
-                    : 'text-white/30'
+                    ? 'text-foreground/80'
+                    : 'text-foreground/30'
               }`}
             >
               {step.label}
@@ -375,10 +375,10 @@ function DetectionResults({
     info.confidence >= 0.8 ? 'High' : info.confidence >= 0.5 ? 'Medium' : 'Low';
   const confidenceColor =
     info.confidence >= 0.8
-      ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
+      ? 'text-success bg-success/10 border-success/20'
       : info.confidence >= 0.5
-        ? 'text-amber-400 bg-amber-400/10 border-amber-400/20'
-        : 'text-red-400 bg-red-400/10 border-red-400/20';
+        ? 'text-warning bg-warning/10 border-warning/20'
+        : 'text-danger bg-danger/10 border-danger/20';
 
   const details: { icon: React.ElementType; label: string; value: string }[] = [
     { icon: Ruler, label: 'Trim Size', value: info.trimSize },
@@ -393,12 +393,12 @@ function DetectionResults({
   ];
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden">
+    <div className="bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06] rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
+      <div className="flex flex-col gap-3 border-b border-foreground/[0.18] px-4 py-4 dark:border-foreground/[0.06] sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-medium text-white/80">Auto-Detected Settings</span>
+          <ShieldCheck className="w-4 h-4 text-success" />
+          <span className="text-sm font-medium text-foreground/80">Auto-Detected Settings</span>
         </div>
         <span
           className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${confidenceColor}`}
@@ -409,21 +409,21 @@ function DetectionResults({
       </div>
 
       {/* Detail grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-px bg-white/[0.04]">
+      <div className="grid grid-cols-1 gap-px bg-foreground/[0.18] dark:bg-foreground/[0.04] sm:grid-cols-2 lg:grid-cols-5">
         {details.map(({ icon: DIcon, label, value }) => (
-          <div key={label} className="bg-[#0a0a0f] p-4 flex flex-col gap-1.5">
-            <DIcon className="w-3.5 h-3.5 text-white/25" />
-            <span className="text-[11px] text-white/30 uppercase tracking-wider">{label}</span>
-            <span className="text-sm text-white/80 font-medium">{value}</span>
+          <div key={label} className="flex min-w-0 flex-col gap-1.5 bg-background p-4">
+            <DIcon className="w-3.5 h-3.5 text-foreground/65 dark:text-foreground/25" />
+            <span className="text-[11px] text-foreground/65 dark:text-foreground/30 uppercase tracking-wider">{label}</span>
+            <span className="break-words text-sm font-medium text-foreground/80">{value}</span>
           </div>
         ))}
       </div>
 
       {/* Processing indicator (no duplicate button) */}
       {processingActive && (
-        <div className="px-5 py-3 border-t border-white/[0.06] flex items-center gap-2">
-          <Loader2 className="w-3.5 h-3.5 text-emerald-400/60 animate-spin" />
-          <span className="text-xs text-white/40">Preparing preview…</span>
+        <div className="px-5 py-3 border-t border-foreground/[0.18] dark:border-foreground/[0.06] flex items-center gap-2">
+          <Loader2 className="w-3.5 h-3.5 text-success/60 animate-spin" />
+          <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Preparing preview…</span>
         </div>
       )}
     </div>
@@ -962,10 +962,10 @@ export default function ImportStep() {
     <div className="w-full max-w-3xl mx-auto space-y-8">
       {/* ---- Header ---- */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl font-bold text-white/90 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground/90 tracking-tight">
           Import Your Book
         </h2>
-        <p className="text-sm text-white/40 max-w-md mx-auto">
+        <p className="text-sm text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 max-w-md mx-auto">
           Upload your files and we&apos;ll auto-detect trim size, page count, bleed settings, and more.
         </p>
         <div className="flex justify-center pt-2">
@@ -1024,7 +1024,7 @@ export default function ImportStep() {
       </div>
 
       {/* ---- File info hints ---- */}
-      <div className="text-[11px] text-white/20 space-y-0.5 px-1">
+      <div className="text-[11px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 space-y-0.5 px-1">
         {bookType === 'kindle' ? (
           <>
             <p>· Kindle files: EPUB or PDF up to 650 MB</p>
@@ -1046,9 +1046,9 @@ export default function ImportStep() {
 
       {/* ---- Background preview processing indicator ---- */}
       {bgProcessingActive && !anyProcessing && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-          <Loader2 className="w-3.5 h-3.5 text-emerald-400/60 animate-spin" />
-          <span className="text-xs text-white/40">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06]">
+          <Loader2 className="w-3.5 h-3.5 text-success/60 animate-spin" />
+          <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">
             {processingStatus === 'parsing' && 'Parsing PDF...'}
             {processingStatus === 'rendering' && 'Rendering pages for preview...'}
             {processingStatus === 'analyzing' && 'Analyzing pages for issues...'}
@@ -1059,9 +1059,9 @@ export default function ImportStep() {
 
       {/* ---- Preview ready indicator ---- */}
       {processingStatus === 'ready' && previewReady && !anyProcessing && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/[0.04] border border-emerald-500/[0.10]">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/70" />
-          <span className="text-xs text-emerald-400/50">Preview ready — all pages rendered and analyzed</span>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-success/[0.04] border border-success/[0.10]">
+          <CheckCircle2 className="w-3.5 h-3.5 text-success/70" />
+          <span className="text-xs text-success/50">Preview ready — all pages rendered and analyzed</span>
         </div>
       )}
 
@@ -1075,10 +1075,10 @@ export default function ImportStep() {
 
       {/* ---- Single Continue button (sticky, always visible when eligible) ---- */}
       {canContinue && (
-        <div className="sticky bottom-4 flex justify-end z-10">
+        <div className="sticky bottom-4 z-10 flex justify-stretch sm:justify-end">
           <button
             onClick={handleContinue}
-            className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-semibold rounded-xl transition-colors duration-200 shadow-lg shadow-emerald-500/25"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-success/25 transition-colors duration-200 hover:bg-success sm:w-auto"
           >
             Continue to Configure
             <ChevronRight className="w-4 h-4" />

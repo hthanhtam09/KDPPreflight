@@ -327,8 +327,8 @@ export default function ImportStep() {
   }, [handleKindleUpload]);
 
   return (
-    <div className="h-full overflow-y-auto bg-[#0a0a0f]">
-      <div className="max-w-3xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+    <div className="ds-page-stage h-full overflow-y-auto">
+      <div className="mx-auto max-w-3xl space-y-8 px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -336,13 +336,13 @@ export default function ImportStep() {
           transition={{ duration: 0.4 }}
           className="text-center space-y-3"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/15 to-fuchsia-500/15 border border-violet-500/20">
-            <Upload className="w-7 h-7 text-violet-400" />
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+            <Upload className="h-7 w-7 text-primary" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white/90">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
             Import Your Book Files
           </h1>
-          <p className="text-white/40 text-sm max-w-md mx-auto">
+          <p className="mx-auto max-w-md text-sm text-muted-foreground">
             Upload your cover and manuscript files. We&apos;ll auto-detect trim size, page count, and other settings.
           </p>
         </motion.div>
@@ -353,10 +353,10 @@ export default function ImportStep() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <label className="text-xs text-white/50 uppercase tracking-wider mb-3 block">
+          <label className="mb-3 block text-xs uppercase tracking-wider text-muted-foreground">
             Book Type
           </label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <BookTypeCard
               active={bookType === 'paperback'}
               onClick={() => handleBookTypeChange('paperback')}
@@ -394,10 +394,10 @@ export default function ImportStep() {
               {/* Cover Upload */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs text-white/50 uppercase tracking-wider">
+                  <label className="text-xs uppercase tracking-wider text-muted-foreground">
                     Cover File
                   </label>
-                  <Badge variant="outline" className="text-[10px] border-violet-500/30 text-violet-400">
+                  <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
                     Required
                   </Badge>
                 </div>
@@ -436,10 +436,10 @@ export default function ImportStep() {
               {/* Manuscript Upload */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs text-white/50 uppercase tracking-wider">
+                  <label className="text-xs uppercase tracking-wider text-muted-foreground">
                     Interior Manuscript
                   </label>
-                  <Badge variant="outline" className="text-[10px] border-white/20 text-white/40">
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground">
                     Optional
                   </Badge>
                 </div>
@@ -486,10 +486,10 @@ export default function ImportStep() {
               {/* Kindle file upload */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs text-white/50 uppercase tracking-wider">
+                  <label className="text-xs uppercase tracking-wider text-muted-foreground">
                     Kindle File
                   </label>
-                  <Badge variant="outline" className="text-[10px] border-violet-500/30 text-violet-400">
+                  <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
                     Required
                   </Badge>
                 </div>
@@ -528,10 +528,10 @@ export default function ImportStep() {
               {/* Optional Kindle cover */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs text-white/50 uppercase tracking-wider">
+                  <label className="text-xs uppercase tracking-wider text-muted-foreground">
                     Cover Image
                   </label>
-                  <Badge variant="outline" className="text-[10px] border-white/20 text-white/40">
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground">
                     Optional
                   </Badge>
                 </div>
@@ -577,41 +577,41 @@ export default function ImportStep() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="bg-violet-500/[0.06] border border-violet-500/20 rounded-xl p-4"
+              className="rounded-xl border border-primary/20 bg-primary/10 p-4"
             >
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-violet-400" />
-                <span className="text-sm font-medium text-violet-300">Auto-Detected</span>
-                <Badge variant="outline" className="text-[10px] border-violet-500/30 text-violet-400">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Auto-Detected</span>
+                <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
                   {Math.round(detectedConfig.confidence * 100)}% confidence
                 </Badge>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
                 {detectedConfig.trimSize && (
                   <div>
-                    <span className="text-white/30">Trim Size</span>
-                    <p className="text-white/70 font-medium mt-0.5">
+                    <span className="text-muted-foreground">Trim Size</span>
+                    <p className="mt-0.5 font-medium text-foreground/80">
                       {TRIM_SIZES[detectedConfig.trimSize]?.label || detectedConfig.trimSize}
                     </p>
                   </div>
                 )}
                 {detectedConfig.pageCount && (
                   <div>
-                    <span className="text-white/30">Pages</span>
-                    <p className="text-white/70 font-medium mt-0.5">{detectedConfig.pageCount}</p>
+                    <span className="text-muted-foreground">Pages</span>
+                    <p className="mt-0.5 font-medium text-foreground/80">{detectedConfig.pageCount}</p>
                   </div>
                 )}
                 {detectedConfig.bleed && (
                   <div>
-                    <span className="text-white/30">Bleed</span>
-                    <p className="text-white/70 font-medium mt-0.5 capitalize">
+                    <span className="text-muted-foreground">Bleed</span>
+                    <p className="mt-0.5 font-medium capitalize text-foreground/80">
                       {detectedConfig.bleed.replace('-', ' ')}
                     </p>
                   </div>
                 )}
                 <div>
-                  <span className="text-white/30">Type</span>
-                  <p className="text-white/70 font-medium mt-0.5 capitalize">{bookType}</p>
+                  <span className="text-muted-foreground">Type</span>
+                  <p className="mt-0.5 font-medium capitalize text-foreground/80">{bookType}</p>
                 </div>
               </div>
             </motion.div>
@@ -625,11 +625,11 @@ export default function ImportStep() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="bg-red-500/[0.06] border border-red-500/20 rounded-xl p-4 flex items-center gap-3"
+              className="ds-status-critical flex items-center gap-3 rounded-xl border p-4"
             >
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-              <span className="text-red-300 text-sm">{error}</span>
-              <button onClick={() => setError(null)} className="ml-auto text-white/30 hover:text-white/60">
+              <AlertCircle className="h-5 w-5 shrink-0 text-danger" />
+              <span className="text-sm">{error}</span>
+              <button onClick={() => setError(null)} className="ml-auto text-muted-foreground hover:text-foreground">
                 <X className="w-4 h-4" />
               </button>
             </motion.div>
@@ -641,12 +641,12 @@ export default function ImportStep() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="flex justify-end"
+          className="flex justify-stretch sm:justify-end"
         >
           <Button
             onClick={handleContinue}
             disabled={!canContinue}
-            className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-8 py-3 rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="w-full rounded-xl px-6 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8"
           >
             Continue to Config
           </Button>
@@ -676,24 +676,24 @@ function BookTypeCard({
   return (
     <button
       onClick={onClick}
-      className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+      className={`relative flex min-w-0 flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
         active
-          ? 'bg-violet-500/10 border-violet-500/40 text-white shadow-lg shadow-violet-500/5'
-          : 'bg-white/[0.02] border-white/[0.06] text-white/40 hover:bg-white/[0.04] hover:border-white/10 hover:text-white/60'
+          ? 'border-primary/40 bg-primary/10 text-foreground shadow-soft'
+          : 'border-border bg-surface-glass text-muted-foreground hover:border-primary/25 hover:bg-secondary hover:text-foreground'
       }`}
     >
       {active && (
         <motion.div
           layoutId="bookTypeGlow"
-          className="absolute inset-0 rounded-xl bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5"
+          className="absolute inset-0 rounded-xl bg-primary/5"
         />
       )}
-      <div className={`relative z-10 ${active ? 'text-violet-400' : ''}`}>
+      <div className={`relative z-10 ${active ? 'text-primary' : ''}`}>
         {icon}
       </div>
-      <div className="relative z-10 text-center">
+      <div className="relative z-10 min-w-0 text-center">
         <p className="text-sm font-medium">{label}</p>
-        <p className="text-[10px] opacity-60">{description}</p>
+        <p className="break-words text-[10px] opacity-60">{description}</p>
       </div>
       {active && (
         <motion.div
@@ -701,7 +701,7 @@ function BookTypeCard({
           animate={{ scale: 1 }}
           className="absolute top-2 right-2"
         >
-          <CheckCircle2 className="w-4 h-4 text-violet-400" />
+          <CheckCircle2 className="h-4 w-4 text-primary" />
         </motion.div>
       )}
     </button>
@@ -733,17 +733,17 @@ function FileUploadZone({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       onClick={onClick}
-      className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer min-h-[140px] flex items-center justify-center ${
+      className={`relative flex min-h-[140px] cursor-pointer items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition-all sm:p-6 ${
         dragActive
-          ? 'border-violet-500/50 bg-violet-500/[0.08]'
-          : 'border-white/[0.08] hover:border-white/15 hover:bg-white/[0.02]'
+          ? 'border-primary/50 bg-primary/10'
+          : 'border-border bg-surface-glass hover:border-primary/25 hover:bg-secondary/60'
       }`}
     >
       {processing && (
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-overlay backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <Loader2 className="w-5 h-5 text-violet-400 animate-spin" />
-            <span className="text-white/70 text-sm">Processing...</span>
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            <span className="text-sm text-foreground/80">Processing...</span>
           </div>
         </div>
       )}
@@ -763,10 +763,10 @@ function UploadPrompt({
 }) {
   return (
     <div className="space-y-2 py-2">
-      <div className="text-white/20 mx-auto flex justify-center">{icon}</div>
-      <p className="text-sm text-white/50 font-medium">{title}</p>
-      <p className="text-xs text-white/25">{subtitle}</p>
-      <p className="text-[10px] text-white/15">Drag & drop or click to browse</p>
+      <div className="mx-auto flex justify-center text-muted-foreground">{icon}</div>
+      <p className="text-sm font-medium text-foreground/75">{title}</p>
+      <p className="text-xs text-muted-foreground">{subtitle}</p>
+      <p className="text-[10px] text-muted-foreground/70">Drag & drop or click to browse</p>
     </div>
   );
 }
@@ -783,25 +783,25 @@ function UploadedFilePreview({
   pageCount?: number;
 }) {
   return (
-    <div className="flex items-center gap-4 w-full text-left">
+    <div className="flex w-full min-w-0 items-center gap-3 text-left sm:gap-4">
       {/* Thumbnail */}
       {thumbnail ? (
-        <div className="w-16 h-20 rounded-lg overflow-hidden bg-black/30 border border-white/10 shrink-0">
+        <div className="h-20 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
           <img src={thumbnail} alt="Preview" className="w-full h-full object-cover" />
         </div>
       ) : (
-        <div className="w-16 h-20 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0">
-          <FileText className="w-6 h-6 text-white/20" />
+        <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary">
+          <FileText className="h-6 w-6 text-muted-foreground" />
         </div>
       )}
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <p className="text-sm text-white/80 font-medium truncate">{file.name}</p>
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+          <p className="truncate text-sm font-medium text-foreground/80">{file.name}</p>
         </div>
-        <div className="flex items-center gap-3 mt-1 text-xs text-white/30">
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
           {pageCount && <span>{pageCount} pages</span>}
           <span className="uppercase">{file.type.split('/').pop()}</span>
@@ -811,7 +811,7 @@ function UploadedFilePreview({
       {/* Remove */}
       <button
         onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        className="text-white/20 hover:text-white/60 transition-colors p-1"
+        className="p-1 text-muted-foreground transition-colors hover:text-foreground"
       >
         <X className="w-4 h-4" />
       </button>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/shared/Navbar";
@@ -17,29 +18,49 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://kdppreflight.app"),
   title: {
-    default: "KDPPreflight — KDP Formatter, Checker, Bleed Tool and 3D Preview",
+    default: "KDPPreflight — KDP Cover Checker, Bleed Checker, Trim Size & 3D Preview",
     template: "%s — KDPPreflight",
   },
-  description: "Catch KDP mistakes before Amazon does. Validate covers, manuscripts, bleed, trim size, spine width, DPI, and preview paperback or hardcover books in realistic 3D.",
-  keywords: ["KDP formatter", "KDP preview tool", "KDP bleed checker", "KDP cover checker", "KDP manuscript checker", "KDP trim size tool", "KDP book preview", "KDP paperback preview", "KDP hardcover preview", "KDP upload errors", "Amazon KDP formatting tool"],
+  description:
+    "KDP rejected your upload? Fix it before it happens. Check KDP cover size, bleed, trim, spine width, and margins. Preview your KDP paperback or hardcover book in realistic 3D. Free, privacy-first, local processing.",
+  keywords: [
+    "KDP cover checker",
+    "KDP bleed checker",
+    "KDP trim size",
+    "KDP manuscript checker",
+    "KDP spine calculator",
+    "KDP preview tool",
+    "Amazon KDP cover size",
+    "KDP paperback cover template",
+    "KDP PDF checker",
+    "KDP book preview",
+    "Amazon KDP formatting tool",
+    "KDP upload errors",
+    "KDP 3D book preview",
+    "KDP safe area",
+    "KDP margin checker",
+  ],
   authors: [{ name: "KDPPreflight" }],
   alternates: {
-    canonical: "/",
+    canonical: "https://kdppreflight.app",
   },
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "KDPPreflight — Catch KDP Mistakes Before Amazon Does",
-    description: "A privacy-first KDP formatter, cover checker, manuscript checker, bleed checker, trim size tool, and realistic 3D book preview.",
-    url: "/",
+    title: "KDPPreflight — Fix KDP Upload Errors Before They Happen",
+    description:
+      "Check KDP cover size, bleed, trim, spine width, margins, and preview your book in realistic 3D. Privacy-first, local processing. Free tool for Amazon KDP creators.",
+    url: "https://kdppreflight.app",
     siteName: "KDPPreflight",
     type: "website",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "KDPPreflight — KDP Formatter and 3D Preview Tool",
-    description: "Validate KDP files before upload with local-first checks and realistic 3D previews.",
+    title: "KDPPreflight — KDP Cover Checker & 3D Book Preview",
+    description:
+      "Validate KDP files before upload. Check bleed, trim, spine, margins. Preview in 3D. Local processing — no file storage.",
   },
 };
 
@@ -49,17 +70,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0a0a0f] text-white`}
-      >
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-        </div>
-        <Toaster />
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange={false}
+        >
+          <div className="flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+          </div>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

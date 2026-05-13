@@ -33,7 +33,7 @@ import {
   Upload,
   Settings,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAppStore } from '@/store/use-app-store';
 import { loadPDF, renderSinglePage } from '@/engine/pdf-processor';
 import {
@@ -69,14 +69,14 @@ import {
 // ---------------------------------------------------------------------------
 
 const OVERLAY_CONFIG: Record<OverlayType, { label: string; color: string; bg: string; border: string; svgStroke: string; svgFill: string }> = {
-  bleed: { label: 'Bleed', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/40', svgStroke: 'rgba(239,68,68,0.35)', svgFill: 'rgba(239,68,68,0.03)' },
-  trim: { label: 'Trim', color: 'text-white/60', bg: 'bg-white/5', border: 'border-white/30', svgStroke: 'rgba(255,255,255,0.25)', svgFill: 'rgba(255,255,255,0.01)' },
-  'safe-area': { label: 'Safe Area', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', svgStroke: 'rgba(52,211,153,0.35)', svgFill: 'rgba(52,211,153,0.03)' },
-  gutter: { label: 'Gutter', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', svgStroke: 'rgba(234,179,8,0.3)', svgFill: 'rgba(234,179,8,0.04)' },
-  hinge: { label: 'Hinge', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30', svgStroke: 'rgba(249,115,22,0.3)', svgFill: 'rgba(249,115,22,0.04)' },
-  crop: { label: 'Crop Risk', color: 'text-red-300', bg: 'bg-red-500/15', border: 'border-red-400/30', svgStroke: 'rgba(239,68,68,0.2)', svgFill: 'rgba(239,68,68,0.02)' },
-  spine: { label: 'Spine', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30', svgStroke: 'rgba(168,85,247,0.3)', svgFill: 'rgba(168,85,247,0.03)' },
-  barcode: { label: 'Barcode', color: 'text-gray-400', bg: 'bg-gray-500/10', border: 'border-gray-500/30', svgStroke: 'rgba(156,163,175,0.3)', svgFill: 'rgba(156,163,175,0.03)' },
+  bleed: { label: 'Bleed', color: 'text-danger', bg: 'bg-danger/10', border: 'border-danger/35', svgStroke: 'var(--overlay-bleed)', svgFill: 'color-mix(in srgb, var(--overlay-bleed) 10%, transparent)' },
+  trim: { label: 'Trim', color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/35', svgStroke: 'var(--overlay-trim)', svgFill: 'transparent' },
+  'safe-area': { label: 'Safe Area', color: 'text-success', bg: 'bg-success/10', border: 'border-success/30', svgStroke: 'var(--overlay-safe)', svgFill: 'color-mix(in srgb, var(--overlay-safe) 10%, transparent)' },
+  gutter: { label: 'Gutter', color: 'text-warning', bg: 'bg-warning/10', border: 'border-warning/30', svgStroke: 'var(--overlay-gutter)', svgFill: 'color-mix(in srgb, var(--overlay-gutter) 12%, transparent)' },
+  hinge: { label: 'Hinge', color: 'text-warning', bg: 'bg-warning/10', border: 'border-warning/30', svgStroke: 'var(--overlay-hinge)', svgFill: 'color-mix(in srgb, var(--overlay-hinge) 12%, transparent)' },
+  crop: { label: 'Crop Risk', color: 'text-danger', bg: 'bg-danger/10', border: 'border-danger/30', svgStroke: 'color-mix(in srgb, var(--overlay-bleed) 58%, transparent)', svgFill: 'color-mix(in srgb, var(--overlay-bleed) 8%, transparent)' },
+  spine: { label: 'Spine', color: 'text-foreground/75', bg: 'bg-secondary', border: 'border-border', svgStroke: 'var(--overlay-spine)', svgFill: 'color-mix(in srgb, var(--overlay-spine) 10%, transparent)' },
+  barcode: { label: 'Barcode', color: 'text-muted-foreground', bg: 'bg-secondary', border: 'border-border', svgStroke: 'color-mix(in srgb, var(--foreground) 42%, transparent)', svgFill: 'color-mix(in srgb, var(--foreground) 7%, transparent)' },
 };
 
 // Zoom physics
@@ -289,19 +289,19 @@ function PageOverlay({ width, height, overlays, measurements, isLeftPage, isCove
 
     // Top rectangle
     elements.push(
-      <rect key="focus-top" x={0} y={0} width={width} height={Math.max(0, hy - pad)} fill="rgba(0,0,0,0.4)" />,
+      <rect key="focus-top" x={0} y={0} width={width} height={Math.max(0, hy - pad)} fill="var(--overlay)" />,
     );
     // Bottom rectangle
     elements.push(
-      <rect key="focus-bottom" x={0} y={hy + hh + pad} width={width} height={Math.max(0, height - (hy + hh + pad))} fill="rgba(0,0,0,0.4)" />,
+      <rect key="focus-bottom" x={0} y={hy + hh + pad} width={width} height={Math.max(0, height - (hy + hh + pad))} fill="var(--overlay)" />,
     );
     // Left rectangle
     elements.push(
-      <rect key="focus-left" x={0} y={Math.max(0, hy - pad)} width={Math.max(0, hx - pad)} height={hh + pad * 2} fill="rgba(0,0,0,0.4)" />,
+      <rect key="focus-left" x={0} y={Math.max(0, hy - pad)} width={Math.max(0, hx - pad)} height={hh + pad * 2} fill="var(--overlay)" />,
     );
     // Right rectangle
     elements.push(
-      <rect key="focus-right" x={hx + hw + pad} y={Math.max(0, hy - pad)} width={Math.max(0, width - (hx + hw + pad))} height={hh + pad * 2} fill="rgba(0,0,0,0.4)" />,
+      <rect key="focus-right" x={hx + hw + pad} y={Math.max(0, hy - pad)} width={Math.max(0, width - (hx + hw + pad))} height={hh + pad * 2} fill="var(--overlay)" />,
     );
   }
 
@@ -310,7 +310,7 @@ function PageOverlay({ width, height, overlays, measurements, isLeftPage, isCove
       case 'bleed':
         elements.push(
           <rect key={ov} x={-bleedPx} y={-bleedPx} width={width + bleedPx * 2} height={height + bleedPx * 2}
-            fill="rgba(239,68,68,0.02)" stroke="rgba(239,68,68,0.3)" strokeWidth={0.75} strokeDasharray="8 4" />,
+            fill={OVERLAY_CONFIG.bleed.svgFill} stroke={OVERLAY_CONFIG.bleed.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />,
         );
         break;
       case 'trim':
@@ -318,49 +318,49 @@ function PageOverlay({ width, height, overlays, measurements, isLeftPage, isCove
           const wrapPx = 0.0625 * pxPerIn;
           const spinePx = (coverWidthIn - 2 * trimWidthIn - 2 * measurements.bleedIn - 2 * wrapPx) * pxPerIn;
           const bleedOff = measurements.bleedIn * pxPerIn;
-          elements.push(<rect key={`${ov}-back`} x={bleedOff} y={bleedOff} width={trimWidthIn * pxPerIn} height={height - bleedOff * 2} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={0.75} strokeDasharray="6 4" />);
-          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn} y={bleedOff} width={trimWidthIn * pxPerIn} height={height - bleedOff * 2} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={0.75} strokeDasharray="6 4" />);
+          elements.push(<rect key={`${ov}-back`} x={bleedOff} y={bleedOff} width={trimWidthIn * pxPerIn} height={height - bleedOff * 2} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={0.75} strokeDasharray="6 4" />);
+          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn} y={bleedOff} width={trimWidthIn * pxPerIn} height={height - bleedOff * 2} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={0.75} strokeDasharray="6 4" />);
           const spineStart = bleedOff + trimWidthIn * pxPerIn + wrapPx;
-          elements.push(<line key={`${ov}-spine-l`} x1={spineStart} y1={0} x2={spineStart} y2={height} stroke="rgba(168,85,247,0.25)" strokeWidth={0.75} strokeDasharray="6 3" />);
-          elements.push(<line key={`${ov}-spine-r`} x1={spineStart + spinePx} y1={0} x2={spineStart + spinePx} y2={height} stroke="rgba(168,85,247,0.25)" strokeWidth={0.75} strokeDasharray="6 3" />);
+          elements.push(<line key={`${ov}-spine-l`} x1={spineStart} y1={0} x2={spineStart} y2={height} stroke={OVERLAY_CONFIG.spine.svgStroke} strokeWidth={0.75} strokeDasharray="6 3" />);
+          elements.push(<line key={`${ov}-spine-r`} x1={spineStart + spinePx} y1={0} x2={spineStart + spinePx} y2={height} stroke={OVERLAY_CONFIG.spine.svgStroke} strokeWidth={0.75} strokeDasharray="6 3" />);
         } else {
           elements.push(
-            <rect key={ov} x={0} y={0} width={width} height={height} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={0.75} strokeDasharray="6 4" />,
+            <rect key={ov} x={0} y={0} width={width} height={height} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={0.75} strokeDasharray="6 4" />,
           );
         }
         break;
       case 'safe-area':
         if (isCoverPage && coverWidthIn && trimWidthIn) {
           const bleedOff = measurements.bleedIn * pxPerIn;
-          elements.push(<rect key={`${ov}-back`} x={bleedOff + safePx} y={bleedOff + safePx} width={trimWidthIn * pxPerIn - safePx * 2} height={height - bleedOff * 2 - safePx * 2} fill="rgba(52,211,153,0.03)" stroke="rgba(52,211,153,0.3)" strokeWidth={0.75} strokeDasharray="8 4" />);
-          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn + safePx} y={bleedOff + safePx} width={trimWidthIn * pxPerIn - safePx * 2} height={height - bleedOff * 2 - safePx * 2} fill="rgba(52,211,153,0.03)" stroke="rgba(52,211,153,0.3)" strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={`${ov}-back`} x={bleedOff + safePx} y={bleedOff + safePx} width={trimWidthIn * pxPerIn - safePx * 2} height={height - bleedOff * 2 - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn + safePx} y={bleedOff + safePx} width={trimWidthIn * pxPerIn - safePx * 2} height={height - bleedOff * 2 - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
         } else {
           elements.push(
-            <rect key={ov} x={safePx} y={safePx} width={width - safePx * 2} height={height - safePx * 2} fill="rgba(52,211,153,0.03)" stroke="rgba(52,211,153,0.3)" strokeWidth={0.75} strokeDasharray="8 4" />,
+            <rect key={ov} x={safePx} y={safePx} width={width - safePx * 2} height={height - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />,
           );
         }
         break;
       case 'gutter':
         if (isLeftPage) {
-          elements.push(<rect key={ov} x={0} y={0} width={gutterPx} height={height} fill="rgba(234,179,8,0.04)" stroke="rgba(234,179,8,0.25)" strokeWidth={0.75} strokeDasharray="6 3" />);
+          elements.push(<rect key={ov} x={0} y={0} width={gutterPx} height={height} fill={OVERLAY_CONFIG.gutter.svgFill} stroke={OVERLAY_CONFIG.gutter.svgStroke} strokeWidth={0.75} strokeDasharray="6 3" />);
         } else {
-          elements.push(<rect key={ov} x={width - gutterPx} y={0} width={gutterPx} height={height} fill="rgba(234,179,8,0.04)" stroke="rgba(234,179,8,0.25)" strokeWidth={0.75} strokeDasharray="6 3" />);
+          elements.push(<rect key={ov} x={width - gutterPx} y={0} width={gutterPx} height={height} fill={OVERLAY_CONFIG.gutter.svgFill} stroke={OVERLAY_CONFIG.gutter.svgStroke} strokeWidth={0.75} strokeDasharray="6 3" />);
         }
         break;
       case 'hinge':
         if (isCoverPage && coverWidthIn && trimWidthIn) {
           const bleedOff = measurements.bleedIn * pxPerIn;
-          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn} y={bleedOff} width={hingePx} height={height - bleedOff * 2} fill="rgba(249,115,22,0.04)" stroke="rgba(249,115,22,0.25)" strokeWidth={0.75} strokeDasharray="8 4" />);
-          elements.push(<rect key={`${ov}-back`} x={bleedOff + trimWidthIn * pxPerIn - hingePx} y={bleedOff} width={hingePx} height={height - bleedOff * 2} fill="rgba(249,115,22,0.04)" stroke="rgba(249,115,22,0.25)" strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn} y={bleedOff} width={hingePx} height={height - bleedOff * 2} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={`${ov}-back`} x={bleedOff + trimWidthIn * pxPerIn - hingePx} y={bleedOff} width={hingePx} height={height - bleedOff * 2} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
         } else if (isLeftPage) {
-          elements.push(<rect key={ov} x={0} y={0} width={hingePx} height={height} fill="rgba(249,115,22,0.04)" stroke="rgba(249,115,22,0.25)" strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={ov} x={0} y={0} width={hingePx} height={height} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
         } else {
-          elements.push(<rect key={ov} x={width - hingePx} y={0} width={hingePx} height={height} fill="rgba(249,115,22,0.04)" stroke="rgba(249,115,22,0.25)" strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={ov} x={width - hingePx} y={0} width={hingePx} height={height} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
         }
         break;
       case 'crop': {
         const cropPx = 0.0625 * pxPerIn;
-        elements.push(<rect key={ov} x={cropPx} y={cropPx} width={width - cropPx * 2} height={height - cropPx * 2} fill="rgba(239,68,68,0.02)" stroke="rgba(239,68,68,0.15)" strokeWidth={0.75} strokeDasharray="4 4" />);
+        elements.push(<rect key={ov} x={cropPx} y={cropPx} width={width - cropPx * 2} height={height - cropPx * 2} fill={OVERLAY_CONFIG.crop.svgFill} stroke={OVERLAY_CONFIG.crop.svgStroke} strokeWidth={0.75} strokeDasharray="4 4" />);
         break;
       }
       default:
@@ -375,12 +375,12 @@ function PageOverlay({ width, height, overlays, measurements, isLeftPage, isCove
     const hw = highlightRegion.widthIn * pxPerIn;
     const hh = highlightRegion.heightIn * pxPerIn;
 
-    const glowColor = highlightSeverity === 'fail' ? 'rgba(239,68,68,0.15)' :
-      highlightSeverity === 'risk' ? 'rgba(249,115,22,0.12)' :
-      highlightSeverity === 'warning' ? 'rgba(234,179,8,0.10)' : 'rgba(52,211,153,0.08)';
-    const strokeColor = highlightSeverity === 'fail' ? 'rgba(239,68,68,0.6)' :
-      highlightSeverity === 'risk' ? 'rgba(249,115,22,0.5)' :
-      highlightSeverity === 'warning' ? 'rgba(234,179,8,0.4)' : 'rgba(52,211,153,0.3)';
+    const glowColor = highlightSeverity === 'fail' ? 'var(--validation-critical)' :
+      highlightSeverity === 'risk' ? 'var(--validation-warning)' :
+      highlightSeverity === 'warning' ? 'var(--validation-warning)' : 'var(--validation-success)';
+    const strokeColor = highlightSeverity === 'fail' ? 'var(--overlay-bleed)' :
+      highlightSeverity === 'risk' ? 'var(--overlay-hinge)' :
+      highlightSeverity === 'warning' ? 'var(--overlay-gutter)' : 'var(--overlay-safe)';
 
     elements.push(
       <rect key="issue-highlight" x={hx} y={hy} width={hw} height={hh}
@@ -449,15 +449,15 @@ function PageRenderer({
       style={{ width: `${width}px`, height: `${height}px` }}
     >
       <div
-        className="w-full h-full bg-white overflow-hidden relative"
+        className="relative h-full w-full overflow-hidden bg-surface"
         style={{
-          boxShadow: '0 4px 24px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: 'var(--shadow-elevated)',
+          border: '1px solid var(--border)',
           borderRadius: '1px',
         }}
       >
         {page.isBlank ? (
-          <div className="w-full h-full bg-white flex flex-col items-center justify-center">
+          <div className="flex h-full w-full flex-col items-center justify-center bg-surface">
             <span className="text-[11px] text-gray-300 font-medium">
               {page.section === 'blank' ? 'Blank Page' : page.label}
             </span>
@@ -471,10 +471,10 @@ function PageRenderer({
             draggable={false}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-white/10">
+          <div className="w-full h-full flex flex-col items-center justify-center text-foreground/80 dark:text-foreground/50 dark:text-foreground/10">
             <FileText className="w-12 h-12 mb-2" />
             <span className="text-xs">{page.label}</span>
-            {isCoverPage && <span className="text-[10px] text-white/5 mt-1">Upload cover to preview</span>}
+            {isCoverPage && <span className="text-[10px] text-foreground/5 mt-1">Upload cover to preview</span>}
           </div>
         )}
 
@@ -498,12 +498,12 @@ function PageRenderer({
       {/* Gutter shadow for spread */}
       {isLeftPage && (
         <div className="absolute top-0 right-0 w-4 h-full pointer-events-none z-20"
-          style={{ background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.25))' }}
+          style={{ background: 'linear-gradient(to right, transparent, color-mix(in srgb, var(--overlay) 40%, transparent))' }}
         />
       )}
       {!isLeftPage && page.section !== 'full-cover' && !page.isBlank && (
         <div className="absolute top-0 left-0 w-4 h-full pointer-events-none z-20"
-          style={{ background: 'linear-gradient(to left, transparent, rgba(0,0,0,0.25))' }}
+          style={{ background: 'linear-gradient(to left, transparent, color-mix(in srgb, var(--overlay) 40%, transparent))' }}
         />
       )}
     </div>
@@ -540,9 +540,9 @@ function getIssueCountForPages(pages: BookPage[], pageIssues: PageIssueExtended[
 
 function IssueDot({ severity, size = 'sm' }: { severity: CheckStatus; size?: 'sm' | 'md' }) {
   const color =
-    severity === 'fail' ? 'bg-red-500' :
-    severity === 'risk' ? 'bg-orange-500' :
-    severity === 'warning' ? 'bg-amber-500' : 'bg-green-500';
+    severity === 'fail' ? 'bg-danger' :
+    severity === 'risk' ? 'bg-warning' :
+    severity === 'warning' ? 'bg-warning' : 'bg-success';
   const dim = size === 'sm' ? 'w-1.5 h-1.5' : 'w-2 h-2';
   return <div className={`rounded-full ${color} ${dim}`} />;
 }
@@ -550,7 +550,7 @@ function IssueDot({ severity, size = 'sm' }: { severity: CheckStatus; size?: 'sm
 function SingleThumb({ page, small }: { page: BookPage; small?: boolean }) {
   if (page.isBlank) {
     return (
-      <div className="w-full h-full bg-white/80 flex items-center justify-center">
+      <div className="w-full h-full bg-foreground/80 flex items-center justify-center">
         <span className={`text-gray-300 font-medium ${small ? 'text-[4px]' : 'text-[7px]'}`}>
           {page.section === 'blank' ? 'Blank' : page.label}
         </span>
@@ -560,7 +560,7 @@ function SingleThumb({ page, small }: { page: BookPage; small?: boolean }) {
   if (page.dataUrl) {
     return <img src={page.dataUrl} alt={page.label} className="w-full h-full object-contain" />;
   }
-  return <FileText className={`${small ? 'w-3 h-3' : 'w-4 h-4'} text-white/10`} />;
+  return <FileText className={`${small ? 'w-3 h-3' : 'w-4 h-4'} text-foreground/10`} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -582,15 +582,15 @@ function OnboardingHint({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.2 }}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.08] text-[10px] text-white/40"
+      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-foreground/[0.13] dark:bg-foreground/[0.06] border border-foreground/[0.22] dark:border-foreground/[0.08] text-[10px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/40"
     >
       <span>{children}</span>
       <button
         onClick={() => onDismiss(id)}
-        className="shrink-0 p-0.5 rounded hover:bg-white/[0.08] transition-colors"
+        className="shrink-0 p-0.5 rounded hover:bg-foreground/[0.16] dark:bg-foreground/[0.08] transition-colors"
         aria-label="Dismiss hint"
       >
-        <X className="w-2.5 h-2.5 text-white/25" />
+        <X className="w-2.5 h-2.5 text-foreground/65 dark:text-foreground/25" />
       </button>
     </motion.div>
   );
@@ -607,20 +607,20 @@ function SaveStatusIndicator({ status }: { status: SaveStatus }) {
     <div className="flex items-center gap-1.5 px-2 py-1 rounded-md">
       {status === 'saving' && (
         <>
-          <Loader2 className="w-3 h-3 text-white/20 animate-spin" />
-          <span className="text-[10px] text-white/30">Saving...</span>
+          <Loader2 className="w-3 h-3 text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 animate-spin" />
+          <span className="text-[10px] text-foreground/65 dark:text-foreground/30">Saving...</span>
         </>
       )}
       {status === 'saved' && (
         <>
-          <CheckCircle2 className="w-3 h-3 text-emerald-400/40" />
-          <span className="text-[10px] text-emerald-400/50">Saved</span>
+          <CheckCircle2 className="w-3 h-3 text-success/40" />
+          <span className="text-[10px] text-success/50">Saved</span>
         </>
       )}
       {status === 'error' && (
         <>
-          <AlertCircle className="w-3 h-3 text-red-400/40" />
-          <span className="text-[10px] text-red-400/50">Save failed</span>
+          <AlertCircle className="w-3 h-3 text-danger/40" />
+          <span className="text-[10px] text-danger/50">Save failed</span>
         </>
       )}
     </div>
@@ -650,38 +650,38 @@ function SessionRestoreDialog({
   }, [savedWorkspace.savedAt]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-[#1e1f22] border border-white/[0.08] rounded-xl p-6 w-[380px] shadow-2xl"
+        className="w-[calc(100vw-2rem)] max-w-[380px] rounded-xl border border-foreground/[0.22] bg-card p-5 shadow-2xl dark:border-foreground/[0.08] sm:p-6"
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <RotateCcw className="w-5 h-5 text-emerald-400/60" />
+          <div className="w-10 h-10 rounded-lg bg-success/10 border border-success/20 flex items-center justify-center">
+            <RotateCcw className="w-5 h-5 text-success/60" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white/80">Restore previous session?</h3>
-            <p className="text-[11px] text-white/25 mt-0.5">Last saved: {timeAgo}</p>
+            <h3 className="text-sm font-semibold text-foreground/80">Restore previous session?</h3>
+            <p className="text-[11px] text-foreground/65 dark:text-foreground/25 mt-0.5">Last saved: {timeAgo}</p>
           </div>
         </div>
 
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3 mb-4">
+        <div className="bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06] rounded-lg p-3 mb-4">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-white/20" />
-            <span className="text-[11px] text-white/40 font-medium">
+            <FileText className="w-4 h-4 text-foreground/85 dark:text-foreground/60 dark:text-foreground/20" />
+            <span className="text-[11px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 font-medium">
               {savedWorkspace.coverFileName || savedWorkspace.manuscriptFileName || 'Book session'}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1.5">
-            <span className="text-[10px] text-white/20">
+            <span className="text-[10px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20">
               {savedWorkspace.bookPages.length} pages
             </span>
-            <span className="text-[10px] text-white/20">
+            <span className="text-[10px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20">
               {savedWorkspace.bookType}
             </span>
-            <span className="text-[10px] text-white/20">
+            <span className="text-[10px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20">
               {savedWorkspace.previewViewMode} view
             </span>
           </div>
@@ -690,13 +690,13 @@ function SessionRestoreDialog({
         <div className="flex gap-2">
           <button
             onClick={onDiscard}
-            className="flex-1 px-4 py-2.5 rounded-lg text-[12px] font-medium text-white/40 bg-white/[0.04] hover:bg-white/[0.06] hover:text-white/50 transition-colors border border-white/[0.06]"
+            className="flex-1 px-4 py-2.5 rounded-lg text-[12px] font-medium text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] hover:text-foreground/80 dark:text-foreground/50 transition-colors border border-foreground/[0.18] dark:border-foreground/[0.06]"
           >
             Start New
           </button>
           <button
             onClick={onRestore}
-            className="flex-1 px-4 py-2.5 rounded-lg text-[12px] font-medium text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/20 transition-colors border border-emerald-500/20"
+            className="flex-1 px-4 py-2.5 rounded-lg text-[12px] font-medium text-success bg-success/15 hover:bg-success/20 transition-colors border border-success/20"
           >
             Restore
           </button>
@@ -745,10 +745,10 @@ function ThumbnailSidebar({
 
   if (collapsed) {
     return (
-      <div className="w-10 shrink-0 border-r border-white/[0.06] bg-[#1a1b1e] flex flex-col items-center pt-2">
+      <div className="w-10 shrink-0 border-r border-foreground/[0.18] dark:border-foreground/[0.06] bg-card flex flex-col items-center pt-2">
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-lg text-white/25 hover:text-white/50 hover:bg-white/[0.04] transition-colors"
+          className="p-1.5 rounded-lg text-foreground/65 dark:text-foreground/25 hover:text-foreground/80 dark:text-foreground/50 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
           title="Expand sidebar"
         >
           <PanelLeftOpen className="w-4 h-4" />
@@ -758,13 +758,13 @@ function ThumbnailSidebar({
   }
 
   return (
-    <div className="w-[170px] min-w-[120px] max-w-[190px] shrink-0 border-r border-white/[0.06] bg-[#1a1b1e] flex flex-col">
+    <div className="w-[170px] min-w-[120px] max-w-[190px] shrink-0 border-r border-foreground/[0.18] dark:border-foreground/[0.06] bg-card flex flex-col">
       {/* Header */}
-      <div className="shrink-0 px-3 py-2 border-b border-white/[0.06] flex items-center justify-between">
-        <span className="text-[10px] font-semibold text-white/25 uppercase tracking-wider">Pages</span>
+      <div className="shrink-0 px-3 py-2 border-b border-foreground/[0.18] dark:border-foreground/[0.06] flex items-center justify-between">
+        <span className="text-[10px] font-semibold text-foreground/65 dark:text-foreground/25 uppercase tracking-wider">Pages</span>
         <button
           onClick={onToggleCollapse}
-          className="p-1 rounded-md text-white/20 hover:text-white/40 hover:bg-white/[0.04] transition-colors"
+          className="p-1 rounded-md text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 hover:text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
           title="Collapse sidebar"
         >
           <PanelLeftClose className="w-3.5 h-3.5" />
@@ -789,12 +789,12 @@ function ThumbnailSidebar({
                 onClick={() => spread.leftPageIndex !== null && onPageSelect(spread.leftPageIndex)}
                 className={`w-full rounded-lg overflow-hidden border transition-all duration-200 text-left ${
                   isActive
-                    ? 'border-emerald-400/60 ring-2 ring-emerald-500/25 bg-emerald-500/[0.03]'
-                    : 'border-white/[0.06] hover:border-white/[0.12]'
+                    ? 'border-success/60 ring-2 ring-success/25 bg-success/[0.03]'
+                    : 'border-foreground/[0.18] dark:border-foreground/[0.06] hover:border-foreground/[0.25] dark:border-foreground/[0.12]'
                 }`}
               >
                 {/* Preview image — aspect-ratio aware, no cropping */}
-                <div className="relative bg-white/[0.03] flex items-center justify-center p-1" style={{ aspectRatio: spread.isSingle ? '2/3' : '4/3' }}>
+                <div className="relative bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] flex items-center justify-center p-1" style={{ aspectRatio: spread.isSingle ? '2/3' : '4/3' }}>
                   {spread.isSingle ? (
                     leftPage ? <SingleThumb page={leftPage} /> : null
                   ) : (
@@ -802,7 +802,7 @@ function ThumbnailSidebar({
                       <div className="flex-1 overflow-hidden flex items-center justify-center">
                         {leftPage ? <SingleThumb page={leftPage} small /> : null}
                       </div>
-                      <div className="w-px bg-[#2a2b2e] self-stretch" />
+                      <div className="w-px bg-muted self-stretch" />
                       <div className="flex-1 overflow-hidden flex items-center justify-center">
                         {rightPage ? <SingleThumb page={rightPage} small /> : null}
                       </div>
@@ -816,9 +816,9 @@ function ThumbnailSidebar({
                 </div>
 
                 {/* Label + issue badge */}
-                <div className="px-2 py-1.5 bg-white/[0.02]">
+                <div className="px-2 py-1.5 bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]">
                   <div className="flex items-center justify-between gap-1">
-                    <span className={`text-[9px] font-medium leading-tight truncate ${isActive ? 'text-emerald-400' : 'text-white/35'}`}>
+                    <span className={`text-[9px] font-medium leading-tight truncate ${isActive ? 'text-success' : 'text-foreground/35'}`}>
                       {spread.label}
                     </span>
                     <div className="flex items-center gap-1">
@@ -829,9 +829,9 @@ function ThumbnailSidebar({
                   </div>
                   {issueCount > 0 && (
                     <span className={`text-[8px] mt-0.5 block font-medium ${
-                      worstIssue === 'fail' ? 'text-red-400/50' :
-                      worstIssue === 'risk' ? 'text-orange-400/50' :
-                      'text-white/15'
+                      worstIssue === 'fail' ? 'text-danger/50' :
+                      worstIssue === 'risk' ? 'text-warning/50' :
+                      'text-foreground/15'
                     }`}>
                       {issueCount} issue{issueCount !== 1 ? 's' : ''}
                     </span>
@@ -853,12 +853,12 @@ function ThumbnailSidebar({
                 onClick={() => onPageSelect(idx)}
                 className={`w-full rounded-lg overflow-hidden border transition-all duration-200 text-left ${
                   isActive
-                    ? 'border-emerald-400/60 ring-2 ring-emerald-500/25 bg-emerald-500/[0.03]'
-                    : 'border-white/[0.06] hover:border-white/[0.12]'
+                    ? 'border-success/60 ring-2 ring-success/25 bg-success/[0.03]'
+                    : 'border-foreground/[0.18] dark:border-foreground/[0.06] hover:border-foreground/[0.25] dark:border-foreground/[0.12]'
                 }`}
               >
                 {/* Preview image — aspect-ratio aware, no cropping */}
-                <div className="relative bg-white/[0.03] flex items-center justify-center p-1" style={{ aspectRatio: page.isCoverPage ? '3/2' : '2/3' }}>
+                <div className="relative bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] flex items-center justify-center p-1" style={{ aspectRatio: page.isCoverPage ? '3/2' : '2/3' }}>
                   <SingleThumb page={page} />
                   {worstIssue && worstIssue !== 'pass' && worstIssue !== 'safe' && (
                     <div className="absolute top-1 right-1">
@@ -868,9 +868,9 @@ function ThumbnailSidebar({
                 </div>
 
                 {/* Label + issue badge */}
-                <div className="px-2 py-1.5 bg-white/[0.02]">
+                <div className="px-2 py-1.5 bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]">
                   <div className="flex items-center justify-between gap-1">
-                    <span className={`text-[9px] font-medium truncate ${isActive ? 'text-emerald-400' : 'text-white/30'}`}>
+                    <span className={`text-[9px] font-medium truncate ${isActive ? 'text-success' : 'text-foreground/30'}`}>
                       {page.section === 'full-cover' ? 'Cover' : page.section === 'blank' ? 'Blank' : page.label}
                     </span>
                     {worstIssue && worstIssue !== 'pass' && worstIssue !== 'safe' && (
@@ -879,9 +879,9 @@ function ThumbnailSidebar({
                   </div>
                   {issueCount > 0 && (
                     <span className={`text-[8px] mt-0.5 block font-medium ${
-                      worstIssue === 'fail' ? 'text-red-400/50' :
-                      worstIssue === 'risk' ? 'text-orange-400/50' :
-                      'text-white/15'
+                      worstIssue === 'fail' ? 'text-danger/50' :
+                      worstIssue === 'risk' ? 'text-warning/50' :
+                      'text-foreground/15'
                     }`}>
                       {issueCount} issue{issueCount !== 1 ? 's' : ''}
                     </span>
@@ -932,15 +932,15 @@ function getSeverityColors(severity: CheckStatus) {
   switch (severity) {
     case 'pass':
     case 'safe':
-      return { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20', glow: 'ring-green-500/10' };
+      return { bg: 'bg-success/10', text: 'text-success', border: 'border-success/20', glow: 'ring-success/10' };
     case 'warning':
-      return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', glow: 'ring-amber-500/10' };
+      return { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/20', glow: 'ring-warning/10' };
     case 'risk':
-      return { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', glow: 'ring-orange-500/10' };
+      return { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/20', glow: 'ring-warning/10' };
     case 'fail':
-      return { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', glow: 'ring-red-500/10' };
+      return { bg: 'bg-danger/10', text: 'text-danger', border: 'border-danger/20', glow: 'ring-danger/10' };
     default:
-      return { bg: 'bg-white/5', text: 'text-white/40', border: 'border-white/10', glow: '' };
+      return { bg: 'bg-foreground/5', text: 'text-foreground/40', border: 'border-foreground/10', glow: '' };
   }
 }
 
@@ -951,17 +951,17 @@ function getSeverityLabel(severity: CheckStatus) {
     case 'warning': return 'PROBABLY OK';
     case 'risk': return 'PRINT RISK';
     case 'fail': return 'HIGH REJECTION RISK';
-    default: return severity.toUpperCase();
+    default: return (severity as string).toUpperCase();
   }
 }
 
 /** Get realistic KDP risk label with emoji */
 function getKdpRiskLabel(kdpRisk?: KdpRiskLevel): { label: string; emoji: string; color: string } {
   switch (kdpRisk) {
-    case 'safe': return { label: 'Safe for KDP', emoji: 'OK', color: 'text-green-400' };
-    case 'probably-ok': return { label: 'Probably acceptable', emoji: 'Note', color: 'text-amber-400' };
-    case 'print-risk': return { label: 'May cause print inconsistencies', emoji: '🟠', color: 'text-orange-400' };
-    case 'high-rejection': return { label: 'High rejection risk', emoji: 'Fix', color: 'text-red-400' };
+    case 'safe': return { label: 'Safe for KDP', emoji: 'OK', color: 'text-success' };
+    case 'probably-ok': return { label: 'Probably acceptable', emoji: 'Note', color: 'text-warning' };
+    case 'print-risk': return { label: 'May cause print inconsistencies', emoji: 'Risk', color: 'text-warning' };
+    case 'high-rejection': return { label: 'High rejection risk', emoji: 'Fix', color: 'text-danger' };
     default: return { label: '', emoji: '', color: '' };
   }
 }
@@ -981,12 +981,14 @@ function FriendlyIssueCard({
   isSelected,
   onClick,
   locationLabel,
+  staggerIndex = 0,
 }: {
   issue: PageIssueExtended;
   isSelected: boolean;
   onClick: () => void;
   /** Override location label, e.g. "Spread 2–3 · Page 3 (Right)" instead of just "Page 3" */
   locationLabel?: string;
+  staggerIndex?: number;
 }) {
   const [showTechnical, setShowTechnical] = useState(false);
   const colors = getSeverityColors(issue.severity);
@@ -1009,29 +1011,32 @@ function FriendlyIssueCard({
         isSelected
           ? `${colors.bg} ${colors.border} ring-1 ${colors.glow}`
           : isInfo
-          ? 'border-white/[0.03] hover:border-white/[0.06]'
-          : 'border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02]'
+          ? 'border-foreground/[0.10] dark:border-foreground/[0.03] hover:border-foreground/[0.18] dark:border-foreground/[0.06]'
+          : 'border-foreground/[0.25] dark:border-foreground/[0.12] dark:border-foreground/[0.04] hover:border-foreground/[0.22] dark:border-foreground/[0.08] hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]'
       }`}
       layout
+      initial={{ opacity: 0, y: 7 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, delay: staggerIndex * 0.05 }}
     >
       <div className={isInfo ? 'p-3' : 'p-4'}>
         {/* TOP ROW: Severity badge + title + affected page */}
         <div className="flex items-start gap-2">
-          <span className={`shrink-0 mt-0.5 ${isInfo ? 'text-green-400/40' : colors.text}`}>
+          <span className={`shrink-0 mt-0.5 ${isInfo ? 'text-success/40' : colors.text}`}>
             {isInfo ? <CheckCircle2 className="w-3.5 h-3.5" /> : getSeverityIcon(issue.severity)}
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isInfo ? 'bg-green-500/10 text-green-400/60' : `${colors.bg} ${colors.text}`}`}>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isInfo ? 'bg-success/10 text-success/60' : `${colors.bg} ${colors.text}`}`}>
                 {getSeverityLabel(issue.severity)}
               </span>
               {pageLabel && (
-                <span className="text-[11px] text-white/30 font-medium">
+                <span className="text-[11px] text-foreground/65 dark:text-foreground/30 font-medium">
                   {pageLabel}
                 </span>
               )}
             </div>
-            <p className={`text-[13px] font-medium leading-relaxed ${isInfo ? 'text-white/40' : isSelected ? 'text-white/80' : 'text-white/60'}`}>
+            <p className={`text-[13px] font-medium leading-relaxed ${isInfo ? 'text-foreground/40' : isSelected ? 'text-foreground/80' : 'text-foreground/60'}`}>
               {issue.message}
             </p>
           </div>
@@ -1042,11 +1047,11 @@ function FriendlyIssueCard({
           <div className="mt-2.5 ml-6 flex items-center gap-3">
             {specLabel && (
               <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wider">Spec:</span>
+                <span className="text-[9px] font-semibold text-foreground/65 dark:text-foreground/30 uppercase tracking-wider">Spec:</span>
                 <span className={`text-[10px] font-medium ${
-                  issue.specAccuracy === 'exact' ? 'text-green-400/60'
-                  : issue.specAccuracy === 'slight-variance' ? 'text-amber-400/60'
-                  : 'text-red-400/60'
+                  issue.specAccuracy === 'exact' ? 'text-success/60'
+                  : issue.specAccuracy === 'slight-variance' ? 'text-warning/60'
+                  : 'text-danger/60'
                 }`}>
                   {issue.specAccuracy === 'exact' ? 'Exact' : issue.specAccuracy === 'slight-variance' ? 'Close' : 'Mismatch'} · {specLabel}
                 </span>
@@ -1054,7 +1059,7 @@ function FriendlyIssueCard({
             )}
             {kdpRiskInfo.label && (
               <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wider">KDP:</span>
+                <span className="text-[9px] font-semibold text-foreground/65 dark:text-foreground/30 uppercase tracking-wider">KDP:</span>
                 <span className={`text-[10px] font-medium ${kdpRiskInfo.color}/70`}>
                   {kdpRiskInfo.emoji} {kdpRiskInfo.label}
                 </span>
@@ -1066,7 +1071,7 @@ function FriendlyIssueCard({
         {/* Real-world impact explanation */}
         {issue.realWorldImpact && !isInfo && (
           <div className="mt-2 ml-6">
-            <p className="text-[12px] text-white/35 leading-relaxed italic">
+            <p className="text-[12px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 leading-relaxed italic">
               {issue.realWorldImpact}
             </p>
           </div>
@@ -1076,20 +1081,20 @@ function FriendlyIssueCard({
         {!isInfo && (
           <div className="mt-3 ml-7 space-y-3">
             <div>
-              <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Problem</span>
-              <p className="text-[13px] text-white/45 leading-relaxed mt-0.5">
+              <span className="text-[10px] font-semibold text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 uppercase tracking-wider">Problem</span>
+              <p className="text-[13px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 leading-relaxed mt-0.5">
                 {friendlyInfo.problemPrefix}
               </p>
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Why it matters</span>
-              <p className="text-[13px] text-white/45 leading-relaxed mt-0.5">
+              <span className="text-[10px] font-semibold text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 uppercase tracking-wider">Why it matters</span>
+              <p className="text-[13px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 leading-relaxed mt-0.5">
                 {friendlyInfo.whyItMatters}
               </p>
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-emerald-400/50 uppercase tracking-wider">Recommended fix</span>
-              <p className="text-[13px] text-emerald-400/40 leading-relaxed mt-0.5 whitespace-pre-line">
+              <span className="text-[10px] font-semibold text-success/50 uppercase tracking-wider">Recommended fix</span>
+              <p className="text-[13px] text-success/40 leading-relaxed mt-0.5 whitespace-pre-line">
                 {issue.suggestion || friendlyInfo.fixHint}
               </p>
             </div>
@@ -1104,7 +1109,7 @@ function FriendlyIssueCard({
               role="button"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setShowTechnical(!showTechnical); } }}
-              className="flex items-center gap-1 text-[11px] text-white/25 hover:text-white/40 transition-colors cursor-pointer py-1"
+              className="flex items-center gap-1 text-[11px] text-foreground/65 dark:text-foreground/25 hover:text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 transition-colors cursor-pointer py-1"
             >
               <ChevronDown className={`w-2.5 h-2.5 transition-transform ${showTechnical ? 'rotate-180' : ''}`} />
               Dimensions Comparison
@@ -1118,9 +1123,9 @@ function FriendlyIssueCard({
                   transition={{ duration: 0.15 }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-1.5 bg-white/[0.02] rounded-md overflow-hidden">
+                  <div className="mt-1.5 bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02] rounded-md overflow-hidden">
                     {/* Table header */}
-                    <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[9px] font-semibold text-white/30 uppercase tracking-wider border-b border-white/[0.04] px-2 py-1">
+                    <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[9px] font-semibold text-foreground/65 dark:text-foreground/30 uppercase tracking-wider border-b border-foreground/[0.25] dark:border-foreground/[0.12] dark:border-foreground/[0.04] px-2 py-1">
                       <span>Metric</span>
                       <span>Actual</span>
                       <span>Expected</span>
@@ -1146,16 +1151,16 @@ function FriendlyIssueCard({
 
                         return (
                           <>
-                            <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1 border-b border-white/[0.02]">
-                              <span className="text-white/25">Width</span>
-                              <span className={`font-mono ${wStatus === 'ok' ? 'text-green-400/50' : wStatus === 'warn' ? 'text-amber-400/60' : 'text-red-400/60'}`}>{actW.toFixed(3)}"</span>
-                              <span className="font-mono text-white/30">{expW.toFixed(3)}"</span>
+                            <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1 border-b border-foreground/[0.22] dark:border-foreground/[0.08] dark:border-foreground/[0.02]">
+                              <span className="text-foreground/65 dark:text-foreground/25">Width</span>
+                              <span className={`font-mono ${wStatus === 'ok' ? 'text-success/50' : wStatus === 'warn' ? 'text-warning/60' : 'text-danger/60'}`}>{actW.toFixed(3)}"</span>
+                              <span className="font-mono text-foreground/65 dark:text-foreground/30">{expW.toFixed(3)}"</span>
                               <span className="text-center">{wStatus === 'ok' ? 'OK' : wStatus === 'warn' ? 'Check' : 'Fix'}</span>
                             </div>
                             <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1">
-                              <span className="text-white/25">Height</span>
-                              <span className={`font-mono ${hStatus === 'ok' ? 'text-green-400/50' : hStatus === 'warn' ? 'text-amber-400/60' : 'text-red-400/60'}`}>{actH.toFixed(3)}"</span>
-                              <span className="font-mono text-white/30">{expH.toFixed(3)}"</span>
+                              <span className="text-foreground/65 dark:text-foreground/25">Height</span>
+                              <span className={`font-mono ${hStatus === 'ok' ? 'text-success/50' : hStatus === 'warn' ? 'text-warning/60' : 'text-danger/60'}`}>{actH.toFixed(3)}"</span>
+                              <span className="font-mono text-foreground/65 dark:text-foreground/30">{expH.toFixed(3)}"</span>
                               <span className="text-center">{hStatus === 'ok' ? 'OK' : hStatus === 'warn' ? 'Check' : 'Fix'}</span>
                             </div>
                           </>
@@ -1165,9 +1170,9 @@ function FriendlyIssueCard({
                       // Fallback: just show raw values
                       return (
                         <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1">
-                          <span className="text-white/25">Value</span>
-                          <span className="font-mono text-white/35">{issue.actual}</span>
-                          <span className="font-mono text-white/30">{issue.expected}</span>
+                          <span className="text-foreground/65 dark:text-foreground/25">Value</span>
+                          <span className="font-mono text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">{issue.actual}</span>
+                          <span className="font-mono text-foreground/65 dark:text-foreground/30">{issue.expected}</span>
                           <span></span>
                         </div>
                       );
@@ -1403,51 +1408,51 @@ function ValidationPanel({
   ];
 
   return (
-    <div className="flex flex-col h-full bg-[#1a1b1e]">
+    <div className="flex flex-col h-full bg-card">
       {/* ---- Section 1: PROMINENT STATUS BANNER ---- */}
       <div className={`shrink-0 px-4 py-4 border-b ${
         validationSummary.isReady
-          ? 'bg-emerald-500/[0.06] border-emerald-500/20'
+          ? 'bg-success/[0.06] border-success/20'
           : validationSummary.overallStatus === 'fail'
-          ? 'bg-red-500/[0.06] border-red-500/20'
+          ? 'bg-danger/[0.06] border-danger/20'
           : validationSummary.overallStatus === 'risk'
-          ? 'bg-orange-500/[0.06] border-orange-500/20'
-          : 'bg-amber-500/[0.04] border-amber-500/20'
+          ? 'bg-warning/[0.06] border-warning/20'
+          : 'bg-warning/[0.04] border-warning/20'
       }`}>
         {/* Main status indicator — LARGE and CLEAR */}
         <div className="flex items-center gap-3 mb-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
             validationSummary.isReady
-              ? 'bg-emerald-500/20'
+              ? 'bg-success/20'
               : validationSummary.overallStatus === 'fail'
-              ? 'bg-red-500/20'
+              ? 'bg-danger/20'
               : validationSummary.overallStatus === 'risk'
-              ? 'bg-orange-500/20'
-              : 'bg-amber-500/15'
+              ? 'bg-warning/20'
+              : 'bg-warning/15'
           }`}>
-            {validationSummary.isReady ? <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-             : validationSummary.overallStatus === 'fail' ? <XCircle className="w-5 h-5 text-red-400" />
-             : validationSummary.overallStatus === 'risk' ? <AlertTriangle className="w-5 h-5 text-orange-400" />
-             : <AlertCircle className="w-5 h-5 text-amber-400" />}
+            {validationSummary.isReady ? <CheckCircle2 className="w-5 h-5 text-success" />
+             : validationSummary.overallStatus === 'fail' ? <XCircle className="w-5 h-5 text-danger" />
+             : validationSummary.overallStatus === 'risk' ? <AlertTriangle className="w-5 h-5 text-warning" />
+             : <AlertCircle className="w-5 h-5 text-warning" />}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className={`text-[15px] font-bold ${
-                validationSummary.isReady ? 'text-emerald-400'
-                : validationSummary.overallStatus === 'fail' ? 'text-red-400'
-                : validationSummary.overallStatus === 'risk' ? 'text-orange-400'
-                : 'text-amber-400'
+                validationSummary.isReady ? 'text-success'
+                : validationSummary.overallStatus === 'fail' ? 'text-danger'
+                : validationSummary.overallStatus === 'risk' ? 'text-warning'
+                : 'text-warning'
               }`}>
                 {validationSummary.isReady ? 'Safe for KDP'
                  : validationSummary.overallStatus === 'fail' ? 'High Rejection Risk'
                  : validationSummary.overallStatus === 'risk' ? 'Print Edge Risk'
                  : 'Probably Acceptable'}
               </span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/20 font-medium">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 font-medium">
                 {isSpreadMode ? '📖 Spread' : '📄 Single'}
               </span>
             </div>
-            <p className="text-[11px] text-white/35 mt-0.5">
+            <p className="text-[11px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 mt-0.5">
               {validationSummary.isReady
                 ? 'Your book meets KDP requirements — no blocking issues found.'
                 : validationSummary.overallStatus === 'fail'
@@ -1461,37 +1466,37 @@ function ValidationPanel({
 
         {/* Document summary pills */}
         <div className="flex items-center gap-1 flex-wrap mb-2">
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/25 font-medium">{bookType.charAt(0).toUpperCase() + bookType.slice(1)}</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/25 font-medium">{trimLabel}</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/25 font-medium">{bookPages.length} pages</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/25 font-medium">{measurements.spineWidthIn.toFixed(3)}" spine</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/65 dark:text-foreground/25 font-medium">{bookType.charAt(0).toUpperCase() + bookType.slice(1)}</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/65 dark:text-foreground/25 font-medium">{trimLabel}</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/65 dark:text-foreground/25 font-medium">{bookPages.length} pages</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/65 dark:text-foreground/25 font-medium">{measurements.spineWidthIn.toFixed(3)}" spine</span>
         </div>
 
         {/* Status pills — severity grouped with realistic KDP labels */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {validationSummary.fail + validationSummary.risk > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-red-500/15 text-red-400 font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded bg-danger/15 text-danger font-bold">
               {validationSummary.fail + validationSummary.risk} Critical
             </span>
           )}
           {validationSummary.warning > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold">
+            <span className="text-[10px] px-2 py-0.5 rounded bg-warning/15 text-warning font-bold">
               {validationSummary.warning} Warning
             </span>
           )}
           {validationSummary.safe + validationSummary.pass > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-green-500/10 text-green-400/60 font-medium">
+            <span className="text-[10px] px-2 py-0.5 rounded bg-success/10 text-success/60 font-medium">
               {validationSummary.safe + validationSummary.pass} OK
             </span>
           )}
           {validationSummary.total === 0 && (
-            <span className="text-[10px] text-emerald-400/50">No issues detected</span>
+            <span className="text-[10px] text-success/50">No issues detected</span>
           )}
         </div>
       </div>
 
       {/* ---- Section 2: Beginner-Friendly Filter Bar ---- */}
-      <div className="shrink-0 border-b border-white/[0.06] px-4 py-2">
+      <div className="shrink-0 border-b border-foreground/[0.18] dark:border-foreground/[0.06] px-4 py-2">
         {/* Beginner filter tabs */}
         <div className="flex items-center gap-1 mb-2">
           {beginnerFilters.map(f => (
@@ -1500,11 +1505,11 @@ function ValidationPanel({
               onClick={() => setBeginnerFilter(f.key)}
               className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-colors min-h-[32px] ${
                 beginnerFilter === f.key
-                  ? f.key === 'important' ? 'bg-orange-500/15 text-orange-400'
-                    : f.key === 'needs-fix' ? 'bg-amber-500/15 text-amber-400'
-                    : f.key === 'safe' ? 'bg-green-500/10 text-green-400/60'
-                    : 'bg-white/[0.08] text-white/60'
-                  : 'text-white/20 hover:text-white/35 hover:bg-white/[0.03]'
+                  ? f.key === 'important' ? 'bg-warning/15 text-warning'
+                    : f.key === 'needs-fix' ? 'bg-warning/15 text-warning'
+                    : f.key === 'safe' ? 'bg-success/10 text-success/60'
+                    : 'bg-foreground/[0.16] dark:bg-foreground/[0.08] text-foreground/60'
+                  : 'text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 hover:text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 hover:bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03]'
               }`}
             >
               {f.label}
@@ -1514,33 +1519,34 @@ function ValidationPanel({
 
         {/* Search bar */}
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/15" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/55 dark:text-foreground/15" />
           <input
             type="text"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder="Search issues..."
-            className="w-full bg-white/[0.04] border border-white/[0.06] rounded-md pl-7 pr-2 py-1.5 text-[10px] text-white/60 placeholder:text-white/15 outline-none focus:border-emerald-500/30 transition-colors"
+            className="w-full bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] border border-foreground/[0.18] dark:border-foreground/[0.06] rounded-md pl-7 pr-2 py-1.5 text-[10px] text-foreground/85 dark:text-foreground/60 placeholder:text-foreground/55 dark:text-foreground/15 outline-none focus:border-success/30 transition-colors"
           />
         </div>
       </div>
 
       {/* ---- Section 3: Current Page/Spread Issues (pinned) ---- */}
       {currentSpreadIssues.length > 0 && (
-        <div className="shrink-0 border-b border-white/[0.06] px-4 py-2">
+        <div className="shrink-0 border-b border-foreground/[0.18] dark:border-foreground/[0.06] px-4 py-2">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <Info className="w-3 h-3 text-white/20" />
-            <span className="text-[9px] font-medium text-white/25 uppercase tracking-wider">{currentSpreadLabel}</span>
-            <span className="text-[8px] px-1 py-0.5 rounded bg-white/[0.06] text-white/20">{currentSpreadIssues.length}</span>
+            <Info className="w-3 h-3 text-foreground/85 dark:text-foreground/60 dark:text-foreground/20" />
+            <span className="text-[9px] font-medium text-foreground/65 dark:text-foreground/25 uppercase tracking-wider">{currentSpreadLabel}</span>
+            <span className="text-[8px] px-1 py-0.5 rounded bg-foreground/[0.13] dark:bg-foreground/[0.06] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20">{currentSpreadIssues.length}</span>
           </div>
           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
-            {currentSpreadIssues.map(issue => (
+            {currentSpreadIssues.map((issue, i) => (
               <FriendlyIssueCard
                 key={issue.id}
                 issue={issue}
                 isSelected={selectedIssueId === issue.id}
                 onClick={() => handleIssueClick(issue)}
                 locationLabel={getLocationLabel(issue)}
+                staggerIndex={i}
               />
             ))}
           </div>
@@ -1553,14 +1559,14 @@ function ValidationPanel({
           <div className="flex flex-col items-center justify-center py-12 gap-2">
             {pageIssuesExtended.length === 0 ? (
               <>
-                <CheckCircle2 className="w-8 h-8 text-emerald-400/30" />
-                <span className="text-[12px] text-emerald-400/40 font-medium">Looks good for KDP</span>
-                <span className="text-[10px] text-white/15">No issues detected</span>
+                <CheckCircle2 className="w-8 h-8 text-success/30" />
+                <span className="text-[12px] text-success/40 font-medium">Looks good for KDP</span>
+                <span className="text-[10px] text-foreground/55 dark:text-foreground/15">No issues detected</span>
               </>
             ) : (
               <>
-                <Search className="w-6 h-6 text-white/10" />
-                <span className="text-[11px] text-white/20">No issues match your filter</span>
+                <Search className="w-6 h-6 text-foreground/80 dark:text-foreground/50 dark:text-foreground/10" />
+                <span className="text-[11px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20">No issues match your filter</span>
               </>
             )}
           </div>
@@ -1571,8 +1577,8 @@ function ValidationPanel({
           <div className="p-3 space-y-4">
             {spreadGroups.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 gap-2">
-                <CheckCircle2 className="w-6 h-6 text-emerald-400/25" />
-                <span className="text-[11px] text-emerald-400/35">All spreads look good</span>
+                <CheckCircle2 className="w-6 h-6 text-success/25" />
+                <span className="text-[11px] text-success/35">All spreads look good</span>
               </div>
             ) : (
               spreadGroups.map((group) => {
@@ -1584,14 +1590,14 @@ function ValidationPanel({
                 return (
                   <div key={group.spread.id} className={`rounded-lg border transition-all ${
                     isCurrentSpread
-                      ? 'border-emerald-400/30 bg-emerald-500/[0.03]'
-                      : 'border-white/[0.04] hover:border-white/[0.08]'
+                      ? 'border-success/30 bg-success/[0.03]'
+                      : 'border-foreground/[0.25] dark:border-foreground/[0.12] dark:border-foreground/[0.04] hover:border-foreground/[0.22] dark:border-foreground/[0.08]'
                   }`}>
                     {/* Spread header */}
-                    <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.04]">
-                      <span className="text-[10px] uppercase tracking-wider text-white/25">{severityDot}</span>
+                    <div className="flex items-center gap-2 px-3 py-2 border-b border-foreground/[0.25] dark:border-foreground/[0.12] dark:border-foreground/[0.04]">
+                      <span className="text-[10px] uppercase tracking-wider text-foreground/65 dark:text-foreground/25">{severityDot}</span>
                       <span className={`text-[12px] font-semibold ${
-                        isCurrentSpread ? 'text-emerald-400' : 'text-white/60'
+                        isCurrentSpread ? 'text-success' : 'text-foreground/60'
                       }`}>
                         {group.label}
                       </span>
@@ -1599,7 +1605,7 @@ function ValidationPanel({
                         {group.issues.length} issue{group.issues.length !== 1 ? 's' : ''}
                       </span>
                       {isCurrentSpread && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-medium">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-success/15 text-success font-medium">
                           Viewing
                         </span>
                       )}
@@ -1607,22 +1613,23 @@ function ValidationPanel({
 
                     {/* Left page issues */}
                     {group.leftIssues.length > 0 && (
-                      <div className={group.rightIssues.length > 0 ? 'border-b border-white/[0.03]' : ''}>
+                      <div className={group.rightIssues.length > 0 ? 'border-b border-foreground/[0.10] dark:border-foreground/[0.03]' : ''}>
                         {!group.spread.isSingle && (
                           <div className="px-3 pt-1.5 pb-0.5">
-                            <span className="text-[9px] font-medium text-white/20 uppercase tracking-wider">
+                            <span className="text-[9px] font-medium text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 uppercase tracking-wider">
                               {group.spread.isSingle ? '' : 'Left page'}
                             </span>
                           </div>
                         )}
                         <div className="px-2 pb-1 space-y-1">
-                          {group.leftIssues.map(issue => (
+                          {group.leftIssues.map((issue, i) => (
                             <FriendlyIssueCard
                               key={issue.id}
                               issue={issue}
                               isSelected={selectedIssueId === issue.id}
                               onClick={() => handleIssueClick(issue)}
                               locationLabel={getLocationLabel(issue)}
+                              staggerIndex={i}
                             />
                           ))}
                         </div>
@@ -1633,18 +1640,19 @@ function ValidationPanel({
                     {group.rightIssues.length > 0 && (
                       <div>
                         <div className="px-3 pt-1.5 pb-0.5">
-                          <span className="text-[9px] font-medium text-white/20 uppercase tracking-wider">
+                          <span className="text-[9px] font-medium text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 uppercase tracking-wider">
                             Right page
                           </span>
                         </div>
                         <div className="px-2 pb-2 space-y-1">
-                          {group.rightIssues.map(issue => (
+                          {group.rightIssues.map((issue, i) => (
                             <FriendlyIssueCard
                               key={issue.id}
                               issue={issue}
                               isSelected={selectedIssueId === issue.id}
                               onClick={() => handleIssueClick(issue)}
                               locationLabel={getLocationLabel(issue)}
+                              staggerIndex={i}
                             />
                           ))}
                         </div>
@@ -1664,16 +1672,17 @@ function ValidationPanel({
             {severityGroups.critical.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="text-[12px] font-semibold text-red-400/80">High Rejection Risk</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-bold">{severityGroups.critical.length}</span>
+                  <span className="text-[12px] font-semibold text-danger/80">High Rejection Risk</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-danger/15 text-danger font-bold">{severityGroups.critical.length}</span>
                 </div>
                 <div className="space-y-2">
-                  {severityGroups.critical.map(issue => (
+                  {severityGroups.critical.map((issue, i) => (
                     <FriendlyIssueCard
                       key={issue.id}
                       issue={issue}
                       isSelected={selectedIssueId === issue.id}
                       onClick={() => handleIssueClick(issue)}
+                      staggerIndex={i}
                     />
                   ))}
                 </div>
@@ -1684,16 +1693,17 @@ function ValidationPanel({
             {severityGroups.warnings.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="text-[12px] font-semibold text-amber-400/80">Probably Acceptable</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold">{severityGroups.warnings.length}</span>
+                  <span className="text-[12px] font-semibold text-warning/80">Probably Acceptable</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-warning/15 text-warning font-bold">{severityGroups.warnings.length}</span>
                 </div>
                 <div className="space-y-2">
-                  {severityGroups.warnings.map(issue => (
+                  {severityGroups.warnings.map((issue, i) => (
                     <FriendlyIssueCard
                       key={issue.id}
                       issue={issue}
                       isSelected={selectedIssueId === issue.id}
                       onClick={() => handleIssueClick(issue)}
+                      staggerIndex={severityGroups.critical.length + i}
                     />
                   ))}
                 </div>
@@ -1704,16 +1714,17 @@ function ValidationPanel({
             {severityGroups.passed.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="text-[12px] font-semibold text-green-400/70">Safe for KDP</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400/70 font-medium">{severityGroups.passed.length}</span>
+                  <span className="text-[12px] font-semibold text-success/70">Safe for KDP</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-success/10 text-success/70 font-medium">{severityGroups.passed.length}</span>
                 </div>
                 <div className="space-y-2">
-                  {severityGroups.passed.map(issue => (
+                  {severityGroups.passed.map((issue, i) => (
                     <FriendlyIssueCard
                       key={issue.id}
                       issue={issue}
                       isSelected={selectedIssueId === issue.id}
                       onClick={() => handleIssueClick(issue)}
+                      staggerIndex={severityGroups.critical.length + severityGroups.warnings.length + i}
                     />
                   ))}
                 </div>
@@ -1733,8 +1744,8 @@ function ValidationPanel({
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between">
-      <span className="text-[9px] text-white/20">{label}</span>
-      <span className="text-[10px] text-white/50 font-medium">{value}</span>
+      <span className="text-[9px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20">{label}</span>
+      <span className="text-[10px] text-foreground/80 dark:text-foreground/50 font-medium">{value}</span>
     </div>
   );
 }
@@ -1775,16 +1786,16 @@ function JumpToPageModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-sm" onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-[#1e1f22] border border-white/[0.08] rounded-xl p-5 w-80 shadow-2xl"
+        className="bg-card border border-foreground/[0.22] dark:border-foreground/[0.08] rounded-xl p-5 w-80 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-sm font-semibold text-white/80 mb-1">Jump to Page</h3>
-        <p className="text-[11px] text-white/25 mb-3">Enter a manuscript page number</p>
+        <h3 className="text-sm font-semibold text-foreground/80 mb-1">Jump to Page</h3>
+        <p className="text-[11px] text-foreground/65 dark:text-foreground/25 mb-3">Enter a manuscript page number</p>
         <div className="flex gap-2">
           <input
             type="number"
@@ -1794,12 +1805,12 @@ function JumpToPageModal({
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleJump(); }}
             placeholder="e.g. 5"
-            className="flex-1 bg-white/[0.06] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white/80 placeholder:text-white/15 outline-none focus:border-emerald-500/40 transition-colors"
+            className="ds-control flex-1 rounded-lg px-3 py-2 text-sm placeholder:text-muted-foreground"
             autoFocus
           />
           <button
             onClick={handleJump}
-            className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-sm font-medium hover:bg-emerald-500/30 transition-colors"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:brightness-105"
           >
             Go
           </button>
@@ -1827,9 +1838,196 @@ function ProcessingState({ status }: { status: ProcessingStatus }) {
 
   return (
     <div className="flex items-center justify-center gap-3">
-      <Loader2 className="w-5 h-5 text-emerald-400/60 animate-spin" />
-      <span className="text-sm text-white/40">{messages[status]}</span>
+      <Loader2 className="w-5 h-5 text-success/60 animate-spin" />
+      <span className="text-sm text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">{messages[status]}</span>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-component: ScanProgressOverlay — cinematic scan animation for canvas
+// ---------------------------------------------------------------------------
+
+const SCAN_PHASES = [
+  { key: 'parsing', label: 'Parsing PDF structure', pct: 22 },
+  { key: 'rendering', label: 'Rendering page previews', pct: 58 },
+  { key: 'analyzing', label: 'Analyzing KDP compliance', pct: 88 },
+] as const;
+
+const SCAN_DOC_H = 260;
+
+function ScanProgressOverlay({ status }: { status: ProcessingStatus }) {
+  const reduced = useReducedMotion();
+  const phase = SCAN_PHASES.find(p => p.key === status) ?? SCAN_PHASES[0];
+  const phaseIdx = SCAN_PHASES.findIndex(p => p.key === status);
+
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+      {/* Ambient radial glow */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_55%_38%_at_50%_50%,color-mix(in_srgb,var(--primary)_8%,transparent),transparent)]" />
+
+      {/* Document mockup with scan line */}
+      <div className="relative mb-8">
+        {/* Outer glow ring */}
+        {!reduced && (
+          <motion.div
+            className="absolute -inset-5 -z-10 rounded-[10px] bg-primary/10 blur-2xl"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        )}
+
+        <div
+          className="relative overflow-hidden rounded-[3px] border border-foreground/[0.22] dark:border-foreground/[0.08] bg-foreground/[0.14] dark:bg-foreground/[0.07] dark:bg-foreground/[0.025]"
+          style={{ width: 176, height: SCAN_DOC_H }}
+        >
+          {/* Faint document content lines */}
+          <div className="absolute inset-[14px] flex flex-col gap-[6px] pt-2">
+            {[100, 80, 100, 70, 100, 88, 62, 100, 92, 78, 100, 82, 60, 100].map((w, i) => (
+              <i
+                key={i}
+                className={`block h-[5px] rounded-full bg-foreground/${i < 2 ? '7' : '4'}`}
+                style={{ width: `${w}%` }}
+              />
+            ))}
+          </div>
+
+          {/* Issue-detection pulses (only during analyzing) */}
+          {!reduced && status === 'analyzing' && (
+            <>
+              <motion.div
+                className="absolute left-[14px] right-[14px] h-[18px] rounded-[2px] border border-danger/25 bg-danger/10"
+                style={{ top: 64 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0.7] }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              />
+              <motion.div
+                className="absolute left-[14px] right-[14px] h-[14px] rounded-[2px] border border-warning/20 bg-warning/10"
+                style={{ top: 142 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0.55] }}
+                transition={{ delay: 0.9, duration: 0.4 }}
+              />
+            </>
+          )}
+
+          {/* Animated scan line + glow trail */}
+          {!reduced && (
+            <motion.div
+              className="pointer-events-none absolute inset-x-0"
+              style={{ top: 0 }}
+              animate={{ y: [-2, SCAN_DOC_H + 2] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'linear', repeatDelay: 0.55 }}
+            >
+              <div className="h-[2px] bg-gradient-to-r from-transparent via-primary/85 to-transparent" />
+              <div className="h-7 bg-gradient-to-b from-primary/15 to-transparent" />
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Status label */}
+      <p className="mb-1 text-[13px] font-medium text-foreground/80 dark:text-foreground/50">
+        {phase.label}
+        {!reduced && (
+          <motion.span
+            animate={{ opacity: [1, 0, 1] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            …
+          </motion.span>
+        )}
+        {reduced && '…'}
+      </p>
+
+      {/* Phase step indicators */}
+      <div className="mb-4 flex items-center gap-1.5">
+        {SCAN_PHASES.map((p, i) => (
+          <React.Fragment key={p.key}>
+            <div
+              className={`rounded-full transition-all duration-500 ${
+                i < phaseIdx
+                  ? 'h-1.5 w-1.5 bg-primary/55'
+                  : i === phaseIdx
+                  ? 'h-2 w-2 bg-primary'
+                  : 'h-1.5 w-1.5 bg-foreground/12'
+              }`}
+            />
+            {i < SCAN_PHASES.length - 1 && (
+              <div className={`h-px w-6 transition-all duration-500 ${i < phaseIdx ? 'bg-primary/30' : 'bg-foreground/8'}`} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-[3px] w-56 overflow-hidden rounded-full bg-foreground/[0.14] dark:bg-foreground/[0.07]">
+        <motion.div
+          className="h-full rounded-full bg-primary"
+          animate={{ width: `${phase.pct}%` }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-component: ScanSummaryBar — dismissible banner after scan completes
+// ---------------------------------------------------------------------------
+
+function ScanSummaryBar({
+  summary,
+  pageCount,
+  onDismiss,
+}: {
+  summary: { fail: number; risk: number; warning: number };
+  pageCount: number;
+  onDismiss: () => void;
+}) {
+  const total = summary.fail + summary.risk + summary.warning;
+  const isClean = total === 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="absolute top-2.5 left-1/2 z-10 -translate-x-1/2"
+    >
+      <div className="flex items-center gap-2 rounded-full border border-foreground/8 bg-background/90 px-3 py-1.5 shadow-lg shadow-black/30 backdrop-blur-md">
+        {isClean ? (
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-primary">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Safe for KDP — no issues detected
+          </span>
+        ) : (
+          <>
+            <span className="text-[10px] font-medium text-foreground/65 dark:text-foreground/30">Scan complete</span>
+            <div className="h-3 w-px bg-foreground/10" />
+            {summary.fail + summary.risk > 0 && (
+              <span className="text-[10px] font-bold text-danger">
+                {summary.fail + summary.risk} critical
+              </span>
+            )}
+            {summary.warning > 0 && (
+              <span className="text-[10px] font-bold text-warning">{summary.warning} warn</span>
+            )}
+            <div className="h-3 w-px bg-foreground/10" />
+            <span className="text-[10px] text-foreground/65 dark:text-foreground/25">{pageCount} pages checked</span>
+          </>
+        )}
+        <button
+          onClick={onDismiss}
+          className="ml-0.5 rounded-full p-0.5 text-foreground/55 dark:text-foreground/15 transition-colors hover:text-foreground/85 dark:text-foreground/70 dark:text-foreground/35"
+          aria-label="Dismiss scan summary"
+        >
+          <X className="h-2.5 w-2.5" />
+        </button>
+      </div>
+    </motion.div>
   );
 }
 
@@ -1869,24 +2067,24 @@ function FitDropdown({
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-white/30 hover:text-white/50 hover:bg-white/[0.04] transition-colors"
+        className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-foreground/65 dark:text-foreground/30 hover:text-foreground/80 dark:text-foreground/50 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
       >
         <Maximize2 className="w-3 h-3" />
         <span className="hidden sm:inline">Fit</span>
         <ChevronDown className={`w-2.5 h-2.5 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 bg-[#2a2b2e] border border-white/[0.08] rounded-lg shadow-xl py-1 min-w-[140px] z-50">
+        <div className="absolute right-0 top-full mt-1 bg-muted border border-foreground/[0.22] dark:border-foreground/[0.08] rounded-lg shadow-xl py-1 min-w-[140px] z-50">
           {items.map((item) => (
             <button
               key={item.mode}
               onClick={() => { onFitSelect(item.mode); setOpen(false); }}
               className={`w-full flex items-center justify-between px-3 py-1.5 text-[11px] transition-colors ${
-                fitMode === item.mode ? 'text-emerald-400 bg-white/[0.03]' : 'text-white/50 hover:text-white/70 hover:bg-white/[0.03]'
+                fitMode === item.mode ? 'text-success bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03]' : 'text-foreground/80 dark:text-foreground/50 hover:text-foreground/85 dark:text-foreground/70 hover:bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03]'
               }`}
             >
               <span>{item.label}</span>
-              {item.shortcut && <span className="text-[9px] text-white/15 font-mono">{item.shortcut}</span>}
+              {item.shortcut && <span className="text-[9px] text-foreground/55 dark:text-foreground/15 font-mono">{item.shortcut}</span>}
             </button>
           ))}
         </div>
@@ -1948,6 +2146,7 @@ export default function PreviewStep() {
   const [loading, setLoading] = useState(false);
   const [restoreWorkspace, setRestoreWorkspace] = useState<SavedWorkspace | null>(null);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [showSummaryBar, setShowSummaryBar] = useState(false);
 
   // --- Zoom & Pan state (smooth interpolation) ---
   const targetZoomRef = useRef(1);
@@ -2733,6 +2932,13 @@ export default function PreviewStep() {
     dismissHint(hintId);
   }, [dismissHint]);
 
+  // Show scan summary bar once when previewReady first becomes true
+  useEffect(() => {
+    if (previewReady && bookPages.length > 0) {
+      setShowSummaryBar(true);
+    }
+  }, [previewReady, bookPages.length]);
+
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
@@ -2740,50 +2946,50 @@ export default function PreviewStep() {
   const isSpreadView = previewViewMode === 'spread' && bookType !== 'kindle';
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_12%,rgba(45,212,191,0.08),transparent_28%),linear-gradient(180deg,#111317,#07090d)]">
+    <div className="ds-page-stage fixed inset-0 z-[60] flex flex-col overflow-hidden">
       {/* ================================================================== */}
       {/* PRIMARY TOOLBAR (top, ~52px) — Breadcrumb + Mode + Navigation      */}
       {/* LEFT: Import → Configure → Review breadcrumb                       */}
       {/* CENTER: 📄 Single View | 📖 Spread View                           */}
       {/* RIGHT: ◀ Previous | Page X / Y | Next ▶                          */}
       {/* ================================================================== */}
-      <div className="h-[52px] shrink-0 flex items-center justify-between border-b border-[#f4efe5]/10 bg-[#090b0e]/95 px-3 shadow-[0_1px_0_rgba(244,239,229,0.04)]">
+      <div className="flex min-h-[52px] shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-glass px-2 py-2 shadow-soft backdrop-blur-xl sm:h-[52px] sm:flex-nowrap sm:px-3 sm:py-0">
         {/* LEFT: Breadcrumb — Import → Configure → Review */}
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setCheckerStep('import')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium text-white/25 hover:text-white/45 hover:bg-white/[0.04] transition-all duration-200"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium text-foreground/65 dark:text-foreground/25 hover:text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-all duration-200"
             title="Back to Import"
           >
             <Upload className="w-3 h-3" />
             <span className="hidden sm:inline">Import</span>
           </button>
-          <ChevronRight className="w-3 h-3 text-white/10" />
+          <ChevronRight className="w-3 h-3 text-foreground/80 dark:text-foreground/50 dark:text-foreground/10" />
           <button
             onClick={() => setCheckerStep('config')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium text-white/25 hover:text-white/45 hover:bg-white/[0.04] transition-all duration-200"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium text-foreground/65 dark:text-foreground/25 hover:text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-all duration-200"
             title="Back to Configure"
           >
             <Settings className="w-3 h-3" />
             <span className="hidden sm:inline">Configure</span>
           </button>
-          <ChevronRight className="w-3 h-3 text-emerald-500/40" />
-          <span className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+          <ChevronRight className="w-3 h-3 text-success/40" />
+          <span className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-semibold text-success bg-success/10 border border-success/20">
             <BookOpen className="w-3 h-3" />
             <span className="hidden sm:inline">Review</span>
           </span>
         </div>
 
         {/* CENTER: MODE SWITCHER — Most prominent control */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-white/[0.06] rounded-xl p-1.5 border border-white/[0.12] shadow-lg shadow-black/20">
+        <div className="order-3 flex w-full items-center justify-center gap-3 sm:order-none sm:w-auto">
+          <div className="flex items-center rounded-xl border border-foreground/[0.25] bg-foreground/[0.13] p-1 shadow-lg shadow-black/20 dark:bg-foreground/[0.06] sm:p-1.5">
             <button
               onClick={() => bookType !== 'kindle' && setPreviewViewMode('single')}
               disabled={bookType === 'kindle'}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-[14px] font-semibold transition-all duration-250 min-h-[38px] ${
+              className={`flex min-h-[34px] items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-all duration-250 sm:min-h-[38px] sm:px-5 sm:py-2 sm:text-[14px] ${
                 previewViewMode === 'single'
-                  ? 'bg-emerald-500/30 text-emerald-100 shadow-md shadow-emerald-500/10 border border-emerald-400/50 ring-1 ring-emerald-400/20'
-                  : 'text-white/35 hover:text-white/55 hover:bg-white/[0.06]'
+                  ? 'bg-success/30 text-success shadow-md shadow-success/10 border border-success/50 ring-1 ring-success/20'
+                  : 'text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 hover:text-foreground/55 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06]'
               }`}
               aria-label="Single Page View"
               aria-pressed={previewViewMode === 'single'}
@@ -2793,12 +2999,12 @@ export default function PreviewStep() {
             <button
               onClick={() => bookType !== 'kindle' && setPreviewViewMode('spread')}
               disabled={bookType === 'kindle'}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-[14px] font-semibold transition-all duration-250 min-h-[38px] ${
+              className={`flex min-h-[34px] items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-all duration-250 sm:min-h-[38px] sm:px-5 sm:py-2 sm:text-[14px] ${
                 previewViewMode === 'spread'
-                  ? 'bg-emerald-500/30 text-emerald-100 shadow-md shadow-emerald-500/10 border border-emerald-400/50 ring-1 ring-emerald-400/20'
+                  ? 'bg-success/30 text-success shadow-md shadow-success/10 border border-success/50 ring-1 ring-success/20'
                   : bookType === 'kindle'
-                    ? 'text-white/10 cursor-not-allowed'
-                    : 'text-white/35 hover:text-white/55 hover:bg-white/[0.06]'
+                    ? 'text-foreground/80 dark:text-foreground/50 dark:text-foreground/10 cursor-not-allowed'
+                    : 'text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 hover:text-foreground/55 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06]'
               }`}
               aria-label="Spread View"
               aria-pressed={previewViewMode === 'spread'}
@@ -2822,7 +3028,7 @@ export default function PreviewStep() {
           <button
             onClick={goPrev}
             disabled={currentPage <= 0 && currentSpreadIdx <= 0}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200 min-h-[36px] disabled:opacity-15 disabled:cursor-not-allowed border border-transparent hover:border-white/[0.08]"
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-medium text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 hover:text-foreground/85 dark:text-foreground/70 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] transition-all duration-200 min-h-[36px] disabled:opacity-15 disabled:cursor-not-allowed border border-transparent hover:border-foreground/[0.22] dark:border-foreground/[0.08]"
             title="Previous (← / A)"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -2831,7 +3037,7 @@ export default function PreviewStep() {
 
           <button
             onClick={() => setJumpModalOpen(true)}
-            className="px-3 py-1.5 rounded-lg text-[12px] text-white/50 hover:text-white/75 hover:bg-white/[0.06] transition-colors min-w-[110px] text-center font-medium border border-white/[0.06] hover:border-white/[0.12]"
+            className="min-w-[72px] rounded-lg border border-foreground/[0.18] px-2 py-1.5 text-center text-[12px] font-medium text-foreground/80 transition-colors hover:border-foreground/[0.25] hover:bg-foreground/[0.13] hover:text-foreground/90 dark:border-foreground/[0.06] dark:bg-foreground/[0.06] dark:text-foreground/50 dark:hover:border-foreground/[0.12] dark:hover:text-foreground/75 sm:min-w-[110px] sm:px-3"
             title="Click to jump to page"
           >
             {currentPageInfo.spreadLabel}
@@ -2844,7 +3050,7 @@ export default function PreviewStep() {
                 ? currentSpreadIdx >= spreads.length - 1
                 : currentPage >= bookPages.length - 1
             }
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200 min-h-[36px] disabled:opacity-15 disabled:cursor-not-allowed border border-transparent hover:border-white/[0.08]"
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-medium text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 hover:text-foreground/85 dark:text-foreground/70 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] transition-all duration-200 min-h-[36px] disabled:opacity-15 disabled:cursor-not-allowed border border-transparent hover:border-foreground/[0.22] dark:border-foreground/[0.08]"
             title="Next (→ / D)"
           >
             <span className="hidden sm:inline">Next</span>
@@ -2859,7 +3065,7 @@ export default function PreviewStep() {
       {/* ================================================================== */}
       {/* SECONDARY TOOLBAR — Overlays + Zoom Controls                       */}
       {/* ================================================================== */}
-      <div className="h-9 shrink-0 flex items-center justify-between border-b border-[#f4efe5]/10 bg-[#0a0c0f]/80 px-3 backdrop-blur-xl">
+      <div className="flex h-9 shrink-0 items-center justify-between gap-3 overflow-x-auto border-b border-foreground/25 bg-background/80 px-3 backdrop-blur-xl dark:border-foreground/10">
         {/* Left: Overlay toggles */}
         <div className="flex items-center gap-1">
           {allowedOverlays.length > 0 && (
@@ -2874,7 +3080,7 @@ export default function PreviewStep() {
                     className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 ${
                       isActive
                         ? `${cfg.bg} ${cfg.color} border ${cfg.border}`
-                        : 'text-white/20 hover:text-white/35'
+                        : 'text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 hover:text-foreground/35'
                     }`}
                     title={cfg.label}
                   >
@@ -2891,27 +3097,27 @@ export default function PreviewStep() {
         <div className="flex items-center gap-0.5">
           <button
             onClick={zoomOut}
-            className="p-1 rounded-md text-white/30 hover:text-white/55 hover:bg-white/[0.04] transition-colors"
+            className="p-1 rounded-md text-foreground/65 dark:text-foreground/30 hover:text-foreground/55 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
             title="Zoom Out (-)"
           >
             <Minus className="w-3 h-3" />
           </button>
           <button
             onClick={() => setJumpModalOpen(true)}
-            className="px-2 py-0.5 rounded-md text-[10px] text-white/35 hover:text-white/55 hover:bg-white/[0.04] transition-colors min-w-[44px] text-center font-mono"
+            className="px-2 py-0.5 rounded-md text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 hover:text-foreground/55 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors min-w-[44px] text-center font-mono"
             title="Click to jump to page"
           >
             {zoomPct}%
           </button>
           <button
             onClick={zoomIn}
-            className="p-1 rounded-md text-white/30 hover:text-white/55 hover:bg-white/[0.04] transition-colors"
+            className="p-1 rounded-md text-foreground/65 dark:text-foreground/30 hover:text-foreground/55 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
             title="Zoom In (+)"
           >
             <Plus className="w-3 h-3" />
           </button>
 
-          <div className="w-px h-4 bg-white/[0.06] mx-0.5" />
+          <div className="w-px h-4 bg-foreground/[0.13] dark:bg-foreground/[0.06] mx-0.5" />
 
           <FitDropdown fitMode={fitMode} onFitSelect={applyFitMode} />
         </div>
@@ -2922,21 +3128,23 @@ export default function PreviewStep() {
       {/* ================================================================== */}
       <div className="flex-1 flex min-h-0">
         {/* LEFT: Thumbnail Sidebar */}
-        <ThumbnailSidebar
-          bookPages={bookPages}
-          currentIndex={currentPage}
-          viewMode={previewViewMode}
-          pageIssues={pageIssuesExtended}
-          onPageSelect={navigateTo}
-          spreads={spreads}
-          currentSpreadIdx={currentSpreadIdx}
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
+        <div className="hidden md:contents">
+          <ThumbnailSidebar
+            bookPages={bookPages}
+            currentIndex={currentPage}
+            viewMode={previewViewMode}
+            pageIssues={pageIssuesExtended}
+            onPageSelect={navigateTo}
+            spreads={spreads}
+            currentSpreadIdx={currentSpreadIdx}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        </div>
 
         {/* Onboarding hint: sidebar */}
         {!sidebarCollapsed && !isHintDismissed('hint-sidebar') && (
-          <div className="absolute left-[170px] top-14 z-30">
+          <div className="absolute left-[170px] top-14 z-30 hidden md:block">
             <OnboardingHint id="hint-sidebar" onDismiss={handleDismissHint}>
               Click a page to preview it
             </OnboardingHint>
@@ -2946,13 +3154,21 @@ export default function PreviewStep() {
         {/* CENTER: Preview canvas area — dark workspace */}
         <div
           ref={canvasContainerRef}
-          className="relative flex flex-1 items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_42%,rgba(244,239,229,0.055),transparent_36%),linear-gradient(180deg,#15171b,#0a0c10)]"
+          className="ds-page-stage relative flex min-w-0 flex-1 items-center justify-center overflow-hidden"
           onDoubleClick={handleDoubleClick}
-          style={{
-            background: 'radial-gradient(ellipse at center, #232529 0%, #1e1f22 100%)',
-            cursor: 'default',
-          }}
+          style={{ cursor: 'default' }}
         >
+          {/* Scan summary bar — fades in when scan completes */}
+          <AnimatePresence>
+            {showSummaryBar && previewReady && bookPages.length > 0 && (
+              <ScanSummaryBar
+                summary={issueSummary}
+                pageCount={bookPages.filter(p => p.manuscriptIndex).length || bookPages.length}
+                onDismiss={() => setShowSummaryBar(false)}
+              />
+            )}
+          </AnimatePresence>
+
           {/* Onboarding hint: zoom */}
           <AnimatePresence>
             {!isHintDismissed('hint-canvas-zoom') && (
@@ -2965,12 +3181,12 @@ export default function PreviewStep() {
           </AnimatePresence>
 
           {loading || isProcessingNow ? (
-            <ProcessingState status={isProcessingNow ? processingStatus : 'rendering'} />
+            <ScanProgressOverlay status={isProcessingNow ? processingStatus : 'rendering'} />
           ) : bookPages.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 text-white/15">
+            <div className="flex flex-col items-center gap-3 text-foreground/55 dark:text-foreground/15">
               <BookOpen className="w-12 h-12" />
               <span className="text-sm">No pages to preview</span>
-              <span className="text-xs text-white/8">Upload a manuscript to begin</span>
+              <span className="text-xs text-foreground/8">Upload a manuscript to begin</span>
             </div>
           ) : (
             <AnimatePresence mode="wait">
@@ -3047,7 +3263,7 @@ export default function PreviewStep() {
         </div>
 
         {/* RIGHT: Validation Panel (~25%) */}
-        <div className="flex min-h-0 w-[25%] min-w-[280px] max-w-[380px] shrink-0 flex-col border-l border-[#f4efe5]/10 bg-[#090b0e]/90 shadow-[-18px_0_60px_rgba(0,0,0,0.16)]">
+        <div className="hidden min-h-0 w-[25%] min-w-[280px] max-w-[380px] shrink-0 flex-col border-l border-border bg-surface-glass shadow-elevated backdrop-blur-xl lg:flex">
           <ValidationPanel
             bookType={bookType}
             bookConfig={bookConfig}
@@ -3081,17 +3297,17 @@ export default function PreviewStep() {
       {/* ================================================================== */}
       {/* STATUS BAR (bottom, ~28px)                                         */}
       {/* ================================================================== */}
-      <div className="h-7 shrink-0 flex items-center justify-between border-t border-[#f4efe5]/10 bg-[#090b0e]/95 px-3">
+      <div className="flex h-7 shrink-0 items-center justify-between gap-4 overflow-x-auto border-t border-foreground/25 bg-background/95 px-3 dark:border-foreground/10">
         {/* Left: Page info */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex items-center gap-1.5 shrink-0">
-            {bookType === 'kindle' && <Monitor className="w-3 h-3 text-white/15" />}
-            {bookType === 'paperback' && <BookOpen className="w-3 h-3 text-white/15" />}
-            {bookType === 'hardcover' && <Box className="w-3 h-3 text-white/15" />}
-            <span className="text-[10px] text-white/20 font-medium uppercase">{bookType}</span>
+            {bookType === 'kindle' && <Monitor className="w-3 h-3 text-foreground/55 dark:text-foreground/15" />}
+            {bookType === 'paperback' && <BookOpen className="w-3 h-3 text-foreground/55 dark:text-foreground/15" />}
+            {bookType === 'hardcover' && <Box className="w-3 h-3 text-foreground/55 dark:text-foreground/15" />}
+            <span className="text-[10px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 font-medium uppercase">{bookType}</span>
           </div>
 
-          <span className="text-[10px] text-white/15">
+          <span className="text-[10px] text-foreground/55 dark:text-foreground/15">
             {currentPageInfo.pageLabel}
             {isSpreadView && currentSpreadIdx >= 0 && (
               <> &middot; Spread {currentSpreadIdx + 1}</>
@@ -3101,10 +3317,10 @@ export default function PreviewStep() {
 
         {/* Center: View mode + Zoom */}
         <div className="flex items-center gap-3">
-          <span className="text-[10px] text-white/15">
+          <span className="text-[10px] text-foreground/55 dark:text-foreground/15">
             {previewViewMode === 'spread' ? 'Spread' : 'Single'}
           </span>
-          <span className="text-[10px] text-white/20 font-mono">{zoomPct}%</span>
+          <span className="text-[10px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 font-mono">{zoomPct}%</span>
         </div>
 
         {/* Right: Issue summary + Ready status */}
@@ -3112,30 +3328,30 @@ export default function PreviewStep() {
           {pageIssuesExtended.length > 0 ? (
             <div className="flex items-center gap-1.5">
               {issueSummary.fail > 0 && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400/70 font-medium">{issueSummary.fail} fail</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-danger/10 text-danger/70 font-medium">{issueSummary.fail} fail</span>
               )}
               {issueSummary.risk > 0 && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400/70 font-medium">{issueSummary.risk} risk</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-warning/10 text-warning/70 font-medium">{issueSummary.risk} risk</span>
               )}
               {issueSummary.warning > 0 && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400/70 font-medium">{issueSummary.warning} warn</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-warning/10 text-warning/70 font-medium">{issueSummary.warning} warn</span>
               )}
             </div>
           ) : (
             previewReady && (
               <div className="flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-400/50" />
-                <span className="text-[9px] text-emerald-400/40">Safe for KDP</span>
+                <CheckCircle2 className="w-3 h-3 text-success/50" />
+                <span className="text-[9px] text-success/40">Safe for KDP</span>
               </div>
             )
           )}
           {processingStatus === 'error' && (
             <div className="flex items-center gap-1">
-              <AlertCircle className="w-3 h-3 text-red-400/60" />
-              <span className="text-[9px] text-red-400/40">Error</span>
+              <AlertCircle className="w-3 h-3 text-danger/60" />
+              <span className="text-[9px] text-danger/40">Error</span>
             </div>
           )}
-          <span className="text-[10px] text-white/10">{bookPages.length} pages</span>
+          <span className="text-[10px] text-foreground/80 dark:text-foreground/50 dark:text-foreground/10">{bookPages.length} pages</span>
         </div>
       </div>
 

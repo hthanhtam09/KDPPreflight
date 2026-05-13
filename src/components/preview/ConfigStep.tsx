@@ -86,8 +86,8 @@ export default function ConfigStep() {
   }, [detectedConfig]);
 
   return (
-    <div className="h-full overflow-y-auto bg-[#0a0a0f]">
-      <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <div className="ds-page-stage h-full overflow-y-auto">
+      <div className="mx-auto max-w-6xl px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -95,13 +95,13 @@ export default function ConfigStep() {
           transition={{ duration: 0.4 }}
           className="text-center space-y-3 mb-8"
         >
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/15 to-orange-500/15 border border-amber-500/20">
-            <Settings2 className="w-6 h-6 text-amber-400" />
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+            <Settings2 className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white/90">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
             Configure Your Book
           </h1>
-          <p className="text-white/40 text-sm max-w-md mx-auto">
+          <p className="mx-auto max-w-md text-sm text-muted-foreground">
             Review and adjust book settings. Auto-detected values are pre-filled — you can override any field.
           </p>
         </motion.div>
@@ -111,17 +111,17 @@ export default function ConfigStep() {
           <div className="lg:col-span-2 space-y-5">
             {/* Book Type & Binding */}
             <ConfigCard icon={<BookOpen className="w-4 h-4" />} title="Book Type">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label className="text-white/40 text-xs mb-1.5 block">Book Type</Label>
-                  <div className="px-3 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white/70 capitalize">
+                  <Label className="mb-1.5 block text-xs text-muted-foreground">Book Type</Label>
+                  <div className="ds-control rounded-lg px-3 py-2.5 text-sm capitalize text-foreground/75">
                     {bookConfig.bookType}
                     {isDetected('bookType') && <DetectedBadge />}
                   </div>
                 </div>
                 <div>
-                  <Label className="text-white/40 text-xs mb-1.5 block">Binding</Label>
-                  <div className="px-3 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white/70 capitalize">
+                  <Label className="mb-1.5 block text-xs text-muted-foreground">Binding</Label>
+                  <div className="ds-control rounded-lg px-3 py-2.5 text-sm capitalize text-foreground/75">
                     {bookConfig.binding}
                   </div>
                 </div>
@@ -133,19 +133,19 @@ export default function ConfigStep() {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <Label className="text-white/40 text-xs">Trim Size</Label>
+                    <Label className="text-xs text-muted-foreground">Trim Size</Label>
                     {isDetected('trimSize') && <DetectedBadge />}
                   </div>
                   <Select value={bookConfig.trimSize} onValueChange={handleTrimSizeChange}>
-                    <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white/70">
+                    <SelectTrigger className="ds-control text-foreground/75">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a24] border-white/10">
+                    <SelectContent className="border-border bg-popover">
                       {Object.entries(TRIM_SIZES).map(([key, trim]) => (
-                        <SelectItem key={key} value={key} className="text-white/70 focus:bg-white/10 focus:text-white">
+                        <SelectItem key={key} value={key} className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                           {trim.label}
                           {key !== 'custom' && (
-                            <span className="text-white/30 ml-2">
+                            <span className="ml-2 text-muted-foreground">
                               ({trim.widthIn}&quot; × {trim.heightIn}&quot;)
                             </span>
                           )}
@@ -159,10 +159,10 @@ export default function ConfigStep() {
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="grid grid-cols-2 gap-4"
+                    className="grid gap-4 sm:grid-cols-2"
                   >
                     <div>
-                      <Label className="text-white/40 text-xs mb-1.5 block">Width (inches)</Label>
+                      <Label className="mb-1.5 block text-xs text-muted-foreground">Width (inches)</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -170,11 +170,11 @@ export default function ConfigStep() {
                         max={12}
                         value={bookConfig.customWidth || ''}
                         onChange={(e) => updateBookConfig({ customWidth: parseFloat(e.target.value) || 0 })}
-                        className="bg-white/[0.04] border-white/[0.08] text-white/70"
+                        className="text-foreground/75"
                       />
                     </div>
                     <div>
-                      <Label className="text-white/40 text-xs mb-1.5 block">Height (inches)</Label>
+                      <Label className="mb-1.5 block text-xs text-muted-foreground">Height (inches)</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -182,30 +182,30 @@ export default function ConfigStep() {
                         max={12}
                         value={bookConfig.customHeight || ''}
                         onChange={(e) => updateBookConfig({ customHeight: parseFloat(e.target.value) || 0 })}
-                        className="bg-white/[0.04] border-white/[0.08] text-white/70"
+                        className="text-foreground/75"
                       />
                     </div>
                   </motion.div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <Label className="text-white/40 text-xs">Bleed</Label>
+                      <Label className="text-xs text-muted-foreground">Bleed</Label>
                       {isDetected('bleed') && <DetectedBadge />}
                     </div>
                     <Select
                       value={bookConfig.bleed}
                       onValueChange={(v) => updateBookConfig({ bleed: v as BleedType })}
                     >
-                      <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white/70">
+                      <SelectTrigger className="ds-control text-foreground/75">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1a24] border-white/10">
-                        <SelectItem value="no-bleed" className="text-white/70 focus:bg-white/10 focus:text-white">
+                      <SelectContent className="border-border bg-popover">
+                        <SelectItem value="no-bleed" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                           No Bleed
                         </SelectItem>
-                        <SelectItem value="bleed" className="text-white/70 focus:bg-white/10 focus:text-white">
+                        <SelectItem value="bleed" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                           With Bleed (0.125&quot;)
                         </SelectItem>
                       </SelectContent>
@@ -213,7 +213,7 @@ export default function ConfigStep() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <Label className="text-white/40 text-xs">Page Count</Label>
+                      <Label className="text-xs text-muted-foreground">Page Count</Label>
                       {isDetected('pageCount') && <DetectedBadge />}
                     </div>
                     <Input
@@ -222,7 +222,7 @@ export default function ConfigStep() {
                       max={828}
                       value={bookConfig.pageCount}
                       onChange={(e) => updateBookConfig({ pageCount: parseInt(e.target.value) || 24 })}
-                      className="bg-white/[0.04] border-white/[0.08] text-white/70"
+                      className="text-foreground/75"
                     />
                   </div>
                 </div>
@@ -231,87 +231,87 @@ export default function ConfigStep() {
 
             {/* Paper & Interior */}
             <ConfigCard icon={<BookOpen className="w-4 h-4" />} title="Paper & Finish">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <Label className="text-white/40 text-xs">Paper Type</Label>
+                    <Label className="text-xs text-muted-foreground">Paper Type</Label>
                     {isDetected('paper') && <DetectedBadge />}
                   </div>
                   <Select
                     value={bookConfig.paper}
                     onValueChange={(v) => updateBookConfig({ paper: v as PaperType })}
                   >
-                    <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white/70">
+                    <SelectTrigger className="ds-control text-foreground/75">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a24] border-white/10">
-                      <SelectItem value="white" className="text-white/70 focus:bg-white/10 focus:text-white">
+                    <SelectContent className="border-border bg-popover">
+                      <SelectItem value="white" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         White
                       </SelectItem>
-                      <SelectItem value="cream" className="text-white/70 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="cream" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Cream
                       </SelectItem>
-                      <SelectItem value="premium-color" className="text-white/70 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="premium-color" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Premium Color
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-white/40 text-xs mb-1.5 block">Interior Type</Label>
+                  <Label className="mb-1.5 block text-xs text-muted-foreground">Interior Type</Label>
                   <Select
                     value={bookConfig.interior}
                     onValueChange={(v) => updateBookConfig({ interior: v as InteriorType })}
                   >
-                    <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white/70">
+                    <SelectTrigger className="ds-control text-foreground/75">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a24] border-white/10">
-                      <SelectItem value="black-white" className="text-white/70 focus:bg-white/10 focus:text-white">
+                    <SelectContent className="border-border bg-popover">
+                      <SelectItem value="black-white" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Black & White
                       </SelectItem>
-                      <SelectItem value="standard-color" className="text-white/70 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="standard-color" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Standard Color
                       </SelectItem>
-                      <SelectItem value="premium-color" className="text-white/70 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="premium-color" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Premium Color
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-white/40 text-xs mb-1.5 block">Cover Finish</Label>
+                  <Label className="mb-1.5 block text-xs text-muted-foreground">Cover Finish</Label>
                   <Select
                     value={bookConfig.coverFinish || 'matte'}
                     onValueChange={(v) => updateBookConfig({ coverFinish: v as CoverFinish })}
                   >
-                    <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white/70">
+                    <SelectTrigger className="ds-control text-foreground/75">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a24] border-white/10">
-                      <SelectItem value="matte" className="text-white/70 focus:bg-white/10 focus:text-white">
+                    <SelectContent className="border-border bg-popover">
+                      <SelectItem value="matte" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Matte
                       </SelectItem>
-                      <SelectItem value="glossy" className="text-white/70 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="glossy" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Glossy
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-white/40 text-xs mb-1.5 block">Reading Direction</Label>
+                  <Label className="mb-1.5 block text-xs text-muted-foreground">Reading Direction</Label>
                   <Select
                     value={bookConfig.readingDirection || 'ltr'}
                     onValueChange={(v) => updateBookConfig({ readingDirection: v as ReadingDirection })}
                   >
-                    <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-white/70">
+                    <SelectTrigger className="ds-control text-foreground/75">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a24] border-white/10">
-                      <SelectItem value="ltr" className="text-white/70 focus:bg-white/10 focus:text-white">
+                    <SelectContent className="border-border bg-popover">
+                      <SelectItem value="ltr" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Left to Right (LTR)
                       </SelectItem>
-                      <SelectItem value="rtl" className="text-white/70 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="rtl" className="text-foreground/75 focus:bg-secondary focus:text-foreground">
                         Right to Left (RTL)
                       </SelectItem>
                     </SelectContent>
@@ -324,10 +324,10 @@ export default function ConfigStep() {
           {/* ─── Right: Live Measurements + SVG Diagram ─── */}
           <div className="space-y-5">
             {/* Live Measurements */}
-            <Card className="bg-white/[0.02] border-white/[0.06]">
+            <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-white/70 text-sm flex items-center gap-2">
-                  <Ruler className="w-4 h-4 text-amber-400" />
+                <CardTitle className="flex items-center gap-2 text-sm text-foreground/80">
+                  <Ruler className="h-4 w-4 text-primary" />
                   Live Measurements
                 </CardTitle>
               </CardHeader>
@@ -339,7 +339,7 @@ export default function ConfigStep() {
                 {isHardcover && (
                   <MeasurementRow label="Hinge" value={formatInches(measurements.hingeIn)} />
                 )}
-                <div className="border-t border-white/[0.06] pt-3 mt-3">
+                <div className="mt-3 border-t border-border pt-3">
                   <MeasurementRow
                     label="Full Cover"
                     value={`${formatInches(measurements.fullCoverWidthIn)} × ${formatInches(measurements.fullCoverHeightIn)}`}
@@ -350,10 +350,10 @@ export default function ConfigStep() {
             </Card>
 
             {/* SVG Cover Diagram */}
-            <Card className="bg-white/[0.02] border-white/[0.06]">
+            <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-white/70 text-sm flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-violet-400" />
+                <CardTitle className="flex items-center gap-2 text-sm text-foreground/80">
+                  <BookOpen className="h-4 w-4 text-primary" />
                   Cover Layout
                 </CardTitle>
               </CardHeader>
@@ -373,7 +373,7 @@ export default function ConfigStep() {
             {/* Reset Config */}
             <button
               onClick={handleReset}
-              className="w-full flex items-center justify-center gap-2 py-2 text-xs text-white/25 hover:text-white/50 transition-colors"
+              className="flex w-full items-center justify-center gap-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               <RotateCcw className="w-3 h-3" />
               Reset to defaults
@@ -386,19 +386,19 @@ export default function ConfigStep() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="flex items-center justify-between mt-8 pt-6 border-t border-white/[0.06]"
+          className="mt-8 flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between"
         >
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="text-white/40 hover:text-white/70 hover:bg-white/5"
+            className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Import
           </Button>
           <Button
             onClick={handleGenerate}
-            className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-8 py-3 rounded-xl text-sm font-medium"
+            className="w-full rounded-xl px-6 py-3 text-sm font-medium sm:w-auto sm:px-8"
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Generate 3D Preview
@@ -423,9 +423,9 @@ function ConfigCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card className="bg-white/[0.02] border-white/[0.06]">
+    <Card>
       <CardHeader className="pb-4">
-        <CardTitle className="text-white/70 text-sm flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-sm text-foreground/80">
           {icon}
           {title}
         </CardTitle>
@@ -445,9 +445,9 @@ function MeasurementRow({
   highlight?: boolean;
 }) {
   return (
-    <div className="flex justify-between items-center">
-      <span className="text-white/30 text-xs">{label}</span>
-      <span className={`text-xs font-mono ${highlight ? 'text-violet-300 font-medium' : 'text-white/60'}`}>
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={`break-words font-mono text-xs sm:text-right ${highlight ? 'font-medium text-primary' : 'text-foreground/70'}`}>
         {value}
       </span>
     </div>
@@ -458,7 +458,7 @@ function DetectedBadge() {
   return (
     <Badge
       variant="outline"
-      className="text-[9px] border-violet-500/30 text-violet-400 px-1.5 py-0 h-4 ml-1"
+      className="ml-1 h-4 border-primary/30 px-1.5 py-0 text-[9px] text-primary"
     >
       <BadgeCheck className="w-2.5 h-2.5 mr-0.5" />
       Detected
@@ -522,7 +522,7 @@ function CoverDiagram({
   return (
     <svg
       viewBox={`0 0 ${svgWidth} ${svgHeight + 20}`}
-      className="w-full"
+      className="h-auto w-full"
       style={{ maxHeight: '200px' }}
     >
       {/* Full cover background */}
@@ -564,18 +564,18 @@ function CoverDiagram({
       {/* Bleed areas (transparent overlay) */}
       {bleedIn > 0 && (
         <>
-          <rect x={backBleedLeft.x} y={topBleed.y} width={backBleedLeft.w} height={trimV.h + topBleed.h + bottomBleed.h} fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" strokeWidth={0.3} strokeDasharray="2,2" />
-          <rect x={backBleedRight.x} y={topBleed.y} width={backBleedRight.w} height={trimV.h + topBleed.h + bottomBleed.h} fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" strokeWidth={0.3} strokeDasharray="2,2" />
-          <rect x={frontBleedLeft.x} y={topBleed.y} width={frontBleedLeft.w} height={trimV.h + topBleed.h + bottomBleed.h} fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" strokeWidth={0.3} strokeDasharray="2,2" />
-          <rect x={frontBleedRight.x} y={topBleed.y} width={frontBleedRight.w} height={trimV.h + topBleed.h + bottomBleed.h} fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" strokeWidth={0.3} strokeDasharray="2,2" />
-          <rect x={wrapLeft.w} y={topBleed.y} width={svgWidth - wrapLeft.w - wrapRight.w} height={topBleed.h} fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" strokeWidth={0.3} strokeDasharray="2,2" />
-          <rect x={wrapLeft.w} y={bottomBleed.y} width={svgWidth - wrapLeft.w - wrapRight.w} height={bottomBleed.h} fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" strokeWidth={0.3} strokeDasharray="2,2" />
+          <rect x={backBleedLeft.x} y={topBleed.y} width={backBleedLeft.w} height={trimV.h + topBleed.h + bottomBleed.h} fill="color-mix(in srgb, var(--overlay-bleed) 16%, transparent)" stroke="var(--overlay-bleed)" strokeWidth={0.3} strokeDasharray="2,2" />
+          <rect x={backBleedRight.x} y={topBleed.y} width={backBleedRight.w} height={trimV.h + topBleed.h + bottomBleed.h} fill="color-mix(in srgb, var(--overlay-bleed) 16%, transparent)" stroke="var(--overlay-bleed)" strokeWidth={0.3} strokeDasharray="2,2" />
+          <rect x={frontBleedLeft.x} y={topBleed.y} width={frontBleedLeft.w} height={trimV.h + topBleed.h + bottomBleed.h} fill="color-mix(in srgb, var(--overlay-bleed) 16%, transparent)" stroke="var(--overlay-bleed)" strokeWidth={0.3} strokeDasharray="2,2" />
+          <rect x={frontBleedRight.x} y={topBleed.y} width={frontBleedRight.w} height={trimV.h + topBleed.h + bottomBleed.h} fill="color-mix(in srgb, var(--overlay-bleed) 16%, transparent)" stroke="var(--overlay-bleed)" strokeWidth={0.3} strokeDasharray="2,2" />
+          <rect x={wrapLeft.w} y={topBleed.y} width={svgWidth - wrapLeft.w - wrapRight.w} height={topBleed.h} fill="color-mix(in srgb, var(--overlay-bleed) 16%, transparent)" stroke="var(--overlay-bleed)" strokeWidth={0.3} strokeDasharray="2,2" />
+          <rect x={wrapLeft.w} y={bottomBleed.y} width={svgWidth - wrapLeft.w - wrapRight.w} height={bottomBleed.h} fill="color-mix(in srgb, var(--overlay-bleed) 16%, transparent)" stroke="var(--overlay-bleed)" strokeWidth={0.3} strokeDasharray="2,2" />
         </>
       )}
 
       {/* Wrap areas */}
-      <rect x={0} y={0} width={wrapLeft.w} height={svgHeight} fill="rgba(168,85,247,0.06)" stroke="rgba(168,85,247,0.2)" strokeWidth={0.3} strokeDasharray="2,2" />
-      <rect x={wrapRight.x} y={0} width={wrapRight.w} height={svgHeight} fill="rgba(168,85,247,0.06)" stroke="rgba(168,85,247,0.2)" strokeWidth={0.3} strokeDasharray="2,2" />
+      <rect x={0} y={0} width={wrapLeft.w} height={svgHeight} fill="color-mix(in srgb, var(--overlay-margin) 12%, transparent)" stroke="color-mix(in srgb, var(--overlay-margin) 38%, transparent)" strokeWidth={0.3} strokeDasharray="2,2" />
+      <rect x={wrapRight.x} y={0} width={wrapRight.w} height={svgHeight} fill="color-mix(in srgb, var(--overlay-margin) 12%, transparent)" stroke="color-mix(in srgb, var(--overlay-margin) 38%, transparent)" strokeWidth={0.3} strokeDasharray="2,2" />
 
       {/* Hinge indicators for hardcover */}
       {isHardcover && hingeW > 0 && (
@@ -585,8 +585,8 @@ function CoverDiagram({
             y={trimV.y}
             width={hingeW}
             height={trimV.h}
-            fill="rgba(251,191,36,0.08)"
-            stroke="rgba(251,191,36,0.3)"
+            fill="color-mix(in srgb, var(--overlay-gutter) 16%, transparent)"
+            stroke="var(--overlay-gutter)"
             strokeWidth={0.5}
             strokeDasharray="3,2"
           />
@@ -595,8 +595,8 @@ function CoverDiagram({
             y={trimV.y}
             width={hingeW}
             height={trimV.h}
-            fill="rgba(251,191,36,0.08)"
-            stroke="rgba(251,191,36,0.3)"
+            fill="color-mix(in srgb, var(--overlay-gutter) 16%, transparent)"
+            stroke="var(--overlay-gutter)"
             strokeWidth={0.5}
             strokeDasharray="3,2"
           />
@@ -604,18 +604,18 @@ function CoverDiagram({
       )}
 
       {/* Labels */}
-      <text x={backTrim.x + backTrim.w / 2} y={trimV.y + trimV.h / 2} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize={Math.min(9, backTrim.w * 0.15)} fontFamily="system-ui">
+      <text x={backTrim.x + backTrim.w / 2} y={trimV.y + trimV.h / 2} textAnchor="middle" fill="color-mix(in srgb, var(--foreground) 50%, transparent)" fontSize={Math.min(9, backTrim.w * 0.15)} fontFamily="system-ui">
         BACK
       </text>
-      <text x={spine.x + Math.max(spine.w, 2) / 2} y={trimV.y + trimV.h / 2} textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize={Math.min(7, Math.max(spine.w * 0.3, 5))} fontFamily="system-ui" transform={`rotate(-90, ${spine.x + Math.max(spine.w, 2) / 2}, ${trimV.y + trimV.h / 2})`}>
+      <text x={spine.x + Math.max(spine.w, 2) / 2} y={trimV.y + trimV.h / 2} textAnchor="middle" fill="color-mix(in srgb, var(--foreground) 60%, transparent)" fontSize={Math.min(7, Math.max(spine.w * 0.3, 5))} fontFamily="system-ui" transform={`rotate(-90, ${spine.x + Math.max(spine.w, 2) / 2}, ${trimV.y + trimV.h / 2})`}>
         SPINE
       </text>
-      <text x={frontTrim.x + frontTrim.w / 2} y={trimV.y + trimV.h / 2} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize={Math.min(9, frontTrim.w * 0.15)} fontFamily="system-ui">
+      <text x={frontTrim.x + frontTrim.w / 2} y={trimV.y + trimV.h / 2} textAnchor="middle" fill="color-mix(in srgb, var(--foreground) 50%, transparent)" fontSize={Math.min(9, frontTrim.w * 0.15)} fontFamily="system-ui">
         FRONT
       </text>
 
       {/* Dimension labels below */}
-      <text x={svgWidth / 2} y={svgHeight + 14} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9} fontFamily="monospace">
+      <text x={svgWidth / 2} y={svgHeight + 14} textAnchor="middle" fill="color-mix(in srgb, var(--foreground) 30%, transparent)" fontSize={9} fontFamily="monospace">
         {formatInches(fullWidth)} × {formatInches(fullHeight)}
       </text>
     </svg>

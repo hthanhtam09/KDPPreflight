@@ -47,25 +47,25 @@ function ConfigCard({ icon, label, helpText, children, accent }: ConfigCardProps
     <div
       className={`group rounded-xl border transition-all duration-300 ${
         accent
-          ? 'bg-emerald-500/[0.06] border-emerald-500/20'
-          : 'bg-white/[0.03] border-white/[0.06] hover:border-white/[0.12]'
+          ? 'bg-success/[0.06] border-success/20'
+          : 'bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border-foreground/[0.18] dark:border-foreground/[0.06] hover:border-foreground/[0.25] dark:border-foreground/[0.12]'
       }`}
     >
       <div className="p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2.5">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2.5">
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-              accent ? 'bg-emerald-500/20' : 'bg-white/[0.06]'
+              accent ? 'bg-success/20' : 'bg-foreground/[0.13] dark:bg-foreground/[0.06]'
             }`}>
               {icon}
             </div>
-            <span className="text-sm font-medium text-white/80">{label}</span>
+            <span className="min-w-0 break-words text-sm font-medium text-foreground/80">{label}</span>
           </div>
           {helpText && (
             <button
               onClick={() => setShowHelp(!showHelp)}
-              className="w-5 h-5 rounded-full flex items-center justify-center text-white/20 hover:text-white/50 hover:bg-white/[0.06] transition-colors"
+              className="w-5 h-5 rounded-full flex items-center justify-center text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 hover:text-foreground/80 dark:text-foreground/50 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] transition-colors"
               title="Toggle help"
             >
               <Info className="w-3.5 h-3.5" />
@@ -78,9 +78,9 @@ function ConfigCard({ icon, label, helpText, children, accent }: ConfigCardProps
 
         {/* Help Text */}
         {helpText && showHelp && (
-          <div className="mt-3 flex gap-2 items-start bg-white/[0.03] rounded-lg p-2.5 transition-all duration-200">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
-            <p className="text-[11px] text-white/50 leading-relaxed">{helpText}</p>
+          <div className="mt-3 flex gap-2 items-start bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] rounded-lg p-2.5 transition-all duration-200">
+            <ShieldCheck className="w-3.5 h-3.5 text-success mt-0.5 shrink-0" />
+            <p className="text-[11px] text-foreground/80 dark:text-foreground/50 leading-relaxed">{helpText}</p>
           </div>
         )}
       </div>
@@ -88,7 +88,7 @@ function ConfigCard({ icon, label, helpText, children, accent }: ConfigCardProps
       {/* Bottom help (always visible) */}
       {helpText && !showHelp && (
         <div className="px-4 pb-3">
-          <p className="text-[10px] text-white/25 truncate">{helpText}</p>
+          <p className="text-[10px] text-foreground/65 dark:text-foreground/25 truncate">{helpText}</p>
         </div>
       )}
     </div>
@@ -108,10 +108,10 @@ function OptionBtn({ label, active, onClick, className = '' }: OptionBtnProps) {
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+      className={`min-w-0 flex-1 rounded-lg px-2.5 py-2 text-xs font-medium leading-tight transition-all duration-200 sm:flex-none sm:px-3 ${
         active
-          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
-          : 'bg-white/[0.04] text-white/45 border border-transparent hover:bg-white/[0.08] hover:text-white/65'
+          ? 'bg-success/20 text-success border border-success/30 shadow-sm shadow-success/10'
+          : 'bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 border border-transparent hover:bg-foreground/[0.16] dark:bg-foreground/[0.08] hover:text-foreground/65'
       } ${className}`}
     >
       {active && <Check className="w-3 h-3 inline mr-1 -mt-0.5" />}
@@ -134,11 +134,11 @@ function KindleConfigCards() {
     <div className="space-y-3">
       {/* Font Embedding */}
       <ConfigCard
-        icon={<Type className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<Type className="w-3.5 h-3.5 text-success" />}
         label="Font Embedding"
         helpText="Embedded fonts ensure your book displays consistently across all Kindle devices and apps. Without embedding, Kindle may substitute fonts."
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <OptionBtn label="Enabled" active={fontEmbed} onClick={() => setFontEmbed(true)} />
           <OptionBtn label="Disabled" active={!fontEmbed} onClick={() => setFontEmbed(false)} />
         </div>
@@ -146,11 +146,11 @@ function KindleConfigCards() {
 
       {/* TOC Validation */}
       <ConfigCard
-        icon={<BookMarked className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<BookMarked className="w-3.5 h-3.5 text-success" />}
         label="TOC Validation"
         helpText="Validates your Table of Contents has proper NCX and HTML navigation. KDP requires a functional TOC for Kindle books."
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <OptionBtn label="Enabled" active={tocValidation} onClick={() => setTocValidation(true)} />
           <OptionBtn label="Disabled" active={!tocValidation} onClick={() => setTocValidation(false)} />
         </div>
@@ -158,11 +158,11 @@ function KindleConfigCards() {
 
       {/* Reflow Testing */}
       <ConfigCard
-        icon={<Move className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<Move className="w-3.5 h-3.5 text-success" />}
         label="Reflow Testing"
         helpText="Tests how your content reflows across different font sizes and device orientations. Critical for a good reading experience."
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <OptionBtn label="Enabled" active={reflowTesting} onClick={() => setReflowTesting(true)} />
           <OptionBtn label="Disabled" active={!reflowTesting} onClick={() => setReflowTesting(false)} />
         </div>
@@ -170,11 +170,11 @@ function KindleConfigCards() {
 
       {/* Image Scaling */}
       <ConfigCard
-        icon={<ImageIcon className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<ImageIcon className="w-3.5 h-3.5 text-success" />}
         label="Image Scaling"
         helpText="Controls how images are processed. 'Optimized' resizes for Kindle screens while maintaining quality. 'None' keeps original sizes."
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <OptionBtn label="Default" active={imageScaling === 'default'} onClick={() => setImageScaling('default')} />
           <OptionBtn label="Optimized" active={imageScaling === 'optimized'} onClick={() => setImageScaling('optimized')} />
           <OptionBtn label="None" active={imageScaling === 'none'} onClick={() => setImageScaling('none')} />
@@ -183,11 +183,11 @@ function KindleConfigCards() {
 
       {/* Readability Mode */}
       <ConfigCard
-        icon={<Palette className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<Palette className="w-3.5 h-3.5 text-success" />}
         label="Readability Mode"
         helpText="Large Print increases font size for accessibility. Dyslexia-friendly uses specialized fonts and spacing recommended for readers with dyslexia."
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <OptionBtn label="Default" active={readabilityMode === 'default'} onClick={() => setReadabilityMode('default')} />
           <OptionBtn label="Large Print" active={readabilityMode === 'large-print'} onClick={() => setReadabilityMode('large-print')} />
           <OptionBtn label="Dyslexia" active={readabilityMode === 'dyslexia'} onClick={() => setReadabilityMode('dyslexia')} />
@@ -243,11 +243,11 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
     <div className="space-y-3">
       {/* Trim Size */}
       <ConfigCard
-        icon={<Maximize2 className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<Maximize2 className="w-3.5 h-3.5 text-success" />}
         label="Trim Size"
         helpText="Select a KDP-approved trim size. This determines your book's final printed dimensions and affects spine width calculation."
       >
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
           {trimKeys.map((key) => {
             const size = TRIM_SIZES[key];
             return (
@@ -268,9 +268,9 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
           )}
         </div>
         {bookConfig.trimSize === 'custom' && !isHardcover && (
-          <div className="grid grid-cols-2 gap-2 mt-3">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <div>
-              <label className="text-[10px] text-white/30 mb-1 block">Width (inches)</label>
+              <label className="text-[10px] text-foreground/65 dark:text-foreground/30 mb-1 block">Width (inches)</label>
               <input
                 type="number"
                 value={customWidth}
@@ -278,12 +278,12 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
                 step="0.01"
                 min="5"
                 max="8.5"
-                className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 focus:outline-none focus:border-emerald-500/40 transition-colors"
+                className="w-full bg-foreground/[0.20] dark:bg-foreground/[0.12] dark:bg-foreground/[0.05] border border-foreground/25 dark:border-foreground/10 rounded-lg px-3 py-1.5 text-xs text-foreground/80 focus:outline-none focus:border-success/40 transition-colors"
                 placeholder="6.0"
               />
             </div>
             <div>
-              <label className="text-[10px] text-white/30 mb-1 block">Height (inches)</label>
+              <label className="text-[10px] text-foreground/65 dark:text-foreground/30 mb-1 block">Height (inches)</label>
               <input
                 type="number"
                 value={customHeight}
@@ -291,7 +291,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
                 step="0.01"
                 min="5"
                 max="11"
-                className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 focus:outline-none focus:border-emerald-500/40 transition-colors"
+                className="w-full bg-foreground/[0.20] dark:bg-foreground/[0.12] dark:bg-foreground/[0.05] border border-foreground/25 dark:border-foreground/10 rounded-lg px-3 py-1.5 text-xs text-foreground/80 focus:outline-none focus:border-success/40 transition-colors"
                 placeholder="9.0"
               />
             </div>
@@ -301,7 +301,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
 
       {/* Bleed */}
       <ConfigCard
-        icon={<ScanLine className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<ScanLine className="w-3.5 h-3.5 text-success" />}
         label="Bleed"
         helpText={
           bookConfig.bleed === 'bleed'
@@ -309,7 +309,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
             : 'White border around content. Choose this if your artwork does not extend to the page edges.'
         }
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <OptionBtn label="No Bleed" active={bookConfig.bleed === 'no-bleed'} onClick={() => updateBookConfig({ bleed: 'no-bleed' })} />
           <OptionBtn label="With Bleed" active={bookConfig.bleed === 'bleed'} onClick={() => updateBookConfig({ bleed: 'bleed' })} />
         </div>
@@ -317,11 +317,11 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
 
       {/* Paper Type */}
       <ConfigCard
-        icon={<Layers className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<Layers className="w-3.5 h-3.5 text-success" />}
         label="Paper Type"
         helpText="Paper type affects spine width calculation. Cream and premium paper are thicker per page, resulting in a wider spine."
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(['white', 'cream', 'premium-color'] as PaperType[]).map((paper) => (
             <OptionBtn
               key={paper}
@@ -335,11 +335,11 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
 
       {/* Interior Type */}
       <ConfigCard
-        icon={<Palette className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<Palette className="w-3.5 h-3.5 text-success" />}
         label="Interior Type"
         helpText="Interior type determines printing method. B&W is most cost-effective. Color options use higher quality printing processes."
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(['black-white', 'standard-color', 'premium-color'] as InteriorType[]).map((interior) => (
             <OptionBtn
               key={interior}
@@ -353,15 +353,15 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
 
       {/* Page Count */}
       <ConfigCard
-        icon={<FileText className="w-3.5 h-3.5 text-emerald-400" />}
+        icon={<FileText className="w-3.5 h-3.5 text-success" />}
         label="Page Count"
         helpText="Spine width is automatically calculated from page count and paper type. KDP requires even page numbers within the valid range."
         accent
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => handlePageCountChange(String(bookConfig.pageCount - 2))}
-            className="w-8 h-8 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center text-white/50 hover:text-white/80 transition-colors"
+            className="w-8 h-8 rounded-lg bg-foreground/[0.13] dark:bg-foreground/[0.06] hover:bg-foreground/[0.1] flex items-center justify-center text-foreground/80 dark:text-foreground/50 hover:text-foreground/80 transition-colors"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
@@ -372,11 +372,11 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
             min={24}
             max={isHardcover ? 550 : 828}
             step={2}
-            className="flex-1 bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2 text-center text-sm font-mono text-white/80 focus:outline-none focus:border-emerald-500/40 transition-colors"
+            className="flex-1 bg-foreground/[0.20] dark:bg-foreground/[0.12] dark:bg-foreground/[0.05] border border-foreground/25 dark:border-foreground/10 rounded-lg px-3 py-2 text-center text-sm font-mono text-foreground/80 focus:outline-none focus:border-success/40 transition-colors"
           />
           <button
             onClick={() => handlePageCountChange(String(bookConfig.pageCount + 2))}
-            className="w-8 h-8 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center text-white/50 hover:text-white/80 transition-colors"
+            className="w-8 h-8 rounded-lg bg-foreground/[0.13] dark:bg-foreground/[0.06] hover:bg-foreground/[0.1] flex items-center justify-center text-foreground/80 dark:text-foreground/50 hover:text-foreground/80 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
@@ -384,29 +384,29 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
         {autoPageCount && autoPageCount !== bookConfig.pageCount && (
           <button
             onClick={() => handlePageCountChange(String(autoPageCount))}
-            className="mt-2 text-[10px] text-emerald-400/60 hover:text-emerald-400 transition-colors flex items-center gap-1"
+            className="mt-2 text-[10px] text-success/60 hover:text-success transition-colors flex items-center gap-1"
           >
             <RotateCcw className="w-3 h-3" />
             Auto-fill from manuscript: {autoPageCount} pages
           </button>
         )}
-        <p className="text-[10px] text-white/25 mt-2">
+        <p className="text-[10px] text-foreground/65 dark:text-foreground/25 mt-2">
           Range: 24–{isHardcover ? '550' : '828'} pages • Spine: {formatInches(measurements.spineWidthIn)}
         </p>
       </ConfigCard>
 
       {/* Binding */}
       <ConfigCard
-        icon={<BookOpen className="w-3.5 h-3.5 text-white/30" />}
+        icon={<BookOpen className="w-3.5 h-3.5 text-foreground/65 dark:text-foreground/30" />}
         label={`Binding: ${isHardcover ? 'Hardcover' : 'Paperback'}`}
         helpText={isHardcover
           ? 'Hardcover binding includes a rigid case wrap with hinge and wrap zones for proper folding.'
           : 'Perfect binding with a glued spine. The most common and cost-effective binding for KDP.'
         }
       >
-        <div className="flex items-center gap-2 bg-white/[0.03] rounded-lg px-3 py-2">
-          <Lock className="w-3.5 h-3.5 text-white/20" />
-          <span className="text-xs text-white/30">{isHardcover ? 'Hardcover' : 'Paperback'} — set during import</span>
+        <div className="flex items-center gap-2 bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] rounded-lg px-3 py-2">
+          <Lock className="w-3.5 h-3.5 text-foreground/85 dark:text-foreground/60 dark:text-foreground/20" />
+          <span className="text-xs text-foreground/65 dark:text-foreground/30">{isHardcover ? 'Hardcover' : 'Paperback'} — set during import</span>
         </div>
       </ConfigCard>
 
@@ -414,27 +414,27 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
       {isHardcover && (
         <>
           <ConfigCard
-            icon={<Grid3x3 className="w-3.5 h-3.5 text-amber-400" />}
+            icon={<Grid3x3 className="w-3.5 h-3.5 text-warning" />}
             label="Hinge Area"
             helpText="Required folding area for hardcover binding. The hinge allows the cover to open smoothly without damaging the spine."
           >
-            <div className="flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2.5">
-              <span className="text-xs text-white/40">Hinge width</span>
-              <span className="text-sm font-mono text-amber-400">{formatInches(HARDCOVER_HINGE_IN)}</span>
+            <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.16] px-3 py-2.5 dark:bg-foreground/[0.03] sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Hinge width</span>
+              <span className="text-sm font-mono text-warning">{formatInches(HARDCOVER_HINGE_IN)}</span>
             </div>
-            <p className="text-[10px] text-white/25 mt-1.5">0.375" on each side — auto-calculated for hardcover</p>
+            <p className="text-[10px] text-foreground/65 dark:text-foreground/25 mt-1.5">0.375" on each side — auto-calculated for hardcover</p>
           </ConfigCard>
 
           <ConfigCard
-            icon={<Box className="w-3.5 h-3.5 text-amber-400" />}
+            icon={<Box className="w-3.5 h-3.5 text-warning" />}
             label="Wrap Zone"
             helpText="The wrap zone extends the cover around the hardcover case. This area wraps around the board edges and onto the inside."
           >
-            <div className="flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2.5">
-              <span className="text-xs text-white/40">Wrap width</span>
-              <span className="text-sm font-mono text-amber-400">{formatInches(HARDCOVER_WRAP_IN)}</span>
+            <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.16] px-3 py-2.5 dark:bg-foreground/[0.03] sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Wrap width</span>
+              <span className="text-sm font-mono text-warning">{formatInches(HARDCOVER_WRAP_IN)}</span>
             </div>
-            <p className="text-[10px] text-white/25 mt-1.5">0.625" on each side — auto-calculated for hardcover</p>
+            <p className="text-[10px] text-foreground/65 dark:text-foreground/25 mt-1.5">0.625" on each side — auto-calculated for hardcover</p>
           </ConfigCard>
         </>
       )}
@@ -512,23 +512,23 @@ function MeasurementsDisplay() {
 
   if (bookType === 'kindle') {
     return (
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-        <h4 className="text-xs text-white/50 uppercase tracking-wider mb-3 flex items-center gap-2">
+      <div className="bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06] rounded-xl p-4">
+        <h4 className="text-xs text-foreground/80 dark:text-foreground/50 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Monitor className="w-3.5 h-3.5" />
           Kindle Format
         </h4>
         <div className="space-y-2">
-          <div className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg">
-            <span className="text-xs text-white/40">Format</span>
-            <span className="text-xs text-white/70">KFX / MOBI / EPUB</span>
+          <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.13] p-2 dark:bg-foreground/[0.02] sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Format</span>
+            <span className="text-xs text-foreground/85 dark:text-foreground/70">KFX / MOBI / EPUB</span>
           </div>
-          <div className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg">
-            <span className="text-xs text-white/40">Reflowable</span>
-            <span className="text-xs text-emerald-400">Yes</span>
+          <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.13] p-2 dark:bg-foreground/[0.02] sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Reflowable</span>
+            <span className="text-xs text-success">Yes</span>
           </div>
-          <div className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg">
-            <span className="text-xs text-white/40">Max File Size</span>
-            <span className="text-xs text-white/70">650 MB</span>
+          <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.13] p-2 dark:bg-foreground/[0.02] sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Max File Size</span>
+            <span className="text-xs text-foreground/85 dark:text-foreground/70">650 MB</span>
           </div>
         </div>
       </div>
@@ -536,8 +536,8 @@ function MeasurementsDisplay() {
   }
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-      <h4 className="text-xs text-white/50 uppercase tracking-wider mb-3 flex items-center gap-2">
+    <div className="bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06] rounded-xl p-4">
+      <h4 className="text-xs text-foreground/80 dark:text-foreground/50 uppercase tracking-wider mb-3 flex items-center gap-2">
         <Ruler className="w-3.5 h-3.5" />
         Calculated Measurements
       </h4>
@@ -545,18 +545,18 @@ function MeasurementsDisplay() {
         {items.map((item) => (
           <div
             key={item.label}
-            className={`flex items-center justify-between p-2 rounded-lg transition-colors duration-200 ${
+            className={`flex flex-col gap-2 rounded-lg p-2 transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between ${
               (item as any).highlight
-                ? 'bg-emerald-500/[0.08] border border-emerald-500/20'
-                : 'bg-white/[0.02]'
+                ? 'bg-success/[0.08] border border-success/20'
+                : 'bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]'
             }`}
           >
             <div className="min-w-0">
-              <p className="text-[11px] text-white/45">{item.label}</p>
-              <p className="text-[9px] text-white/25 truncate">{item.sub}</p>
+              <p className="text-[11px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/45">{item.label}</p>
+              <p className="text-[9px] text-foreground/65 dark:text-foreground/25 truncate">{item.sub}</p>
             </div>
-            <p className={`text-xs font-mono font-medium shrink-0 ml-2 ${
-              (item as any).highlight ? 'text-emerald-400' : 'text-white/70'
+            <p className={`break-words font-mono text-xs font-medium sm:ml-2 sm:shrink-0 sm:text-right ${
+              (item as any).highlight ? 'text-success' : 'text-foreground/70'
             }`}>
               {item.value}
             </p>
@@ -645,22 +645,22 @@ function CoverVisualization() {
   const barcodeY = backY + backH - safe - barcodeH;
 
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h3 className="text-xs text-white/40 uppercase tracking-wider mb-4">
+    <div className="flex h-full w-full min-w-0 flex-col items-center justify-center">
+      <h3 className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 uppercase tracking-wider mb-4">
         {isHardcover ? 'Hardcover' : 'Paperback'} Cover Layout
       </h3>
       <svg
         width={svgW}
         height={svgH}
         viewBox={`0 0 ${svgW} ${svgH}`}
-        className="text-white max-w-full"
+        className="h-auto w-full max-w-[500px] text-foreground"
       >
         {/* Full Cover Outline */}
         <rect
           x={x0} y={y0}
           width={coverW} height={coverH}
           fill="none"
-          stroke="rgba(255,255,255,0.12)"
+          stroke="color-mix(in srgb, var(--foreground) 12%, transparent)"
           strokeWidth="1"
           strokeDasharray="4 3"
           style={{ transition: 'all 0.4s ease' }}
@@ -672,7 +672,7 @@ function CoverVisualization() {
             <rect
               x={x0} y={y0}
               width={coverW} height={coverH}
-              fill="rgba(251,191,36,0.03)"
+              fill="color-mix(in srgb, var(--overlay-gutter) 8%, transparent)"
               stroke="none"
               style={{ transition: 'all 0.4s ease' }}
             />
@@ -680,7 +680,7 @@ function CoverVisualization() {
               x={wrapL} y={wrapT}
               width={wrapR - wrapL} height={wrapB - wrapT}
               fill="none"
-              stroke="rgba(251,191,36,0.2)"
+              stroke="color-mix(in srgb, var(--overlay-gutter) 38%, transparent)"
               strokeWidth="0.5"
               strokeDasharray="3 2"
               style={{ transition: 'all 0.4s ease' }}
@@ -693,7 +693,7 @@ function CoverVisualization() {
           <rect
             x={wrapL} y={wrapT}
             width={wrapR - wrapL} height={wrapB - wrapT}
-            fill="rgba(239,68,68,0.04)"
+            fill="color-mix(in srgb, var(--overlay-bleed) 10%, transparent)"
             stroke="rgba(239,68,68,0.25)"
             strokeWidth="0.5"
             style={{ transition: 'all 0.4s ease' }}
@@ -704,8 +704,8 @@ function CoverVisualization() {
         <rect
           x={backX} y={backY}
           width={backW} height={backH}
-          fill="rgba(255,255,255,0.03)"
-          stroke="rgba(255,255,255,0.18)"
+          fill="color-mix(in srgb, var(--foreground) 3%, transparent)"
+          stroke="color-mix(in srgb, var(--foreground) 18%, transparent)"
           strokeWidth="1"
           style={{ transition: 'all 0.4s ease' }}
         />
@@ -714,8 +714,8 @@ function CoverVisualization() {
         <rect
           x={frontX} y={frontY}
           width={frontW} height={frontH}
-          fill="rgba(255,255,255,0.06)"
-          stroke="rgba(255,255,255,0.25)"
+          fill="color-mix(in srgb, var(--foreground) 6%, transparent)"
+          stroke="color-mix(in srgb, var(--foreground) 25%, transparent)"
           strokeWidth="1"
           style={{ transition: 'all 0.4s ease' }}
         />
@@ -724,8 +724,8 @@ function CoverVisualization() {
         <rect
           x={spineX} y={spineY}
           width={Math.max(spine, 1)} height={spineH}
-          fill="rgba(16,185,129,0.1)"
-          stroke="rgba(16,185,129,0.4)"
+          fill="color-mix(in srgb, var(--overlay-safe) 18%, transparent)"
+          stroke="var(--overlay-safe)"
           strokeWidth="0.5"
           style={{ transition: 'all 0.4s ease' }}
         />
@@ -736,8 +736,8 @@ function CoverVisualization() {
             <rect
               x={hingeLeftX} y={bleedT}
               width={hinge} height={trimH}
-              fill="rgba(251,191,36,0.06)"
-              stroke="rgba(251,191,36,0.3)"
+              fill="color-mix(in srgb, var(--overlay-gutter) 12%, transparent)"
+              stroke="var(--overlay-gutter)"
               strokeWidth="0.5"
               strokeDasharray="2 2"
               style={{ transition: 'all 0.4s ease' }}
@@ -745,8 +745,8 @@ function CoverVisualization() {
             <rect
               x={hingeRightX} y={bleedT}
               width={hinge} height={trimH}
-              fill="rgba(251,191,36,0.06)"
-              stroke="rgba(251,191,36,0.3)"
+              fill="color-mix(in srgb, var(--overlay-gutter) 12%, transparent)"
+              stroke="var(--overlay-gutter)"
               strokeWidth="0.5"
               strokeDasharray="2 2"
               style={{ transition: 'all 0.4s ease' }}
@@ -760,7 +760,7 @@ function CoverVisualization() {
           x={backX + safe} y={backY + safe}
           width={Math.max(backW - 2 * safe, 1)} height={Math.max(backH - 2 * safe, 1)}
           fill="none"
-          stroke="rgba(59,130,246,0.3)"
+          stroke="var(--overlay-trim)"
           strokeWidth="0.5"
           strokeDasharray="2 2"
           style={{ transition: 'all 0.4s ease' }}
@@ -770,7 +770,7 @@ function CoverVisualization() {
           x={frontX + safe} y={frontY + safe}
           width={Math.max(frontW - 2 * safe, 1)} height={Math.max(frontH - 2 * safe, 1)}
           fill="none"
-          stroke="rgba(59,130,246,0.3)"
+          stroke="var(--overlay-trim)"
           strokeWidth="0.5"
           strokeDasharray="2 2"
           style={{ transition: 'all 0.4s ease' }}
@@ -781,8 +781,8 @@ function CoverVisualization() {
           <rect
             x={barcodeX} y={barcodeY}
             width={barcodeW} height={barcodeH}
-            fill="rgba(168,85,247,0.06)"
-            stroke="rgba(168,85,247,0.25)"
+            fill="color-mix(in srgb, var(--overlay-margin) 12%, transparent)"
+            stroke="var(--overlay-margin)"
             strokeWidth="0.5"
             strokeDasharray="2 2"
             style={{ transition: 'all 0.4s ease' }}
@@ -795,7 +795,7 @@ function CoverVisualization() {
           y={frontY + frontH / 2 - 6}
           textAnchor="middle"
           className="text-[9px]"
-          fill="rgba(255,255,255,0.5)"
+          fill="color-mix(in srgb, var(--foreground) 50%, transparent)"
         >
           Front Cover
         </text>
@@ -804,7 +804,7 @@ function CoverVisualization() {
           y={frontY + frontH / 2 + 8}
           textAnchor="middle"
           className="text-[8px]"
-          fill="rgba(255,255,255,0.25)"
+          fill="color-mix(in srgb, var(--foreground) 25%, transparent)"
         >
           {formatInches(m.trimWidthIn)} × {formatInches(m.trimHeightIn)}
         </text>
@@ -814,7 +814,7 @@ function CoverVisualization() {
           y={backY + backH / 2}
           textAnchor="middle"
           className="text-[9px]"
-          fill="rgba(255,255,255,0.35)"
+          fill="color-mix(in srgb, var(--foreground) 35%, transparent)"
         >
           Back Cover
         </text>
@@ -826,7 +826,7 @@ function CoverVisualization() {
             y={spineY + spineH / 2}
             textAnchor="middle"
             className="text-[7px]"
-            fill="rgba(16,185,129,0.6)"
+            fill="var(--overlay-safe)"
             transform={`rotate(-90, ${spineX + spine / 2}, ${spineY + spineH / 2})`}
           >
             Spine {formatInches(m.spineWidthIn)}
@@ -841,7 +841,7 @@ function CoverVisualization() {
               y={bleedT + trimH / 2}
               textAnchor="middle"
               className="text-[6px]"
-              fill="rgba(251,191,36,0.5)"
+              fill="var(--overlay-gutter)"
               transform={`rotate(-90, ${hingeLeftX + hinge / 2}, ${bleedT + trimH / 2})`}
             >
               Hinge
@@ -851,7 +851,7 @@ function CoverVisualization() {
               y={bleedT + trimH / 2}
               textAnchor="middle"
               className="text-[6px]"
-              fill="rgba(251,191,36,0.5)"
+              fill="var(--overlay-gutter)"
               transform={`rotate(-90, ${hingeRightX + hinge / 2}, ${bleedT + trimH / 2})`}
             >
               Hinge
@@ -866,7 +866,7 @@ function CoverVisualization() {
             y={barcodeY + barcodeH / 2}
             textAnchor="middle"
             className="text-[6px]"
-            fill="rgba(168,85,247,0.5)"
+            fill="var(--overlay-margin)"
           >
             Barcode
           </text>
@@ -876,14 +876,14 @@ function CoverVisualization() {
         <line
           x1={x0} y1={y0 + coverH + 14}
           x2={x0 + coverW} y2={y0 + coverH + 14}
-          stroke="rgba(255,255,255,0.15)"
+          stroke="color-mix(in srgb, var(--foreground) 15%, transparent)"
           strokeWidth="0.5"
         />
         <text
           x={x0 + coverW / 2} y={y0 + coverH + 25}
           textAnchor="middle"
           className="text-[8px]"
-          fill="rgba(255,255,255,0.3)"
+          fill="color-mix(in srgb, var(--foreground) 30%, transparent)"
         >
           {formatInches(m.fullCoverWidthIn)}
         </text>
@@ -891,14 +891,14 @@ function CoverVisualization() {
         <line
           x1={x0 + coverW + 14} y1={y0}
           x2={x0 + coverW + 14} y2={y0 + coverH}
-          stroke="rgba(255,255,255,0.15)"
+          stroke="color-mix(in srgb, var(--foreground) 15%, transparent)"
           strokeWidth="0.5"
         />
         <text
           x={x0 + coverW + 22} y={y0 + coverH / 2}
           textAnchor="middle"
           className="text-[8px]"
-          fill="rgba(255,255,255,0.3)"
+          fill="color-mix(in srgb, var(--foreground) 30%, transparent)"
           transform={`rotate(90, ${x0 + coverW + 22}, ${y0 + coverH / 2})`}
         >
           {formatInches(m.fullCoverHeightIn)}
@@ -907,28 +907,28 @@ function CoverVisualization() {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-3 justify-center mt-3">
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
-          <div className="w-3 h-0.5 border border-dashed border-white/20" /> Full Cover
+        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+          <div className="w-3 h-0.5 border border-dashed border-foreground/30 dark:border-foreground/20" /> Full Cover
         </div>
         {bleed > 0 && (
-          <div className="flex items-center gap-1.5 text-[10px] text-white/35">
-            <div className="w-3 h-0.5 bg-red-500/30" /> Bleed
+          <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+            <div className="w-3 h-0.5 bg-danger/30" /> Bleed
           </div>
         )}
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
-          <div className="w-3 h-0.5 bg-emerald-500/40" /> Spine
+        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+          <div className="w-3 h-0.5 bg-success/40" /> Spine
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
-          <div className="w-3 h-0.5 border border-dashed border-blue-400/30" /> Safe Zone
+        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+          <div className="w-3 h-0.5 border border-dashed border-primary/30" /> Safe Zone
         </div>
         {!isHardcover && (
-          <div className="flex items-center gap-1.5 text-[10px] text-white/35">
-            <div className="w-3 h-0.5 border border-dashed border-purple-400/30" /> Barcode
+          <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+            <div className="w-3 h-0.5 border border-dashed border-primary/30" /> Barcode
           </div>
         )}
         {isHardcover && (
-          <div className="flex items-center gap-1.5 text-[10px] text-white/35">
-            <div className="w-3 h-0.5 border border-dashed border-amber-400/30" /> Hinge/Wrap
+          <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+            <div className="w-3 h-0.5 border border-dashed border-warning/30" /> Hinge/Wrap
           </div>
         )}
       </div>
@@ -940,21 +940,21 @@ function CoverVisualization() {
 
 function KindleVisualization() {
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h3 className="text-xs text-white/40 uppercase tracking-wider mb-6">
+    <div className="flex h-full w-full min-w-0 flex-col items-center justify-center">
+      <h3 className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 uppercase tracking-wider mb-6">
         Kindle Digital Preview
       </h3>
 
       {/* Device frame */}
-      <div className="relative">
-        <svg width="280" height="380" viewBox="0 0 280 380" className="text-white">
+      <div className="relative w-full max-w-[280px]">
+        <svg width="280" height="380" viewBox="0 0 280 380" className="h-auto w-full text-foreground">
           {/* Device body */}
           <rect
             x="20" y="10"
             width="240" height="360"
             rx="16" ry="16"
-            fill="rgba(255,255,255,0.03)"
-            stroke="rgba(255,255,255,0.12)"
+            fill="color-mix(in srgb, var(--foreground) 3%, transparent)"
+            stroke="color-mix(in srgb, var(--foreground) 12%, transparent)"
             strokeWidth="1.5"
           />
 
@@ -963,8 +963,8 @@ function KindleVisualization() {
             x="36" y="36"
             width="208" height="290"
             rx="2" ry="2"
-            fill="rgba(255,255,255,0.02)"
-            stroke="rgba(255,255,255,0.06)"
+            fill="color-mix(in srgb, var(--foreground) 2%, transparent)"
+            stroke="color-mix(in srgb, var(--foreground) 6%, transparent)"
             strokeWidth="0.5"
           />
 
@@ -977,12 +977,12 @@ function KindleVisualization() {
               width={i % 3 === 1 ? 140 : i % 3 === 2 ? 170 : 185}
               height="4"
               rx="2"
-              fill="rgba(255,255,255,0.06)"
+              fill="color-mix(in srgb, var(--foreground) 6%, transparent)"
             />
           ))}
 
           {/* Title text */}
-          <text x="140" y="46" textAnchor="middle" className="text-[8px]" fill="rgba(255,255,255,0.3)">
+          <text x="140" y="46" textAnchor="middle" className="text-[8px]" fill="color-mix(in srgb, var(--foreground) 30%, transparent)">
             Chapter Title
           </text>
 
@@ -992,15 +992,15 @@ function KindleVisualization() {
           </text>
 
           {/* Kindle logo dot */}
-          <circle cx="140" cy="340" r="3" fill="rgba(255,255,255,0.08)" />
+          <circle cx="140" cy="340" r="3" fill="color-mix(in srgb, var(--foreground) 8%, transparent)" />
         </svg>
       </div>
 
-      <div className="flex gap-4 mt-4">
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+      <div className="mt-4 flex flex-wrap justify-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
           <Monitor className="w-3 h-3" /> Reflowable Layout
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
           <Type className="w-3 h-3" /> Embedded Fonts
         </div>
       </div>
@@ -1018,13 +1018,13 @@ function AutoFillBanner() {
   if (!hasAutoFill) return null;
 
   return (
-    <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-xl p-3 flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
-        <Check className="w-4 h-4 text-emerald-400" />
+    <div className="bg-success/[0.08] border border-success/20 rounded-xl p-3 flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center shrink-0">
+        <Check className="w-4 h-4 text-success" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-emerald-300 font-medium">Auto-detected from import</p>
-        <p className="text-[10px] text-white/40">
+        <p className="text-xs text-success font-medium">Auto-detected from import</p>
+        <p className="text-[10px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">
           {uploadedManuscript?.pageCount} pages detected — you can still adjust settings manually
         </p>
       </div>
@@ -1056,17 +1056,17 @@ export default function ConfigStep() {
   }[bookType];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full">
+    <div className="flex h-full flex-col gap-6 lg:flex-row">
       {/* ─── LEFT: Config Panel ─── */}
-      <div className="lg:w-[400px] xl:w-[440px] shrink-0 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-200px)] pr-1 custom-scrollbar">
+      <div className="flex min-w-0 flex-col gap-4 overflow-y-visible pr-0 lg:max-h-[calc(100vh-200px)] lg:w-[400px] lg:shrink-0 lg:overflow-y-auto lg:pr-1 xl:w-[440px] custom-scrollbar">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+          <div className="w-9 h-9 rounded-xl bg-success/15 flex items-center justify-center text-success">
             {bookTypeIcon}
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white/90">Configure</h2>
-            <p className="text-xs text-white/40">{bookTypeLabel} — set your book specifications</p>
+            <h2 className="text-lg font-semibold text-foreground/90">Configure</h2>
+            <p className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">{bookTypeLabel} — set your book specifications</p>
           </div>
         </div>
 
@@ -1081,24 +1081,24 @@ export default function ConfigStep() {
       </div>
 
       {/* ─── RIGHT: Live Visualization + Sticky Action ─── */}
-      <div className="flex-1 flex flex-col gap-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-4">
         {/* Live Visualization */}
-        <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8 min-h-[500px] flex items-center justify-center">
+        <div className="flex min-h-[320px] flex-1 items-center justify-center rounded-2xl border border-foreground/[0.18] bg-foreground/[0.13] p-4 dark:bg-foreground/[0.02] dark:border-foreground/[0.06] sm:min-h-[420px] sm:p-6 lg:min-h-[500px] lg:p-8">
           <CoverVisualization />
         </div>
 
         {/* Sticky Navigation — always visible, no scrolling needed */}
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <button
             onClick={() => setCheckerStep('import')}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-xs text-white/50 hover:text-white/70 transition-all duration-200"
+            className="flex items-center justify-center gap-2 rounded-xl border border-foreground/[0.18] bg-foreground/[0.18] px-4 py-3 text-xs text-foreground/80 transition-all duration-200 hover:bg-foreground/[0.16] hover:text-foreground/85 dark:bg-foreground/[0.04] dark:border-foreground/[0.06] dark:text-foreground/50 dark:hover:text-foreground/70"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Import
           </button>
           <button
             onClick={() => setCheckerStep('preview')}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-all duration-200 shadow-lg shadow-emerald-500/25"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-success hover:bg-success text-foreground font-semibold text-sm transition-all duration-200 shadow-lg shadow-success/25"
           >
             Start Review
             <ArrowRight className="w-4 h-4" />

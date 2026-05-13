@@ -57,8 +57,8 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
   return (
     <>
       {/* ━━━ Top bar - Book type selector ━━━ */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-        <div className="flex items-center gap-1 rounded-2xl border border-[#f4efe5]/10 bg-[#080a0d]/75 p-1 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(244,239,229,0.08)] backdrop-blur-xl">
+      <div className="absolute left-3 right-3 top-3 z-10 sm:left-1/2 sm:right-auto sm:top-4 sm:-translate-x-1/2">
+        <div className="ds-card-glass mx-auto flex w-fit max-w-full items-center gap-1 p-1">
           <BookTypeButton
             active={state.bookType === 'paperback'}
             onClick={() => actions.setBookType('paperback')}
@@ -81,8 +81,8 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
       </div>
 
       {/* ━━━ Left toolbar - View controls ━━━ */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
-        <div className="flex flex-col gap-2 rounded-2xl border border-[#f4efe5]/10 bg-[#080a0d]/75 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(244,239,229,0.08)] backdrop-blur-xl">
+      <div className="absolute right-3 top-24 z-10 sm:right-4 sm:top-1/2 sm:-translate-y-1/2">
+        <div className="ds-card-glass flex flex-col gap-2 p-2">
           <ToolBarButton
             onClick={actions.resetCamera}
             icon={<RotateCcw className="w-4 h-4" />}
@@ -115,7 +115,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             </>
           )}
 
-          <div className="w-6 h-px bg-white/10 mx-auto" />
+          <div className="mx-auto h-px w-6 bg-border" />
 
           {/* Camera presets toggle */}
           <ToolBarButton
@@ -125,7 +125,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             active={showCameraPresets || activePreset !== 'free'}
           />
 
-          <div className="w-6 h-px bg-white/10 mx-auto" />
+          <div className="mx-auto h-px w-6 bg-border" />
 
           <ToolBarButton
             onClick={() => setShowInfo(!showInfo)}
@@ -143,10 +143,10 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
-            className="absolute left-20 top-1/2 -translate-y-1/2 z-20"
+            className="absolute left-3 top-24 z-20 sm:left-20 sm:top-1/2 sm:-translate-y-1/2"
           >
-            <div className="bg-black/80 backdrop-blur-xl rounded-xl border border-white/10 p-2 space-y-1 min-w-[140px]">
-              <div className="text-[10px] text-white/30 uppercase tracking-wider px-2 pb-1 font-medium">
+            <div className="ds-card-glass min-w-[140px] space-y-1 p-2">
+              <div className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 Camera Views
               </div>
               {CAMERA_PRESETS.map((preset) => (
@@ -160,7 +160,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
                   label={preset.shortLabel}
                 />
               ))}
-              <div className="w-full h-px bg-white/10 my-1" />
+              <div className="my-1 h-px w-full bg-border" />
               <CameraPresetButton
                 active={activePreset === 'free'}
                 onClick={() => actions.setCameraPreset('free')}
@@ -179,9 +179,9 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
-            className="absolute left-20 top-1/2 -translate-y-1/2 z-20"
+            className="absolute left-3 top-24 z-20 sm:left-20 sm:top-1/2 sm:-translate-y-1/2"
           >
-            <div className="bg-black/80 backdrop-blur-xl rounded-xl border border-white/10 p-2 space-y-1">
+            <div className="ds-card-glass space-y-1 p-2">
               <DeviceButton
                 active={state.kindleDevice === 'paperwhite'}
                 onClick={() => { actions.setKindleDevice('paperwhite'); setShowDevicePicker(false); }}
@@ -212,18 +212,18 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
       </AnimatePresence>
 
       {/* ━━━ Bottom bar - Camera presets quick access + Page navigation + Export ━━━ */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-        <div className="flex flex-col gap-2 items-center">
+      <div className="absolute bottom-3 left-3 right-3 z-10 sm:bottom-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2">
+        <div className="flex max-w-full flex-col items-center gap-2">
           {/* Camera preset quick buttons */}
-          <div className="flex items-center gap-1 rounded-2xl border border-[#f4efe5]/10 bg-[#080a0d]/75 px-2 py-1.5 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(244,239,229,0.08)] backdrop-blur-xl">
+          <div className="ds-card-glass flex items-center gap-1 px-2 py-1.5">
             {CAMERA_PRESETS.filter((preset) => ['front', 'back', 'spine'].includes(preset.key)).map((preset) => (
               <button
                 key={preset.key}
                 onClick={() => actions.setCameraPreset(preset.key)}
                 className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all ${
                   activePreset === preset.key
-                    ? 'bg-white/15 text-white'
-                    : 'text-white/40 hover:text-white/80 hover:bg-white/5'
+                    ? 'bg-primary text-primary-foreground shadow-soft'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
                 title={preset.label}
               >
@@ -234,17 +234,17 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
           </div>
 
           {/* Page navigation + Export */}
-          <div className="flex items-center gap-3 rounded-2xl border border-[#f4efe5]/10 bg-[#080a0d]/75 px-4 py-2.5 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(244,239,229,0.08)] backdrop-blur-xl">
+          <div className="ds-card-glass flex w-full max-w-[calc(100vw-1.5rem)] items-center gap-2 px-3 py-2.5 sm:w-auto sm:gap-3 sm:px-4">
             <button
               onClick={actions.prevPage}
               disabled={state.currentPage <= 0 || state.isFlipping}
-              className="text-white/60 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-3 min-w-[200px]">
-              <span className="text-white/60 text-xs font-mono w-8 text-right">
+            <div className="flex min-w-0 flex-1 items-center gap-2 sm:min-w-[200px] sm:gap-3">
+              <span className="w-8 text-right font-mono text-xs text-muted-foreground">
                 {state.currentPage + 1}
               </span>
               <input
@@ -254,13 +254,13 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
                 value={state.currentPage}
                 onChange={(e) => actions.goToPage(parseInt(e.target.value))}
                 disabled={state.isFlipping}
-                className="flex-1 h-1 bg-white/10 rounded-full appearance-none cursor-pointer
+                className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-secondary
                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
-                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white/80
-                  [&::-webkit-slider-thumb]:hover:bg-white [&::-webkit-slider-thumb]:transition-colors
+                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary
+                  [&::-webkit-slider-thumb]:transition-colors
                   disabled:opacity-30 disabled:cursor-not-allowed"
               />
-              <span className="text-white/60 text-xs font-mono w-8">
+              <span className="w-8 font-mono text-xs text-muted-foreground">
                 {totalPages}
               </span>
             </div>
@@ -268,23 +268,23 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             <button
               onClick={actions.nextPage}
               disabled={state.currentPage >= totalPages - 1 || state.isFlipping}
-              className="text-white/60 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
 
-            <div className="w-px h-5 bg-white/10" />
+            <div className="h-5 w-px bg-border" />
 
             <button
               onClick={() => actions.exportScreenshot()}
-              className="inline-flex min-h-[34px] items-center gap-2 rounded-[10px] bg-[linear-gradient(180deg,#f8efe0,#d7c6a1)] px-3 text-xs font-extrabold text-[#11100d] transition hover:-translate-y-px"
+              className="ds-button-primary inline-flex min-h-[34px] items-center gap-2 rounded-[10px] px-3 text-xs font-extrabold transition hover:-translate-y-px"
               title="Export transparent PNG"
             >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Export transparent PNG</span>
             </button>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-teal-300/15 bg-teal-400/[0.045] px-2.5 py-1.5 text-[11px] font-semibold text-teal-50/65">
+          <div className="ds-status-success hidden items-center gap-2 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold sm:inline-flex">
             <CloudOff className="h-3.5 w-3.5" />
             <span>Preview export runs locally. Files are not stored.</span>
           </div>
@@ -298,12 +298,12 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
-            className="absolute right-4 top-4 z-10"
+            className="absolute left-3 top-24 z-10 sm:left-auto sm:right-4 sm:top-4"
           >
-            <div className="bg-black/80 backdrop-blur-xl rounded-xl border border-white/10 p-4 min-w-[180px]">
+            <div className="ds-card-glass min-w-[180px] p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-white/90 text-xs font-semibold uppercase tracking-wider">Book Info</span>
-                <button onClick={() => setShowInfo(false)} className="text-white/40 hover:text-white/70">
+                <span className="text-xs font-semibold uppercase tracking-wider text-foreground/90">Book Info</span>
+                <button onClick={() => setShowInfo(false)} className="text-muted-foreground hover:text-foreground">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -344,8 +344,8 @@ function BookTypeButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
         active
-          ? 'bg-white/15 text-white shadow-lg shadow-white/5'
-          : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+          ? 'bg-primary text-primary-foreground shadow-soft'
+          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
       }`}
     >
       {icon}
@@ -374,10 +374,10 @@ function ToolBarButton({
       title={tooltip}
       className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${
         active
-          ? 'bg-white/15 text-white'
+          ? 'bg-primary text-primary-foreground'
           : disabled
-            ? 'text-white/20 cursor-not-allowed'
-            : 'text-white/50 hover:text-white hover:bg-white/10'
+            ? 'cursor-not-allowed text-muted-foreground/35'
+            : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
       }`}
     >
       {icon}
@@ -401,8 +401,8 @@ function CameraPresetButton({
       onClick={onClick}
       className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${
         active
-          ? 'bg-white/15 text-white'
-          : 'text-white/50 hover:text-white hover:bg-white/5'
+          ? 'bg-primary text-primary-foreground'
+          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
       }`}
     >
       {icon}
@@ -427,8 +427,8 @@ function DeviceButton({
       onClick={onClick}
       className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all ${
         active
-          ? 'bg-white/15 text-white'
-          : 'text-white/50 hover:text-white hover:bg-white/5'
+          ? 'bg-primary text-primary-foreground'
+          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
       }`}
     >
       {icon}
@@ -440,8 +440,8 @@ function DeviceButton({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-white/40">{label}</span>
-      <span className="text-white/80 font-medium">{value}</span>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-foreground/80">{value}</span>
     </div>
   );
 }

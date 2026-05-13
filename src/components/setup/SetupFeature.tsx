@@ -122,7 +122,7 @@ function ConceptExplainer({ conceptKey, children }: { conceptKey: string; childr
     <div className="mt-3">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 text-[11px] text-blue-400/70 hover:text-blue-300 transition-colors"
+        className="flex items-center gap-1.5 text-[11px] text-primary/70 hover:text-primary transition-colors"
       >
         <Lightbulb className="w-3 h-3" />
         <span>{concept.emoji} {concept.title}</span>
@@ -137,23 +137,23 @@ function ConceptExplainer({ conceptKey, children }: { conceptKey: string; childr
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="bg-blue-500/[0.06] border border-blue-500/15 rounded-xl p-3.5 mt-2 space-y-2.5">
+            <div className="bg-primary/[0.06] border border-primary/15 rounded-xl p-3.5 mt-2 space-y-2.5">
               <div className="flex items-center gap-2">
                 <span className="text-sm">{concept.emoji}</span>
-                <span className="text-xs font-medium text-blue-300/80">{concept.title}</span>
+                <span className="text-xs font-medium text-primary/80">{concept.title}</span>
               </div>
-              <p className="text-[11px] text-white/50 leading-relaxed">{concept.explanation}</p>
-              <div className="flex gap-2 items-start bg-blue-500/[0.04] rounded-lg p-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-400/60 mt-0.5 shrink-0" />
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{concept.explanation}</p>
+              <div className="flex gap-2 items-start bg-primary/[0.04] rounded-lg p-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-primary/60 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-[10px] font-medium text-blue-300/50 mb-0.5">Why it matters</p>
-                  <p className="text-[11px] text-white/45 leading-relaxed">{concept.whyItMatters}</p>
+                  <p className="text-[10px] font-medium text-primary/50 mb-0.5">Why it matters</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{concept.whyItMatters}</p>
                 </div>
               </div>
               {concept.recommendation && (
                 <div className="flex gap-2 items-start">
-                  <Check className="w-3 h-3 text-emerald-400/60 mt-0.5 shrink-0" />
-                  <p className="text-[11px] text-white/40 leading-relaxed">{concept.recommendation}</p>
+                  <Check className="w-3 h-3 text-success/60 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{concept.recommendation}</p>
                 </div>
               )}
               {children}
@@ -168,23 +168,23 @@ function ConceptExplainer({ conceptKey, children }: { conceptKey: string; childr
 function BleedVisualDiagram() {
   return (
     <div className="flex justify-center mt-2 mb-1">
-      <svg width="180" height="130" viewBox="0 0 180 130" className="text-white">
+      <svg width="180" height="130" viewBox="0 0 180 130" className="h-auto w-full max-w-[180px] text-foreground">
         {/* Bleed Zone - outermost */}
-        <rect x="10" y="10" width="160" height="110" rx="2" fill="rgba(239,68,68,0.1)" stroke="rgba(239,68,68,0.4)" strokeWidth="1" />
-        <text x="90" y="24" textAnchor="middle" className="text-[7px]" fill="rgba(239,68,68,0.6)">BLEED ZONE</text>
+        <rect x="10" y="10" width="160" height="110" rx="2" fill="color-mix(in srgb, var(--overlay-bleed) 18%, transparent)" stroke="var(--overlay-bleed)" strokeWidth="1" />
+        <text x="90" y="24" textAnchor="middle" className="text-[7px]" fill="var(--overlay-bleed)">BLEED ZONE</text>
 
         {/* Trim Size - middle */}
-        <rect x="25" y="25" width="130" height="80" rx="1" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
-        <text x="90" y="60" textAnchor="middle" className="text-[8px]" fill="rgba(255,255,255,0.45)">TRIM SIZE</text>
-        <text x="90" y="72" textAnchor="middle" className="text-[6px]" fill="rgba(255,255,255,0.25)">(final cut)</text>
+        <rect x="25" y="25" width="130" height="80" rx="1" fill="color-mix(in srgb, var(--foreground) 4%, transparent)" stroke="color-mix(in srgb, var(--foreground) 35%, transparent)" strokeWidth="1" />
+        <text x="90" y="60" textAnchor="middle" className="text-[8px]" fill="color-mix(in srgb, var(--foreground) 45%, transparent)">TRIM SIZE</text>
+        <text x="90" y="72" textAnchor="middle" className="text-[6px]" fill="color-mix(in srgb, var(--foreground) 25%, transparent)">(final cut)</text>
 
         {/* Safe Area - innermost */}
-        <rect x="40" y="35" width="100" height="60" rx="1" fill="rgba(34,197,94,0.05)" stroke="rgba(34,197,94,0.4)" strokeWidth="0.75" strokeDasharray="3 2" />
-        <text x="90" y="68" textAnchor="middle" className="text-[7px]" fill="rgba(34,197,94,0.6)">SAFE AREA</text>
+        <rect x="40" y="35" width="100" height="60" rx="1" fill="color-mix(in srgb, var(--overlay-safe) 10%, transparent)" stroke="var(--overlay-safe)" strokeWidth="0.75" strokeDasharray="3 2" />
+        <text x="90" y="68" textAnchor="middle" className="text-[7px]" fill="var(--overlay-safe)">SAFE AREA</text>
 
         {/* Arrow indicators */}
-        <line x1="10" y1="7" x2="25" y2="7" stroke="rgba(239,68,68,0.3)" strokeWidth="0.5" />
-        <text x="17" y="5" textAnchor="middle" className="text-[5px]" fill="rgba(239,68,68,0.4)">0.125"</text>
+        <line x1="10" y1="7" x2="25" y2="7" stroke="var(--overlay-bleed)" strokeWidth="0.5" />
+        <text x="17" y="5" textAnchor="middle" className="text-[5px]" fill="var(--overlay-bleed)">0.125"</text>
       </svg>
     </div>
   );
@@ -192,26 +192,26 @@ function BleedVisualDiagram() {
 
 function WhenToUse({ recommended, notRecommended }: { recommended: string[]; notRecommended: string[] }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mt-2.5">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="bg-secondary border border-border rounded-xl p-4 mt-2.5">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <p className="text-[10px] font-medium text-emerald-400/60 mb-2">Recommended For</p>
+          <p className="text-[10px] font-medium text-success/60 mb-2">Recommended For</p>
           <div className="space-y-1.5">
             {recommended.map((item) => (
               <div key={item} className="flex items-center gap-1.5">
-                <Check className="w-3 h-3 text-emerald-500/50 shrink-0" />
-                <span className="text-[11px] text-white/45">{item}</span>
+                <Check className="w-3 h-3 text-success/50 shrink-0" />
+                <span className="text-[11px] text-muted-foreground">{item}</span>
               </div>
             ))}
           </div>
         </div>
         <div>
-          <p className="text-[10px] font-medium text-red-400/60 mb-2">Usually NOT Needed For</p>
+          <p className="text-[10px] font-medium text-danger/60 mb-2">Usually NOT Needed For</p>
           <div className="space-y-1.5">
             {notRecommended.map((item) => (
               <div key={item} className="flex items-center gap-1.5">
-                <X className="w-3 h-3 text-red-400/40 shrink-0" />
-                <span className="text-[11px] text-white/40">{item}</span>
+                <X className="w-3 h-3 text-danger/40 shrink-0" />
+                <span className="text-[11px] text-muted-foreground">{item}</span>
               </div>
             ))}
           </div>
@@ -223,9 +223,9 @@ function WhenToUse({ recommended, notRecommended }: { recommended: string[]; not
 
 function RealKdpNote({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-amber-500/[0.06] border border-amber-500/15 rounded-lg p-2.5 flex gap-2 items-start mt-2">
-      <ShieldCheck className="w-3.5 h-3.5 text-amber-400/70 mt-0.5 shrink-0" />
-      <p className="text-[11px] text-white/50 leading-relaxed">{children}</p>
+    <div className="bg-warning/[0.06] border border-warning/15 rounded-lg p-2.5 flex gap-2 items-start mt-2">
+      <ShieldCheck className="w-3.5 h-3.5 text-warning/70 mt-0.5 shrink-0" />
+      <p className="text-[11px] text-muted-foreground leading-relaxed">{children}</p>
     </div>
   );
 }
@@ -253,18 +253,18 @@ function StepIndicator({ currentStep, onStepClick }: { currentStep: number; onSt
               onClick={() => onStepClick(step.id)}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-300 text-xs font-medium ${
                 isActive
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  ? 'bg-success/20 text-success border border-success/30'
                   : isCompleted
-                    ? 'bg-white/[0.04] text-white/50 border border-white/[0.06] hover:bg-white/[0.08]'
-                    : 'bg-transparent text-white/25 border border-transparent hover:bg-white/[0.03]'
+                    ? 'bg-secondary text-muted-foreground border border-border hover:bg-secondary'
+                    : 'bg-transparent text-muted-foreground border border-transparent hover:bg-secondary'
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-emerald-400' : ''}`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-success' : ''}`} />
               <span className="hidden sm:inline">{step.label}</span>
-              {isCompleted && <Check className="w-3 h-3 text-emerald-500 ml-0.5" />}
+              {isCompleted && <Check className="w-3 h-3 text-success ml-0.5" />}
             </button>
             {idx < STEPS.length - 1 && (
-              <div className={`w-4 sm:w-6 h-px ${currentStep > step.id ? 'bg-emerald-500/30' : 'bg-white/[0.08]'}`} />
+              <div className={`w-4 sm:w-6 h-px ${currentStep > step.id ? 'bg-success/30' : 'bg-secondary'}`} />
             )}
           </React.Fragment>
         );
@@ -287,14 +287,14 @@ function NavButtons({
   nextLabel?: string;
 }) {
   return (
-    <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/[0.06]">
+    <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6">
       <button
         onClick={onPrev}
         disabled={currentStep === 1}
         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
           currentStep === 1
-            ? 'text-white/20 cursor-not-allowed'
-            : 'text-white/60 hover:text-white/90 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06]'
+            ? 'text-muted-foreground cursor-not-allowed'
+            : 'text-muted-foreground hover:text-foreground bg-secondary hover:bg-secondary border border-border'
         }`}
       >
         <ChevronLeft className="w-4 h-4" />
@@ -302,7 +302,7 @@ function NavButtons({
       </button>
       <button
         onClick={onNext}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 hover:text-emerald-200 transition-all duration-200"
+        className="flex items-center justify-center gap-2 rounded-xl border border-success/30 bg-success/20 px-4 py-2.5 text-sm font-medium text-success transition-all duration-200 hover:bg-success/30 hover:text-success sm:px-5"
       >
         {nextLabel || 'Continue'}
         <ChevronRight className="w-4 h-4" />
@@ -349,8 +349,8 @@ function StepBookType() {
   return (
     <div>
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white/90 mb-2">Choose Your Book Format</h2>
-        <p className="text-sm text-white/40">Select the type of book you want to publish. This determines which specifications apply.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Choose Your Book Format</h2>
+        <p className="text-sm text-muted-foreground">Select the type of book you want to publish. This determines which specifications apply.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
@@ -364,28 +364,28 @@ function StepBookType() {
               whileTap={{ scale: 0.98 }}
               className={`relative p-6 rounded-xl text-left transition-all duration-300 ${
                 isActive
-                  ? 'bg-emerald-500/[0.08] border-2 border-emerald-500/40 shadow-lg shadow-emerald-500/10'
-                  : 'bg-white/[0.03] border-2 border-white/[0.06] hover:border-white/[0.15] hover:bg-white/[0.05]'
+                  ? 'bg-success/[0.08] border-2 border-success/40 shadow-lg shadow-success/10'
+                  : 'bg-secondary border-2 border-border hover:border-border hover:bg-secondary'
               }`}
             >
               {isActive && (
-                <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-                  <Check className="w-3.5 h-3.5 text-white" />
+                <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-success flex items-center justify-center">
+                  <Check className="w-3.5 h-3.5 text-foreground" />
                 </div>
               )}
               <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
-                isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.06] text-white/40'
+                isActive ? 'bg-success/20 text-success' : 'bg-secondary text-muted-foreground'
               }`}>
                 {icon}
               </div>
-              <h3 className={`text-lg font-semibold mb-1 ${isActive ? 'text-emerald-300' : 'text-white/80'}`}>
+              <h3 className={`text-lg font-semibold mb-1 ${isActive ? 'text-success' : 'text-foreground/80'}`}>
                 {label}
               </h3>
-              <p className="text-xs text-white/40 mb-4">{desc}</p>
+              <p className="text-xs text-muted-foreground mb-4">{desc}</p>
               <div className="space-y-1.5">
                 {features.map((f) => (
-                  <div key={f} className="flex items-center gap-2 text-[11px] text-white/35">
-                    <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-white/20'}`} />
+                  <div key={f} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-success' : 'bg-muted-foreground/30'}`} />
                     {f}
                   </div>
                 ))}
@@ -431,22 +431,22 @@ function StepPrintConfig() {
     return (
       <div>
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-white/90 mb-2">Kindle Configuration</h2>
-          <p className="text-sm text-white/40">Kindle eBooks use reflowable layout — no fixed dimensions required.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Kindle Configuration</h2>
+          <p className="text-sm text-muted-foreground">Kindle eBooks use reflowable layout — no fixed dimensions required.</p>
         </div>
         <div className="max-w-lg mx-auto space-y-4">
-          <ConfigCard icon={<Type className="w-4 h-4 text-emerald-400" />} label="Format">
-            <div className="flex gap-2">
+          <ConfigCard icon={<Type className="w-4 h-4 text-success" />} label="Format">
+            <div className="flex flex-wrap gap-2">
               {['KFX', 'MOBI', 'EPUB'].map((fmt) => (
-                <span key={fmt} className="px-3 py-2 rounded-lg bg-white/[0.04] text-xs text-white/50 border border-white/[0.06]">{fmt}</span>
+                <span key={fmt} className="px-3 py-2 rounded-lg bg-secondary text-xs text-muted-foreground border border-border">{fmt}</span>
               ))}
             </div>
           </ConfigCard>
-          <ConfigCard icon={<BookMarked className="w-4 h-4 text-emerald-400" />} label="Layout Type">
+          <ConfigCard icon={<BookMarked className="w-4 h-4 text-success" />} label="Layout Type">
             <OptionBtn label="Reflowable" active={true} onClick={() => {}} />
-            <p className="text-[10px] text-white/25 mt-2">Kindle content adapts to screen size. No fixed page dimensions.</p>
+            <p className="text-[10px] text-muted-foreground mt-2">Kindle content adapts to screen size. No fixed page dimensions.</p>
           </ConfigCard>
-          <ConfigCard icon={<ImageIcon className="w-4 h-4 text-emerald-400" />} label="File Requirements">
+          <ConfigCard icon={<ImageIcon className="w-4 h-4 text-success" />} label="File Requirements">
             <div className="space-y-2">
               <SpecRow label="Max file size" value="650 MB" />
               <SpecRow label="Embed fonts" value="Recommended" />
@@ -461,30 +461,30 @@ function StepPrintConfig() {
   return (
     <div>
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white/90 mb-2">Print Configuration</h2>
-        <p className="text-sm text-white/40">Set your {isHardcover ? 'hardcover' : 'paperback'} specifications. Measurements update automatically.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Print Configuration</h2>
+        <p className="text-sm text-muted-foreground">Set your {isHardcover ? 'hardcover' : 'paperback'} specifications. Measurements update automatically.</p>
       </div>
 
       <div className="max-w-2xl mx-auto space-y-4">
         {/* Trim Size */}
         <ConfigCard
-          icon={<Maximize2 className="w-4 h-4 text-emerald-400" />}
+          icon={<Maximize2 className="w-4 h-4 text-success" />}
           label="Trim Size"
           help="Select a KDP-approved trim size. This determines your book's final printed dimensions and affects spine width."
           education={{
-            icon: <Maximize2 className="w-4 h-4 text-blue-400" />,
+            icon: <Maximize2 className="w-4 h-4 text-primary" />,
             title: CONCEPTS.trimSize.title,
             explanation: CONCEPTS.trimSize.explanation,
             whyItMatters: CONCEPTS.trimSize.whyItMatters,
             recommendation: CONCEPTS.trimSize.recommendation,
             extraContent: (
-              <p className="text-[10px] text-white/35">
+              <p className="text-[10px] text-muted-foreground">
                 Your chosen trim size means your final book will be {formatInches(measurements.trimWidthIn)} × {formatInches(measurements.trimHeightIn)} after printing.
               </p>
             ),
           }}
         >
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {trimKeys.map((key) => {
               const size = TRIM_SIZES[key];
               return (
@@ -505,9 +505,9 @@ function StepPrintConfig() {
             )}
           </div>
           {bookConfig.trimSize === 'custom' && !isHardcover && (
-            <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="text-[10px] text-white/30 mb-1 block">Width (inches)</label>
+                <label className="text-[10px] text-muted-foreground mb-1 block">Width (inches)</label>
                 <input
                   type="number"
                   value={customWidth}
@@ -515,12 +515,12 @@ function StepPrintConfig() {
                   step="0.01"
                   min="5"
                   max="8.5"
-                  className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/80 focus:outline-none focus:border-emerald-500/40"
+                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-xs text-foreground/80 focus:outline-none focus:border-success/40"
                   placeholder="6.0"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-white/30 mb-1 block">Height (inches)</label>
+                <label className="text-[10px] text-muted-foreground mb-1 block">Height (inches)</label>
                 <input
                   type="number"
                   value={customHeight}
@@ -528,7 +528,7 @@ function StepPrintConfig() {
                   step="0.01"
                   min="5"
                   max="11"
-                  className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/80 focus:outline-none focus:border-emerald-500/40"
+                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-xs text-foreground/80 focus:outline-none focus:border-success/40"
                   placeholder="9.0"
                 />
               </div>
@@ -538,11 +538,11 @@ function StepPrintConfig() {
 
         {/* Bleed */}
         <ConfigCard
-          icon={<ScanLine className="w-4 h-4 text-emerald-400" />}
+          icon={<ScanLine className="w-4 h-4 text-success" />}
           label="Bleed"
           help={bookConfig.bleed === 'bleed' ? 'Adds 0.125" on each side for artwork extending to edges.' : 'White border around content. Choose if artwork stays within trim boundaries.'}
           education={{
-            icon: <ScanLine className="w-4 h-4 text-blue-400" />,
+            icon: <ScanLine className="w-4 h-4 text-primary" />,
             title: CONCEPTS.bleed.title,
             explanation: CONCEPTS.bleed.explanation,
             whyItMatters: CONCEPTS.bleed.whyItMatters,
@@ -558,15 +558,15 @@ function StepPrintConfig() {
             ),
           }}
         >
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <OptionBtn label="No Bleed" active={bookConfig.bleed === 'no-bleed'} onClick={() => updateBookConfig({ bleed: 'no-bleed' })} />
             <OptionBtn label="With Bleed" active={bookConfig.bleed === 'bleed'} onClick={() => updateBookConfig({ bleed: 'bleed' })} />
           </div>
         </ConfigCard>
 
         {/* Paper Type */}
-        <ConfigCard icon={<Layers className="w-4 h-4 text-emerald-400" />} label="Paper Type" help="Paper type affects spine width. Cream and premium paper are thicker, resulting in a wider spine.">
-          <div className="flex gap-2">
+        <ConfigCard icon={<Layers className="w-4 h-4 text-success" />} label="Paper Type" help="Paper type affects spine width. Cream and premium paper are thicker, resulting in a wider spine.">
+          <div className="flex flex-wrap gap-2">
             {(['white', 'cream', 'premium-color'] as PaperType[]).map((paper) => (
               <OptionBtn
                 key={paper}
@@ -576,12 +576,12 @@ function StepPrintConfig() {
               />
             ))}
           </div>
-          <p className="text-[10px] text-white/25 mt-2">White paper is thinnest (0.002252&quot;/page), cream is thicker (0.0025&quot;/page), premium is also 0.0025&quot;/page.</p>
+          <p className="text-[10px] text-muted-foreground mt-2">White paper is thinnest (0.002252&quot;/page), cream is thicker (0.0025&quot;/page), premium is also 0.0025&quot;/page.</p>
         </ConfigCard>
 
         {/* Interior Type */}
-        <ConfigCard icon={<Palette className="w-4 h-4 text-emerald-400" />} label="Interior Type" help="Interior type determines printing method. B&W is most cost-effective.">
-          <div className="flex gap-2">
+        <ConfigCard icon={<Palette className="w-4 h-4 text-success" />} label="Interior Type" help="Interior type determines printing method. B&W is most cost-effective.">
+          <div className="flex flex-wrap gap-2">
             {(['black-white', 'standard-color', 'premium-color'] as InteriorType[]).map((interior) => (
               <OptionBtn
                 key={interior}
@@ -594,11 +594,11 @@ function StepPrintConfig() {
         </ConfigCard>
 
         {/* Page Count */}
-        <ConfigCard icon={<FileText className="w-4 h-4 text-emerald-400" />} label="Page Count" help={`Spine width is calculated from page count × paper thickness. Range: ${MIN_PAGE_COUNT}–${maxPages} pages.`} accent>
-          <div className="flex items-center gap-3">
+        <ConfigCard icon={<FileText className="w-4 h-4 text-success" />} label="Page Count" help={`Spine width is calculated from page count × paper thickness. Range: ${MIN_PAGE_COUNT}–${maxPages} pages.`} accent>
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => handlePageCountChange(String(bookConfig.pageCount - 2))}
-              className="w-9 h-9 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center text-white/50 hover:text-white/80 transition-colors"
+              className="w-9 h-9 rounded-lg bg-secondary hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground/80 transition-colors"
             >
               <Minus className="w-4 h-4" />
             </button>
@@ -609,16 +609,16 @@ function StepPrintConfig() {
               min={MIN_PAGE_COUNT}
               max={maxPages}
               step={2}
-              className="flex-1 bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2.5 text-center text-sm font-mono text-white/80 focus:outline-none focus:border-emerald-500/40"
+              className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2.5 text-center text-sm font-mono text-foreground/80 focus:outline-none focus:border-success/40"
             />
             <button
               onClick={() => handlePageCountChange(String(bookConfig.pageCount + 2))}
-              className="w-9 h-9 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center text-white/50 hover:text-white/80 transition-colors"
+              className="w-9 h-9 rounded-lg bg-secondary hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground/80 transition-colors"
             >
               <Plus className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-[10px] text-white/25 mt-2">
+          <p className="text-[10px] text-muted-foreground mt-2">
             Spine: {formatInches(measurements.spineWidthIn)} • Must be even • Range: {MIN_PAGE_COUNT}–{maxPages}
           </p>
           <RealKdpNote>
@@ -631,14 +631,14 @@ function StepPrintConfig() {
 
         {/* Reading Direction + Cover Finish */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ConfigCard icon={<ArrowLeft className="w-4 h-4 text-emerald-400" />} label="Reading Direction">
-            <div className="flex gap-2">
+          <ConfigCard icon={<ArrowLeft className="w-4 h-4 text-success" />} label="Reading Direction">
+            <div className="flex flex-wrap gap-2">
               <OptionBtn label="LTR" active={bookConfig.readingDirection !== 'rtl'} onClick={() => updateBookConfig({ readingDirection: 'ltr' })} />
               <OptionBtn label="RTL" active={bookConfig.readingDirection === 'rtl'} onClick={() => updateBookConfig({ readingDirection: 'rtl' })} />
             </div>
           </ConfigCard>
-          <ConfigCard icon={<Sparkles className="w-4 h-4 text-emerald-400" />} label="Cover Finish">
-            <div className="flex gap-2">
+          <ConfigCard icon={<Sparkles className="w-4 h-4 text-success" />} label="Cover Finish">
+            <div className="flex flex-wrap gap-2">
               <OptionBtn label="Matte" active={bookConfig.coverFinish !== 'glossy'} onClick={() => updateBookConfig({ coverFinish: 'matte' })} />
               <OptionBtn label="Glossy" active={bookConfig.coverFinish === 'glossy'} onClick={() => updateBookConfig({ coverFinish: 'glossy' })} />
             </div>
@@ -664,8 +664,8 @@ function StepKdpSpecs() {
     return (
       <div>
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-white/90 mb-2">Kindle Specifications</h2>
-          <p className="text-sm text-white/40">Digital format specifications for your Kindle eBook.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Kindle Specifications</h2>
+          <p className="text-sm text-muted-foreground">Digital format specifications for your Kindle eBook.</p>
         </div>
         <div className="max-w-lg mx-auto space-y-3">
           <SpecCard emoji="📘" label="Format" value="KFX / MOBI / EPUB" />
@@ -682,13 +682,13 @@ function StepKdpSpecs() {
   return (
     <div>
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white/90 mb-2">Live KDP Specifications</h2>
-        <p className="text-sm text-white/40">All measurements update in real-time as you change your configuration.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Live KDP Specifications</h2>
+        <p className="text-sm text-muted-foreground">All measurements update in real-time as you change your configuration.</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 max-w-5xl mx-auto">
         {/* Specs Panel */}
-        <div className="lg:w-[380px] shrink-0 space-y-3">
+        <div className="min-w-0 space-y-3 lg:w-[380px] lg:shrink-0">
           <SpecCard
             emoji="📘"
             label="Manuscript Size"
@@ -763,7 +763,7 @@ function StepKdpSpecs() {
         </div>
 
         {/* SVG Diagram */}
-        <div className="flex-1 flex items-start justify-center">
+        <div className="flex min-w-0 flex-1 items-start justify-center">
           <CoverDiagram />
         </div>
       </div>
@@ -788,11 +788,11 @@ function StepFilePrep() {
     return (
       <div>
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-white/90 mb-2">Kindle File Preparation</h2>
-          <p className="text-sm text-white/40">Guidelines for preparing your Kindle eBook files.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Kindle File Preparation</h2>
+          <p className="text-sm text-muted-foreground">Guidelines for preparing your Kindle eBook files.</p>
         </div>
         <div className="max-w-2xl mx-auto space-y-4">
-          <PrepCard title="Kindle Format Requirements" icon={<Monitor className="w-5 h-5 text-emerald-400" />}>
+          <PrepCard title="Kindle Format Requirements" icon={<Monitor className="w-5 h-5 text-success" />}>
             <div className="space-y-3">
               <PrepRow label="Supported Formats" value="KFX / MOBI / EPUB" />
               <PrepRow label="Layout" value="Reflowable (adapts to screen)" />
@@ -802,12 +802,12 @@ function StepFilePrep() {
               <PrepRow label="Images" value="JPEG / GIF / PNG / SVG" />
             </div>
           </PrepCard>
-          <PrepCard title="Common Kindle Pitfalls" icon={<AlertTriangle className="w-5 h-5 text-amber-400" />}>
-            <ul className="space-y-2 text-xs text-white/50">
-              <li className="flex gap-2"><span className="text-amber-400 shrink-0">•</span> Missing TOC — KDP requires functional navigation</li>
-              <li className="flex gap-2"><span className="text-amber-400 shrink-0">•</span> Non-embedded fonts — Kindle substitutes fonts if not embedded</li>
-              <li className="flex gap-2"><span className="text-amber-400 shrink-0">•</span> Fixed-layout used when reflowable is better — limits device compatibility</li>
-              <li className="flex gap-2"><span className="text-amber-400 shrink-0">•</span> Large images not optimized — increases file size unnecessarily</li>
+          <PrepCard title="Common Kindle Pitfalls" icon={<AlertTriangle className="w-5 h-5 text-warning" />}>
+            <ul className="space-y-2 text-xs text-muted-foreground">
+              <li className="flex gap-2"><span className="text-warning shrink-0">•</span> Missing TOC — KDP requires functional navigation</li>
+              <li className="flex gap-2"><span className="text-warning shrink-0">•</span> Non-embedded fonts — Kindle substitutes fonts if not embedded</li>
+              <li className="flex gap-2"><span className="text-warning shrink-0">•</span> Fixed-layout used when reflowable is better — limits device compatibility</li>
+              <li className="flex gap-2"><span className="text-warning shrink-0">•</span> Large images not optimized — increases file size unnecessarily</li>
             </ul>
           </PrepCard>
         </div>
@@ -818,8 +818,8 @@ function StepFilePrep() {
   return (
     <div>
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white/90 mb-2">File Preparation Guide</h2>
-        <p className="text-sm text-white/40">Everything you need to know to prepare print-ready files for KDP.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">File Preparation Guide</h2>
+        <p className="text-sm text-muted-foreground">Everything you need to know to prepare print-ready files for KDP.</p>
       </div>
 
       <div className="max-w-2xl mx-auto space-y-4">
@@ -827,7 +827,7 @@ function StepFilePrep() {
         <ConceptExplainer conceptKey="dpi" />
 
         {/* Manuscript Export */}
-        <PrepCard title="Manuscript Export Size" icon={<FileText className="w-5 h-5 text-emerald-400" />}>
+        <PrepCard title="Manuscript Export Size" icon={<FileText className="w-5 h-5 text-success" />}>
           <div className="space-y-3">
             <PrepRow label="Trim Size" value={`${formatInches(m.trimWidthIn)} × ${formatInches(m.trimHeightIn)}`} />
             <PrepRow label="Bleed" value={m.bleedIn > 0 ? `Enabled (+${formatInches(m.bleedIn)} per edge)` : 'Disabled'} />
@@ -846,7 +846,7 @@ function StepFilePrep() {
         </PrepCard>
 
         {/* Cover Export */}
-        <PrepCard title="Cover Export Requirements" icon={<BookOpen className="w-5 h-5 text-emerald-400" />}>
+        <PrepCard title="Cover Export Requirements" icon={<BookOpen className="w-5 h-5 text-success" />}>
           <div className="space-y-3">
             <PrepRow
               label="Front + Back + Spine"
@@ -868,7 +868,7 @@ function StepFilePrep() {
         </PrepCard>
 
         {/* Pixel Dimensions */}
-        <PrepCard title="Pixel Dimensions at 300 DPI" icon={<Ruler className="w-5 h-5 text-emerald-400" />}>
+        <PrepCard title="Pixel Dimensions at 300 DPI" icon={<Ruler className="w-5 h-5 text-success" />}>
           <div className="space-y-3">
             <PrepRow label="Manuscript" value={`${inchesToPixels(manuscriptWidth)} × ${inchesToPixels(manuscriptHeight)} px`} />
             <PrepRow label="Full Cover" value={`${inchesToPixels(m.fullCoverWidthIn)} × ${inchesToPixels(m.fullCoverHeightIn)} px`} />
@@ -946,24 +946,24 @@ function StepExportTips() {
   return (
     <div>
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white/90 mb-2">Export Recommendations</h2>
-        <p className="text-sm text-white/40">Practical tips for exporting your files from popular design tools.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Export Recommendations</h2>
+        <p className="text-sm text-muted-foreground">Practical tips for exporting your files from popular design tools.</p>
       </div>
 
       <div className="max-w-2xl mx-auto space-y-3">
         {tips.map((tip) => {
           const isOpen = expanded.has(tip.id);
           return (
-            <div key={tip.id} className="bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-hidden">
+            <div key={tip.id} className="bg-secondary border border-border rounded-xl overflow-hidden">
               <button
                 onClick={() => toggle(tip.id)}
-                className="w-full flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors"
+                className="w-full flex items-center justify-between p-4 hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xl">{tip.icon}</span>
-                  <span className="text-sm font-medium text-white/80">{tip.title}</span>
+                  <span className="text-sm font-medium text-foreground/80">{tip.title}</span>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-white/30 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {isOpen && (
@@ -977,8 +977,8 @@ function StepExportTips() {
                     <div className="px-4 pb-4 space-y-2.5">
                       {tip.items.map((item, i) => (
                         <div key={i} className="flex gap-2.5 items-start">
-                          <Check className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                          <p className="text-xs text-white/45 leading-relaxed">{item}</p>
+                          <Check className="w-3.5 h-3.5 text-success mt-0.5 shrink-0" />
+                          <p className="text-xs text-muted-foreground leading-relaxed">{item}</p>
                         </div>
                       ))}
                       {tip.kdpNote && (
@@ -1048,23 +1048,23 @@ function StepPublishReady() {
   return (
     <div>
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-white/90 mb-2">Publishing Tips & Ready for Design</h2>
-        <p className="text-sm text-white/40">Important KDP notes and your complete setup summary.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Publishing Tips & Ready for Design</h2>
+        <p className="text-sm text-muted-foreground">Important KDP notes and your complete setup summary.</p>
       </div>
 
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Smart Warnings */}
         {warnings.length > 0 && (
-          <div className="bg-amber-500/[0.08] border border-amber-500/20 rounded-xl p-4">
+          <div className="bg-warning/[0.08] border border-warning/20 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-medium text-amber-300">Smart Warnings</span>
+              <AlertTriangle className="w-4 h-4 text-warning" />
+              <span className="text-sm font-medium text-warning">Smart Warnings</span>
             </div>
             <div className="space-y-2">
               {warnings.map((w, i) => (
                 <div key={i} className="flex gap-2 items-start">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <p className="text-xs text-white/50">{w}</p>
+                  <div className="w-1.5 h-1.5 rounded-full bg-warning mt-1.5 shrink-0" />
+                  <p className="text-xs text-muted-foreground">{w}</p>
                 </div>
               ))}
             </div>
@@ -1073,10 +1073,10 @@ function StepPublishReady() {
 
         {/* When Should I Use Bleed? — only for print types */}
         {!isKindle && (
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+          <div className="bg-secondary border border-border rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Eye className="w-4 h-4 text-blue-400" />
-              <span className="text-sm font-medium text-white/70">When Should I Use Bleed?</span>
+              <Eye className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground/70">When Should I Use Bleed?</span>
             </div>
             <WhenToUse
               recommended={['Coloring books', 'Comic books', 'Full-page artwork', 'Photography books']}
@@ -1086,31 +1086,31 @@ function StepPublishReady() {
         )}
 
         {/* KDP Behavior Notes */}
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+        <div className="bg-secondary border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-medium text-white/70">Real KDP Behavior Notes</span>
+            <ShieldCheck className="w-4 h-4 text-success" />
+            <span className="text-sm font-medium text-foreground/70">Real KDP Behavior Notes</span>
           </div>
           <div className="space-y-3">
             {kdpNotes.map((n) => (
               <div key={n.label} className="flex gap-3 items-start">
-                <span className="text-[10px] uppercase tracking-wider text-white/30 font-medium min-w-[60px] pt-0.5">{n.label}</span>
-                <p className="text-xs text-white/40 leading-relaxed">{n.note}</p>
+                <span className="w-[60px] shrink-0 pt-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{n.label}</span>
+                <p className="text-xs text-muted-foreground leading-relaxed">{n.note}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Ready for Design Summary */}
-        <div className="bg-emerald-500/[0.06] border border-emerald-500/20 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-success/[0.06] border border-success/20 rounded-xl p-4 sm:p-5">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <Check className="w-5 h-5 text-emerald-400" />
-              <span className="text-sm font-semibold text-emerald-300">Your Book Setup</span>
+              <Check className="w-5 h-5 text-success" />
+              <span className="text-sm font-semibold text-success">Your Book Setup</span>
             </div>
             <button
               onClick={() => copyToClipboard(summaryText)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-[11px] text-white/50 hover:text-white/80 transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground/80"
             >
               <Copy className="w-3 h-3" />
               Copy All Settings
@@ -1139,7 +1139,7 @@ function StepPublishReady() {
 
         {/* Educational Footer */}
         <div className="text-center py-3">
-          <p className="text-[11px] text-white/30">You&apos;re ready to design! If you ever need to review these concepts, come back to Smart Setup anytime.</p>
+          <p className="text-[11px] text-muted-foreground">You&apos;re ready to design! If you ever need to review these concepts, come back to Smart Setup anytime.</p>
         </div>
       </div>
     </div>
@@ -1168,21 +1168,21 @@ function ConfigCard({ icon, label, help, children, accent, education }: {
 
   return (
     <div className={`rounded-xl border transition-all duration-300 ${
-      accent ? 'bg-emerald-500/[0.06] border-emerald-500/20' : 'bg-white/[0.03] border-white/[0.06]'
+      accent ? 'bg-success/[0.06] border-success/20' : 'bg-secondary border-border'
     }`}>
       <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2.5">
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${accent ? 'bg-emerald-500/20' : 'bg-white/[0.06]'}`}>
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${accent ? 'bg-success/20' : 'bg-secondary'}`}>
               {icon}
             </div>
-            <span className="text-sm font-medium text-white/80">{label}</span>
+            <span className="text-sm font-medium text-foreground/80">{label}</span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {education && (
               <button
                 onClick={() => setShowEducation(!showEducation)}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] text-blue-400/60 hover:text-blue-300 hover:bg-blue-500/[0.06] transition-colors"
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-primary/60 transition-colors hover:bg-primary/[0.06] hover:text-primary"
                 title="Learn more"
               >
                 <BookOpen className="w-3 h-3" />
@@ -1192,7 +1192,7 @@ function ConfigCard({ icon, label, help, children, accent, education }: {
             {help && (
               <button
                 onClick={() => setShowHelp(!showHelp)}
-                className="w-5 h-5 rounded-full flex items-center justify-center text-white/20 hover:text-white/50 hover:bg-white/[0.06] transition-colors"
+                className="w-5 h-5 rounded-full flex items-center justify-center text-muted-foreground hover:text-muted-foreground hover:bg-secondary transition-colors"
               >
                 <Info className="w-3.5 h-3.5" />
               </button>
@@ -1201,9 +1201,9 @@ function ConfigCard({ icon, label, help, children, accent, education }: {
         </div>
         {children}
         {help && showHelp && (
-          <div className="mt-3 flex gap-2 items-start bg-white/[0.03] rounded-lg p-2.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
-            <p className="text-[11px] text-white/50 leading-relaxed">{help}</p>
+          <div className="mt-3 flex gap-2 items-start bg-secondary rounded-lg p-2.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-success mt-0.5 shrink-0" />
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{help}</p>
           </div>
         )}
         {/* Education Section */}
@@ -1216,23 +1216,23 @@ function ConfigCard({ icon, label, help, children, accent, education }: {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="mt-3 bg-blue-500/[0.06] border border-blue-500/15 rounded-xl p-3.5 space-y-2.5">
+              <div className="mt-3 bg-primary/[0.06] border border-primary/15 rounded-xl p-3.5 space-y-2.5">
                 <div className="flex items-center gap-2">
                   {education.icon}
-                  <span className="text-xs font-medium text-blue-300/80">{education.title}</span>
+                  <span className="text-xs font-medium text-primary/80">{education.title}</span>
                 </div>
-                <p className="text-[11px] text-white/50 leading-relaxed">{education.explanation}</p>
-                <div className="flex gap-2 items-start bg-blue-500/[0.04] rounded-lg p-2">
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-400/60 mt-0.5 shrink-0" />
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{education.explanation}</p>
+                <div className="flex gap-2 items-start bg-primary/[0.04] rounded-lg p-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary/60 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-[10px] font-medium text-blue-300/50 mb-0.5">Why it matters</p>
-                    <p className="text-[11px] text-white/45 leading-relaxed">{education.whyItMatters}</p>
+                    <p className="text-[10px] font-medium text-primary/50 mb-0.5">Why it matters</p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">{education.whyItMatters}</p>
                   </div>
                 </div>
                 {education.recommendation && (
                   <div className="flex gap-2 items-start">
-                    <Check className="w-3 h-3 text-emerald-400/60 mt-0.5 shrink-0" />
-                    <p className="text-[11px] text-white/40 leading-relaxed">{education.recommendation}</p>
+                    <Check className="w-3 h-3 text-success/60 mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">{education.recommendation}</p>
                   </div>
                 )}
                 {education.extraContent}
@@ -1243,7 +1243,7 @@ function ConfigCard({ icon, label, help, children, accent, education }: {
       </div>
       {help && !showHelp && !showEducation && (
         <div className="px-4 pb-3">
-          <p className="text-[10px] text-white/25 truncate">{help}</p>
+          <p className="text-[10px] text-muted-foreground truncate">{help}</p>
         </div>
       )}
     </div>
@@ -1254,10 +1254,10 @@ function OptionBtn({ label, active, onClick }: { label: string; active: boolean;
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+      className={`min-w-0 flex-1 rounded-lg px-2.5 py-2 text-xs font-medium leading-tight transition-all duration-200 sm:flex-none sm:px-3 ${
         active
-          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
-          : 'bg-white/[0.04] text-white/45 border border-transparent hover:bg-white/[0.08] hover:text-white/65'
+          ? 'bg-success/20 text-success border border-success/30 shadow-sm shadow-success/10'
+          : 'bg-secondary text-muted-foreground border border-transparent hover:bg-secondary hover:text-muted-foreground'
       }`}
     >
       {active && <Check className="w-3 h-3 inline mr-1 -mt-0.5" />}
@@ -1280,35 +1280,35 @@ function SpecCard({ emoji, label, value, sub, highlight, copyText, conceptId }: 
 
   return (
     <div>
-      <div className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${
-        highlight ? 'bg-emerald-500/[0.08] border border-emerald-500/20' : 'bg-white/[0.03] border border-white/[0.06]'
+      <div className={`flex flex-col gap-3 rounded-xl p-3 transition-all duration-200 sm:flex-row sm:items-center sm:justify-between ${
+        highlight ? 'bg-success/[0.08] border border-success/20' : 'bg-secondary border border-border'
       }`}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <span className="text-base shrink-0">{emoji}</span>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <p className="text-xs text-white/45">{label}</p>
+              <p className="text-xs text-muted-foreground">{label}</p>
               {concept && (
                 <button
                   onClick={() => setShowConcept(!showConcept)}
-                  className="w-4 h-4 rounded-full flex items-center justify-center text-blue-400/50 hover:text-blue-300 hover:bg-blue-500/[0.08] transition-colors"
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-primary/50 hover:text-primary hover:bg-primary/[0.08] transition-colors"
                   title={`Learn about ${concept.title}`}
                 >
                   <Info className="w-3 h-3" />
                 </button>
               )}
             </div>
-            {sub && <p className="text-[10px] text-white/25 truncate">{sub}</p>}
+            {sub && <p className="text-[10px] text-muted-foreground truncate">{sub}</p>}
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 ml-3">
-          <p className={`text-sm font-mono font-medium ${highlight ? 'text-emerald-400' : 'text-white/80'}`}>
+        <div className="flex min-w-0 items-center gap-2 sm:ml-3 sm:shrink-0">
+          <p className={`min-w-0 break-words font-mono text-sm font-medium ${highlight ? 'text-success' : 'text-foreground/80'}`}>
             {value}
           </p>
           {copyText && (
             <button
               onClick={() => copyToClipboard(copyText)}
-              className="w-6 h-6 rounded-md flex items-center justify-center text-white/20 hover:text-white/50 hover:bg-white/[0.06] transition-colors"
+              className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-muted-foreground hover:bg-secondary transition-colors"
               title="Copy"
             >
               <Copy className="w-3 h-3" />
@@ -1326,23 +1326,23 @@ function SpecCard({ emoji, label, value, sub, highlight, copyText, conceptId }: 
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="bg-blue-500/[0.06] border border-blue-500/15 rounded-xl p-3.5 mt-1.5 space-y-2">
+            <div className="bg-primary/[0.06] border border-primary/15 rounded-xl p-3.5 mt-1.5 space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm">{concept.emoji}</span>
-                <span className="text-xs font-medium text-blue-300/80">{concept.title}</span>
+                <span className="text-xs font-medium text-primary/80">{concept.title}</span>
               </div>
-              <p className="text-[11px] text-white/50 leading-relaxed">{concept.explanation}</p>
-              <div className="flex gap-2 items-start bg-blue-500/[0.04] rounded-lg p-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-400/60 mt-0.5 shrink-0" />
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{concept.explanation}</p>
+              <div className="flex gap-2 items-start bg-primary/[0.04] rounded-lg p-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-primary/60 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-[10px] font-medium text-blue-300/50 mb-0.5">Why it matters</p>
-                  <p className="text-[11px] text-white/45 leading-relaxed">{concept.whyItMatters}</p>
+                  <p className="text-[10px] font-medium text-primary/50 mb-0.5">Why it matters</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{concept.whyItMatters}</p>
                 </div>
               </div>
               {concept.recommendation && (
                 <div className="flex gap-2 items-start">
-                  <Check className="w-3 h-3 text-emerald-400/60 mt-0.5 shrink-0" />
-                  <p className="text-[11px] text-white/40 leading-relaxed">{concept.recommendation}</p>
+                  <Check className="w-3 h-3 text-success/60 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{concept.recommendation}</p>
                 </div>
               )}
               {/* Safe Area inline diagram */}
@@ -1359,19 +1359,19 @@ function SpecCard({ emoji, label, value, sub, highlight, copyText, conceptId }: 
 
 function SpecRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg">
-      <span className="text-xs text-white/40">{label}</span>
-      <span className="text-xs text-white/70">{value}</span>
+    <div className="flex flex-col gap-1 rounded-lg bg-secondary p-2 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="break-words text-xs text-foreground/70 sm:text-right">{value}</span>
     </div>
   );
 }
 
 function PrepCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
+    <div className="rounded-xl border border-border bg-secondary p-4 sm:p-5">
       <div className="flex items-center gap-2.5 mb-4">
         {icon}
-        <h3 className="text-sm font-semibold text-white/80">{title}</h3>
+        <h3 className="text-sm font-semibold text-foreground/80">{title}</h3>
       </div>
       {children}
     </div>
@@ -1380,18 +1380,18 @@ function PrepCard({ title, icon, children }: { title: string; icon: React.ReactN
 
 function PrepRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`flex items-center justify-between p-2.5 rounded-lg ${highlight ? 'bg-emerald-500/[0.06] border border-emerald-500/15' : 'bg-white/[0.02]'}`}>
-      <span className="text-xs text-white/40">{label}</span>
-      <span className={`text-xs font-mono ${highlight ? 'text-emerald-400 font-medium' : 'text-white/70'}`}>{value}</span>
+    <div className={`flex flex-col gap-1 rounded-lg p-2.5 sm:flex-row sm:items-center sm:justify-between ${highlight ? 'bg-success/[0.06] border border-success/15' : 'bg-secondary'}`}>
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={`break-words font-mono text-xs sm:text-right ${highlight ? 'text-success font-medium' : 'text-foreground/70'}`}>{value}</span>
     </div>
   );
 }
 
 function SummaryRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-1.5">
-      <span className="text-xs text-white/40">{label}</span>
-      <span className={`text-sm font-mono ${highlight ? 'text-emerald-400 font-medium' : 'text-white/75'}`}>{value}</span>
+    <div className="flex flex-col gap-1 py-1.5 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={`break-words font-mono text-sm sm:text-right ${highlight ? 'text-success font-medium' : 'text-foreground/70'}`}>{value}</span>
     </div>
   );
 }
@@ -1401,21 +1401,21 @@ function SummaryRow({ label, value, highlight }: { label: string; value: string;
 function KindleVisualization() {
   return (
     <div className="flex flex-col items-center justify-center mt-6">
-      <svg width="240" height="320" viewBox="0 0 240 320" className="text-white">
-        <rect x="16" y="8" width="208" height="304" rx="14" ry="14" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
-        <rect x="30" y="30" width="180" height="246" rx="2" ry="2" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-        <text x="120" y="44" textAnchor="middle" className="text-[8px]" fill="rgba(255,255,255,0.3)">Chapter Title</text>
+      <svg width="240" height="320" viewBox="0 0 240 320" className="h-auto w-full max-w-[240px] text-foreground">
+        <rect x="16" y="8" width="208" height="304" rx="14" ry="14" fill="color-mix(in srgb, var(--foreground) 3%, transparent)" stroke="color-mix(in srgb, var(--foreground) 12%, transparent)" strokeWidth="1.5" />
+        <rect x="30" y="30" width="180" height="246" rx="2" ry="2" fill="color-mix(in srgb, var(--foreground) 2%, transparent)" stroke="color-mix(in srgb, var(--foreground) 6%, transparent)" strokeWidth="0.5" />
+        <text x="120" y="44" textAnchor="middle" className="text-[8px]" fill="color-mix(in srgb, var(--foreground) 30%, transparent)">Chapter Title</text>
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
           <rect key={i} x="42" y={58 + i * 20} width={i % 3 === 1 ? 120 : i % 3 === 2 ? 150 : 162} height="3.5" rx="1.5" fill="rgba(255,255,255,0.05)" />
         ))}
         <text x="120" y="296" textAnchor="middle" className="text-[7px]" fill="rgba(255,255,255,0.2)">Loc 1234 · 15%</text>
-        <circle cx="120" cy="286" r="2.5" fill="rgba(255,255,255,0.08)" />
+        <circle cx="120" cy="286" r="2.5" fill="color-mix(in srgb, var(--foreground) 8%, transparent)" />
       </svg>
       <div className="flex gap-4 mt-3">
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <Monitor className="w-3 h-3" /> Reflowable
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35">
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <Type className="w-3 h-3" /> Embedded Fonts
         </div>
       </div>
@@ -1489,88 +1489,88 @@ function CoverDiagram() {
   const spineH = trimH;
 
   return (
-    <div className="flex flex-col items-center">
-      <h3 className="text-xs text-white/40 uppercase tracking-wider mb-3">
+    <div className="flex w-full min-w-0 flex-col items-center">
+      <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-3">
         {isHardcover ? 'Hardcover' : 'Paperback'} Cover Layout
       </h3>
-      <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} className="text-white max-w-full">
+      <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} className="h-auto w-full max-w-[500px] text-foreground">
         {/* Full Cover Outline — Black/dashed */}
-        <rect x={x0} y={y0} width={coverW} height={coverH} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="4 3" style={{ transition: 'all 0.4s ease' }} />
+        <rect x={x0} y={y0} width={coverW} height={coverH} fill="none" stroke="color-mix(in srgb, var(--foreground) 12%, transparent)" strokeWidth="1" strokeDasharray="4 3" style={{ transition: 'all 0.4s ease' }} />
 
         {/* Wrap Area — Amber (hardcover) */}
         {isHardcover && (
           <>
-            <rect x={x0} y={y0} width={coverW} height={coverH} fill="rgba(251,191,36,0.03)" stroke="none" style={{ transition: 'all 0.4s ease' }} />
-            <rect x={wrapL} y={wrapT} width={wrapR - wrapL} height={wrapB - wrapT} fill="none" stroke="rgba(251,191,36,0.2)" strokeWidth="0.5" strokeDasharray="3 2" style={{ transition: 'all 0.4s ease' }} />
+            <rect x={x0} y={y0} width={coverW} height={coverH} fill="color-mix(in srgb, var(--overlay-gutter) 8%, transparent)" stroke="none" style={{ transition: 'all 0.4s ease' }} />
+            <rect x={wrapL} y={wrapT} width={wrapR - wrapL} height={wrapB - wrapT} fill="none" stroke="color-mix(in srgb, var(--overlay-gutter) 38%, transparent)" strokeWidth="0.5" strokeDasharray="3 2" style={{ transition: 'all 0.4s ease' }} />
           </>
         )}
 
         {/* Bleed Area — Red */}
         {bleed > 0 && (
-          <rect x={wrapL} y={wrapT} width={wrapR - wrapL} height={wrapB - wrapT} fill="rgba(239,68,68,0.04)" stroke="rgba(239,68,68,0.25)" strokeWidth="0.5" style={{ transition: 'all 0.4s ease' }} />
+          <rect x={wrapL} y={wrapT} width={wrapR - wrapL} height={wrapB - wrapT} fill="color-mix(in srgb, var(--overlay-bleed) 10%, transparent)" stroke="rgba(239,68,68,0.25)" strokeWidth="0.5" style={{ transition: 'all 0.4s ease' }} />
         )}
 
         {/* Back Cover — Black solid border (trim line) */}
-        <rect x={backX} y={backY} width={backW} height={backH} fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.18)" strokeWidth="1" style={{ transition: 'all 0.4s ease' }} />
+        <rect x={backX} y={backY} width={backW} height={backH} fill="color-mix(in srgb, var(--foreground) 3%, transparent)" stroke="color-mix(in srgb, var(--foreground) 18%, transparent)" strokeWidth="1" style={{ transition: 'all 0.4s ease' }} />
 
         {/* Front Cover — Black solid border (trim line) */}
-        <rect x={frontX} y={frontY} width={frontW} height={frontH} fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.25)" strokeWidth="1" style={{ transition: 'all 0.4s ease' }} />
+        <rect x={frontX} y={frontY} width={frontW} height={frontH} fill="color-mix(in srgb, var(--foreground) 6%, transparent)" stroke="color-mix(in srgb, var(--foreground) 25%, transparent)" strokeWidth="1" style={{ transition: 'all 0.4s ease' }} />
 
         {/* Spine — Green */}
-        <rect x={spineX} y={spineY} width={Math.max(spine, 1)} height={trimH} fill="rgba(16,185,129,0.1)" stroke="rgba(16,185,129,0.4)" strokeWidth="0.5" style={{ transition: 'all 0.4s ease' }} />
+        <rect x={spineX} y={spineY} width={Math.max(spine, 1)} height={trimH} fill="color-mix(in srgb, var(--overlay-safe) 18%, transparent)" stroke="var(--overlay-safe)" strokeWidth="0.5" style={{ transition: 'all 0.4s ease' }} />
 
         {/* Hinge Areas — Amber dashed (hardcover only) */}
         {isHardcover && hinge > 0 && (
           <>
-            <rect x={hingeLeftX} y={bleedT} width={hinge} height={trimH} fill="rgba(251,191,36,0.06)" stroke="rgba(251,191,36,0.3)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
-            <rect x={hingeRightX} y={bleedT} width={hinge} height={trimH} fill="rgba(251,191,36,0.06)" stroke="rgba(251,191,36,0.3)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
+            <rect x={hingeLeftX} y={bleedT} width={hinge} height={trimH} fill="color-mix(in srgb, var(--overlay-gutter) 12%, transparent)" stroke="var(--overlay-gutter)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
+            <rect x={hingeRightX} y={bleedT} width={hinge} height={trimH} fill="color-mix(in srgb, var(--overlay-gutter) 12%, transparent)" stroke="var(--overlay-gutter)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
           </>
         )}
 
         {/* Safe Zones — Blue dashed */}
-        <rect x={backX + safe} y={backY + safe} width={Math.max(backW - 2 * safe, 1)} height={Math.max(backH - 2 * safe, 1)} fill="none" stroke="rgba(59,130,246,0.3)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
-        <rect x={frontX + safe} y={frontY + safe} width={Math.max(frontW - 2 * safe, 1)} height={Math.max(frontH - 2 * safe, 1)} fill="none" stroke="rgba(59,130,246,0.3)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
+        <rect x={backX + safe} y={backY + safe} width={Math.max(backW - 2 * safe, 1)} height={Math.max(backH - 2 * safe, 1)} fill="none" stroke="var(--overlay-trim)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
+        <rect x={frontX + safe} y={frontY + safe} width={Math.max(frontW - 2 * safe, 1)} height={Math.max(frontH - 2 * safe, 1)} fill="none" stroke="var(--overlay-trim)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
 
         {/* Barcode Area — Purple dashed (paperback only) */}
         {!isHardcover && (
-          <rect x={barcodeX} y={barcodeY} width={barcodeW} height={barcodeH} fill="rgba(168,85,247,0.06)" stroke="rgba(168,85,247,0.25)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
+          <rect x={barcodeX} y={barcodeY} width={barcodeW} height={barcodeH} fill="color-mix(in srgb, var(--overlay-margin) 12%, transparent)" stroke="var(--overlay-margin)" strokeWidth="0.5" strokeDasharray="2 2" style={{ transition: 'all 0.4s ease' }} />
         )}
 
         {/* Labels */}
-        <text x={frontX + frontW / 2} y={frontY + frontH / 2 - 6} textAnchor="middle" className="text-[9px]" fill="rgba(255,255,255,0.5)">Front Cover</text>
-        <text x={frontX + frontW / 2} y={frontY + frontH / 2 + 8} textAnchor="middle" className="text-[8px]" fill="rgba(255,255,255,0.25)">{formatInches(m.trimWidthIn)} × {formatInches(m.trimHeightIn)}</text>
-        <text x={backX + backW / 2} y={backY + backH / 2} textAnchor="middle" className="text-[9px]" fill="rgba(255,255,255,0.35)">Back Cover</text>
+        <text x={frontX + frontW / 2} y={frontY + frontH / 2 - 6} textAnchor="middle" className="text-[9px]" fill="color-mix(in srgb, var(--foreground) 50%, transparent)">Front Cover</text>
+        <text x={frontX + frontW / 2} y={frontY + frontH / 2 + 8} textAnchor="middle" className="text-[8px]" fill="color-mix(in srgb, var(--foreground) 25%, transparent)">{formatInches(m.trimWidthIn)} × {formatInches(m.trimHeightIn)}</text>
+        <text x={backX + backW / 2} y={backY + backH / 2} textAnchor="middle" className="text-[9px]" fill="color-mix(in srgb, var(--foreground) 35%, transparent)">Back Cover</text>
 
         {spine > 12 && (
-          <text x={spineX + spine / 2} y={spineY + spineH / 2} textAnchor="middle" className="text-[7px]" fill="rgba(16,185,129,0.6)" transform={`rotate(-90, ${spineX + spine / 2}, ${spineY + spineH / 2})`}>Spine {formatInches(m.spineWidthIn)}</text>
+          <text x={spineX + spine / 2} y={spineY + spineH / 2} textAnchor="middle" className="text-[7px]" fill="var(--overlay-safe)" transform={`rotate(-90, ${spineX + spine / 2}, ${spineY + spineH / 2})`}>Spine {formatInches(m.spineWidthIn)}</text>
         )}
 
         {isHardcover && hinge > 8 && (
           <>
-            <text x={hingeLeftX + hinge / 2} y={bleedT + trimH / 2} textAnchor="middle" className="text-[6px]" fill="rgba(251,191,36,0.5)" transform={`rotate(-90, ${hingeLeftX + hinge / 2}, ${bleedT + trimH / 2})`}>Hinge</text>
-            <text x={hingeRightX + hinge / 2} y={bleedT + trimH / 2} textAnchor="middle" className="text-[6px]" fill="rgba(251,191,36,0.5)" transform={`rotate(-90, ${hingeRightX + hinge / 2}, ${bleedT + trimH / 2})`}>Hinge</text>
+            <text x={hingeLeftX + hinge / 2} y={bleedT + trimH / 2} textAnchor="middle" className="text-[6px]" fill="var(--overlay-gutter)" transform={`rotate(-90, ${hingeLeftX + hinge / 2}, ${bleedT + trimH / 2})`}>Hinge</text>
+            <text x={hingeRightX + hinge / 2} y={bleedT + trimH / 2} textAnchor="middle" className="text-[6px]" fill="var(--overlay-gutter)" transform={`rotate(-90, ${hingeRightX + hinge / 2}, ${bleedT + trimH / 2})`}>Hinge</text>
           </>
         )}
 
         {!isHardcover && (
-          <text x={barcodeX + barcodeW / 2} y={barcodeY + barcodeH / 2} textAnchor="middle" className="text-[6px]" fill="rgba(168,85,247,0.5)">Barcode</text>
+          <text x={barcodeX + barcodeW / 2} y={barcodeY + barcodeH / 2} textAnchor="middle" className="text-[6px]" fill="var(--overlay-margin)">Barcode</text>
         )}
 
         {/* Dimension lines */}
-        <line x1={x0} y1={y0 + coverH + 14} x2={x0 + coverW} y2={y0 + coverH + 14} stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-        <text x={x0 + coverW / 2} y={y0 + coverH + 25} textAnchor="middle" className="text-[8px]" fill="rgba(255,255,255,0.3)">{formatInches(m.fullCoverWidthIn)}</text>
-        <line x1={x0 + coverW + 14} y1={y0} x2={x0 + coverW + 14} y2={y0 + coverH} stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
-        <text x={x0 + coverW + 22} y={y0 + coverH / 2} textAnchor="middle" className="text-[8px]" fill="rgba(255,255,255,0.3)" transform={`rotate(90, ${x0 + coverW + 22}, ${y0 + coverH / 2})`}>{formatInches(m.fullCoverHeightIn)}</text>
+        <line x1={x0} y1={y0 + coverH + 14} x2={x0 + coverW} y2={y0 + coverH + 14} stroke="color-mix(in srgb, var(--foreground) 15%, transparent)" strokeWidth="0.5" />
+        <text x={x0 + coverW / 2} y={y0 + coverH + 25} textAnchor="middle" className="text-[8px]" fill="color-mix(in srgb, var(--foreground) 30%, transparent)">{formatInches(m.fullCoverWidthIn)}</text>
+        <line x1={x0 + coverW + 14} y1={y0} x2={x0 + coverW + 14} y2={y0 + coverH} stroke="color-mix(in srgb, var(--foreground) 15%, transparent)" strokeWidth="0.5" />
+        <text x={x0 + coverW + 22} y={y0 + coverH / 2} textAnchor="middle" className="text-[8px]" fill="color-mix(in srgb, var(--foreground) 30%, transparent)" transform={`rotate(90, ${x0 + coverW + 22}, ${y0 + coverH / 2})`}>{formatInches(m.fullCoverHeightIn)}</text>
       </svg>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-3 justify-center mt-3">
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35"><div className="w-3 h-0.5 border border-dashed border-white/20" /> Trim Line</div>
-        {bleed > 0 && <div className="flex items-center gap-1.5 text-[10px] text-white/35"><div className="w-3 h-0.5 bg-red-500/30" /> Bleed</div>}
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35"><div className="w-3 h-0.5 bg-emerald-500/40" /> Spine</div>
-        <div className="flex items-center gap-1.5 text-[10px] text-white/35"><div className="w-3 h-0.5 border border-dashed border-blue-400/30" /> Safe Area</div>
-        {!isHardcover && <div className="flex items-center gap-1.5 text-[10px] text-white/35"><div className="w-3 h-0.5 border border-dashed border-purple-400/30" /> Barcode</div>}
-        {isHardcover && <div className="flex items-center gap-1.5 text-[10px] text-white/35"><div className="w-3 h-0.5 border border-dashed border-amber-400/30" /> Hinge/Wrap</div>}
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><div className="w-3 h-0.5 border border-dashed border-border" /> Trim Line</div>
+        {bleed > 0 && <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><div className="w-3 h-0.5 bg-danger/30" /> Bleed</div>}
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><div className="w-3 h-0.5 bg-success/40" /> Spine</div>
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><div className="w-3 h-0.5 border border-dashed border-primary/30" /> Safe Area</div>
+        {!isHardcover && <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><div className="w-3 h-0.5 border border-dashed border-primary/30" /> Barcode</div>}
+        {isHardcover && <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><div className="w-3 h-0.5 border border-dashed border-warning/30" /> Hinge/Wrap</div>}
       </div>
     </div>
   );
@@ -1601,7 +1601,7 @@ function DownloadTemplateButton() {
 
     // Wrap area
     if (bookType === 'hardcover') {
-      ctx.strokeStyle = 'rgba(251,191,36,0.3)';
+      ctx.strokeStyle = 'var(--overlay-gutter)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.strokeRect(wrapPx, wrapPx, canvas.width - 2 * wrapPx, canvas.height - 2 * wrapPx);
@@ -1609,7 +1609,7 @@ function DownloadTemplateButton() {
 
     // Bleed area
     if (m.bleedIn > 0) {
-      ctx.strokeStyle = 'rgba(239,68,68,0.4)';
+      ctx.strokeStyle = 'var(--overlay-bleed)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.strokeRect(wrapPx, wrapPx, canvas.width - 2 * wrapPx, canvas.height - 2 * wrapPx);
@@ -1637,9 +1637,9 @@ function DownloadTemplateButton() {
 
     // Barcode area (paperback only)
     if (bookType === 'paperback') {
-      ctx.fillStyle = 'rgba(168,85,247,0.08)';
+      ctx.fillStyle = 'color-mix(in srgb, var(--overlay-margin) 14%, transparent)';
       ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = 'rgba(168,85,247,0.4)';
+      ctx.strokeStyle = 'var(--overlay-margin)';
       ctx.lineWidth = 1;
       const barcodeW = inchesToPixels(2, dpi);
       const barcodeH = inchesToPixels(1.2, dpi);
@@ -1650,7 +1650,7 @@ function DownloadTemplateButton() {
     // Hinge areas (hardcover only)
     if (bookType === 'hardcover') {
       const hingePx = inchesToPixels(m.hingeIn, dpi);
-      ctx.strokeStyle = 'rgba(251,191,36,0.4)';
+      ctx.strokeStyle = 'var(--overlay-gutter)';
       ctx.lineWidth = 1;
       ctx.setLineDash([3, 3]);
       ctx.strokeRect(wrapPx + bleedPx, wrapPx + bleedPx, hingePx, trimHPx);
@@ -1666,7 +1666,7 @@ function DownloadTemplateButton() {
   return (
     <button
       onClick={handleDownload}
-      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/[0.04] hover:bg-white/[0.08] rounded-xl text-xs text-white/50 hover:text-white/80 transition-all border border-white/[0.06]"
+      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-secondary hover:bg-secondary rounded-xl text-xs text-muted-foreground hover:text-foreground/80 transition-all border border-border"
     >
       <Download className="w-4 h-4" />
       Download Template PNG
@@ -1690,16 +1690,16 @@ export default function SetupFeature() {
   const handleNext = () => goToStep(currentStep + 1);
 
   return (
-    <div className="min-h-full text-[#f7f1e7]">
+    <div className="min-h-full text-foreground">
       {/* Step Indicator */}
       <StepProgress
         steps={STEPS.map((step) => ({ key: step.id, label: step.label }))}
         current={currentStep}
         onStepClick={(step) => goToStep(Number(step.key))}
       />
-      <div className="my-4 flex items-center justify-between gap-4 rounded-2xl border border-[#f4efe5]/10 bg-[#f4efe5]/[0.035] px-4 py-3 max-md:flex-col max-md:items-start">
-        <strong className="text-sm font-semibold text-[#f4efe5]/90">Smart planning workspace</strong>
-        <span className="flex-1 text-[13px] leading-normal text-[#c8c0b3]/75">Live KDP specs update as you choose trim, bleed, paper, and page count.</span>
+      <div className="ds-card-glass my-4 flex items-center justify-between gap-4 px-4 py-3 max-md:flex-col max-md:items-start">
+        <strong className="text-sm font-semibold text-foreground/90">Smart planning workspace</strong>
+        <span className="flex-1 text-[13px] leading-normal text-muted-foreground">Live KDP specs update as you choose trim, bleed, paper, and page count.</span>
       </div>
 
       {/* Step Content */}

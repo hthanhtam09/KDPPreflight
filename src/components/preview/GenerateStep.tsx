@@ -290,7 +290,7 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
   const isComplete = generationProgress.phase === 'complete';
 
   return (
-    <div className="h-full flex items-center justify-center bg-[#0a0a0f]">
+    <div className="ds-page-stage flex h-full items-center justify-center">
       <div className="max-w-lg w-full mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -300,24 +300,24 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
         >
           {/* Header */}
           <div className="text-center space-y-3">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/15 to-fuchsia-500/15 border border-violet-500/20">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
               {isError ? (
-                <AlertCircle className="w-7 h-7 text-red-400" />
+                <AlertCircle className="h-7 w-7 text-danger" />
               ) : isComplete ? (
-                <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+                <CheckCircle2 className="h-7 w-7 text-success" />
               ) : (
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                 >
-                  <Sparkles className="w-7 h-7 text-violet-400" />
+                  <Sparkles className="h-7 w-7 text-primary" />
                 </motion.div>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-white/90">
+            <h1 className="text-2xl font-bold text-foreground">
               {isError ? 'Generation Failed' : isComplete ? 'Preview Ready!' : 'Generating 3D Preview'}
             </h1>
-            <p className="text-white/40 text-sm">
+            <p className="text-sm text-muted-foreground">
               {isError
                 ? generationProgress.details
                 : isComplete
@@ -330,12 +330,12 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
           {!isError && (
             <div className="space-y-2">
               <div className="flex justify-between text-xs">
-                <span className="text-white/40">{generationProgress.phaseLabel}</span>
-                <span className="text-white/60 font-mono">{generationProgress.progress}%</span>
+                <span className="text-muted-foreground">{generationProgress.phaseLabel}</span>
+                <span className="font-mono text-foreground/70">{generationProgress.progress}%</span>
               </div>
               <Progress
                 value={generationProgress.progress}
-                className="h-2 bg-white/[0.06] [&>div]:bg-gradient-to-r [&>div]:from-violet-500 [&>div]:to-fuchsia-500"
+                className="h-2 bg-secondary [&>div]:bg-primary"
               />
             </div>
           )}
@@ -362,7 +362,7 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
               <Button
                 variant="ghost"
                 onClick={() => setPreviewFlowStep('import')}
-                className="text-white/40 hover:text-white/70 hover:bg-white/5"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Import
@@ -373,7 +373,7 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
                   setGenerationProgress({ phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 });
                   generate3DPreview();
                 }}
-                className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-6 rounded-xl text-sm"
+                className="px-6 text-sm"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Retry
@@ -406,10 +406,10 @@ function PhaseItem({
       layout
       className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${
         status === 'active'
-          ? 'bg-violet-500/[0.08] border border-violet-500/20'
+          ? 'border border-primary/20 bg-primary/10'
           : status === 'complete'
-            ? 'bg-emerald-500/[0.04] border border-transparent'
-            : 'bg-white/[0.01] border border-transparent'
+            ? 'border border-transparent bg-success/5'
+            : 'border border-transparent bg-transparent'
       }`}
     >
       {/* Status Icon */}
@@ -420,17 +420,17 @@ function PhaseItem({
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           >
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="h-5 w-5 text-success" />
           </motion.div>
         ) : status === 'active' ? (
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
           >
-            <Loader2 className="w-5 h-5 text-violet-400" />
+            <Loader2 className="h-5 w-5 text-primary" />
           </motion.div>
         ) : (
-          <Circle className="w-5 h-5 text-white/15" />
+          <Circle className="h-5 w-5 text-muted-foreground/35" />
         )}
       </div>
 
@@ -438,9 +438,9 @@ function PhaseItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className={`text-sm font-medium ${
-            status === 'active' ? 'text-white/90' :
-            status === 'complete' ? 'text-white/60' :
-            'text-white/25'
+            status === 'active' ? 'text-foreground' :
+            status === 'complete' ? 'text-muted-foreground' :
+            'text-muted-foreground/55'
           }`}>
             <span className="mr-1.5">{phaseDef.icon}</span>
             {phaseDef.label}
@@ -452,7 +452,7 @@ function PhaseItem({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="text-xs text-white/30 mt-0.5"
+              className="mt-0.5 text-xs text-muted-foreground"
             >
               {details}
             </motion.p>
@@ -462,9 +462,9 @@ function PhaseItem({
 
       {/* Phase number */}
       <span className={`text-xs font-mono ${
-        status === 'active' ? 'text-violet-400' :
-        status === 'complete' ? 'text-emerald-400/50' :
-        'text-white/10'
+        status === 'active' ? 'text-primary' :
+        status === 'complete' ? 'text-success/70' :
+        'text-muted-foreground/35'
       }`}>
         {status === 'complete' ? '✓' : `${PHASES.indexOf(phaseDef) + 1}/4`}
       </span>

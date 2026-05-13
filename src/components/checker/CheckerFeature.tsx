@@ -4,7 +4,6 @@ import { BookOpen, Monitor, Box } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import ConfigStep from './ConfigStep';
 import ImportStep from './ImportStep';
-import PreviewStep from './PreviewStep';
 import { StepProgress } from '@/components/workspace/ProductWorkspace';
 
 // ─── Step Indicator ─────────────────────────────────────────────────────────
@@ -50,7 +49,7 @@ function StepIndicator() {
         }}
       />
       {/* Book type badge */}
-      <div className="ml-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] text-[10px] text-white/30">
+      <div className="ml-3 flex items-center gap-1.5 rounded-full border border-border bg-secondary/70 px-2.5 py-1 text-[10px] text-muted-foreground shadow-soft">
         {bookType === 'kindle' && <Monitor className="w-3 h-3" />}
         {bookType === 'paperback' && <BookOpen className="w-3 h-3" />}
         {bookType === 'hardcover' && <Box className="w-3 h-3" />}
@@ -65,19 +64,15 @@ function StepIndicator() {
 export default function CheckerFeature() {
   const { checkerStep } = useAppStore();
 
-  // Preview step takes over the entire viewport (100vh fullscreen)
-  if (checkerStep === 'preview') {
-    return <PreviewStep />;
-  }
-
   // Import and Config steps have normal layout with step indicator
+  // (PreviewStep is rendered at page level to avoid transform/backdrop-filter ancestors)
   return (
-    <div className="min-h-full text-[#f7f1e7]">
+    <div className="min-h-full text-foreground">
       {/* Step indicator */}
       <StepIndicator />
-      <div className="my-4 flex items-center justify-between gap-4 rounded-2xl border border-[#f4efe5]/10 bg-[#f4efe5]/[0.035] px-4 py-3 max-md:flex-col max-md:items-start">
-        <strong className="text-sm font-semibold text-[#f4efe5]/90">KDP preflight control room</strong>
-        <span className="flex-1 text-[13px] leading-normal text-[#c8c0b3]/75">Import files, confirm specs, then inspect page-by-page issues with risk levels and fixes.</span>
+      <div className="ds-card-glass my-4 flex items-center justify-between gap-4 px-4 py-3 max-md:flex-col max-md:items-start">
+        <strong className="text-sm font-semibold text-foreground/90">KDP preflight control room</strong>
+        <span className="flex-1 text-[13px] leading-normal text-muted-foreground">Import files, confirm specs, then inspect page-by-page issues with risk levels and fixes.</span>
       </div>
 
       {/* Step content */}
