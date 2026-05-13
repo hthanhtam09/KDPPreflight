@@ -958,10 +958,10 @@ function getSeverityLabel(severity: CheckStatus) {
 /** Get realistic KDP risk label with emoji */
 function getKdpRiskLabel(kdpRisk?: KdpRiskLevel): { label: string; emoji: string; color: string } {
   switch (kdpRisk) {
-    case 'safe': return { label: 'Safe for KDP', emoji: '🟢', color: 'text-green-400' };
-    case 'probably-ok': return { label: 'Probably acceptable', emoji: '🟡', color: 'text-amber-400' };
+    case 'safe': return { label: 'Safe for KDP', emoji: 'OK', color: 'text-green-400' };
+    case 'probably-ok': return { label: 'Probably acceptable', emoji: 'Note', color: 'text-amber-400' };
     case 'print-risk': return { label: 'May cause print inconsistencies', emoji: '🟠', color: 'text-orange-400' };
-    case 'high-rejection': return { label: 'High rejection risk', emoji: '🔴', color: 'text-red-400' };
+    case 'high-rejection': return { label: 'High rejection risk', emoji: 'Fix', color: 'text-red-400' };
     default: return { label: '', emoji: '', color: '' };
   }
 }
@@ -1048,7 +1048,7 @@ function FriendlyIssueCard({
                   : issue.specAccuracy === 'slight-variance' ? 'text-amber-400/60'
                   : 'text-red-400/60'
                 }`}>
-                  {issue.specAccuracy === 'exact' ? '✓' : issue.specAccuracy === 'slight-variance' ? '⚠' : '✗'} {specLabel}
+                  {issue.specAccuracy === 'exact' ? 'Exact' : issue.specAccuracy === 'slight-variance' ? 'Close' : 'Mismatch'} · {specLabel}
                 </span>
               </div>
             )}
@@ -1150,13 +1150,13 @@ function FriendlyIssueCard({
                               <span className="text-white/25">Width</span>
                               <span className={`font-mono ${wStatus === 'ok' ? 'text-green-400/50' : wStatus === 'warn' ? 'text-amber-400/60' : 'text-red-400/60'}`}>{actW.toFixed(3)}"</span>
                               <span className="font-mono text-white/30">{expW.toFixed(3)}"</span>
-                              <span className="text-center">{wStatus === 'ok' ? '🟢' : wStatus === 'warn' ? '🟡' : '🔴'}</span>
+                              <span className="text-center">{wStatus === 'ok' ? 'OK' : wStatus === 'warn' ? 'Check' : 'Fix'}</span>
                             </div>
                             <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1">
                               <span className="text-white/25">Height</span>
                               <span className={`font-mono ${hStatus === 'ok' ? 'text-green-400/50' : hStatus === 'warn' ? 'text-amber-400/60' : 'text-red-400/60'}`}>{actH.toFixed(3)}"</span>
                               <span className="font-mono text-white/30">{expH.toFixed(3)}"</span>
-                              <span className="text-center">{hStatus === 'ok' ? '🟢' : hStatus === 'warn' ? '🟡' : '🔴'}</span>
+                              <span className="text-center">{hStatus === 'ok' ? 'OK' : hStatus === 'warn' ? 'Check' : 'Fix'}</span>
                             </div>
                           </>
                         );
@@ -1438,10 +1438,10 @@ function ValidationPanel({
                 : validationSummary.overallStatus === 'risk' ? 'text-orange-400'
                 : 'text-amber-400'
               }`}>
-                {validationSummary.isReady ? '🟢 Safe for KDP'
-                 : validationSummary.overallStatus === 'fail' ? '🔴 High Rejection Risk'
-                 : validationSummary.overallStatus === 'risk' ? '🟠 Print Inconsistency Risk'
-                 : '🟡 Probably Acceptable'}
+                {validationSummary.isReady ? 'Safe for KDP'
+                 : validationSummary.overallStatus === 'fail' ? 'High Rejection Risk'
+                 : validationSummary.overallStatus === 'risk' ? 'Print Edge Risk'
+                 : 'Probably Acceptable'}
               </span>
               <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-white/20 font-medium">
                 {isSpreadMode ? '📖 Spread' : '📄 Single'}
@@ -1471,17 +1471,17 @@ function ValidationPanel({
         <div className="flex items-center gap-1.5 flex-wrap">
           {validationSummary.fail + validationSummary.risk > 0 && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-red-500/15 text-red-400 font-bold">
-              🔴 {validationSummary.fail + validationSummary.risk} Rejection Risk
+              {validationSummary.fail + validationSummary.risk} Critical
             </span>
           )}
           {validationSummary.warning > 0 && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold">
-              🟡 {validationSummary.warning} Probably OK
+              {validationSummary.warning} Warning
             </span>
           )}
           {validationSummary.safe + validationSummary.pass > 0 && (
             <span className="text-[10px] px-2 py-0.5 rounded bg-green-500/10 text-green-400/60 font-medium">
-              🟢 {validationSummary.safe + validationSummary.pass} Safe
+              {validationSummary.safe + validationSummary.pass} OK
             </span>
           )}
           {validationSummary.total === 0 && (
@@ -1578,8 +1578,8 @@ function ValidationPanel({
               spreadGroups.map((group) => {
                 const isCurrentSpread = group.spreadIndex === currentSpreadIdx;
                 const severityColors = getSeverityColors(group.worstSeverity);
-                const severityDot = group.worstSeverity === 'fail' || group.worstSeverity === 'risk' ? '🔴'
-                  : group.worstSeverity === 'warning' ? '🟡' : '🟢';
+                const severityDot = group.worstSeverity === 'fail' || group.worstSeverity === 'risk' ? 'Critical'
+                  : group.worstSeverity === 'warning' ? 'Warning' : 'OK';
 
                 return (
                   <div key={group.spread.id} className={`rounded-lg border transition-all ${
@@ -1589,7 +1589,7 @@ function ValidationPanel({
                   }`}>
                     {/* Spread header */}
                     <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.04]">
-                      <span className="text-[13px]">{severityDot}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-white/25">{severityDot}</span>
                       <span className={`text-[12px] font-semibold ${
                         isCurrentSpread ? 'text-emerald-400' : 'text-white/60'
                       }`}>
@@ -1611,7 +1611,7 @@ function ValidationPanel({
                         {!group.spread.isSingle && (
                           <div className="px-3 pt-1.5 pb-0.5">
                             <span className="text-[9px] font-medium text-white/20 uppercase tracking-wider">
-                              {group.spread.isSingle ? '' : '⬅ Left page'}
+                              {group.spread.isSingle ? '' : 'Left page'}
                             </span>
                           </div>
                         )}
@@ -1634,7 +1634,7 @@ function ValidationPanel({
                       <div>
                         <div className="px-3 pt-1.5 pb-0.5">
                           <span className="text-[9px] font-medium text-white/20 uppercase tracking-wider">
-                            ➡ Right page
+                            Right page
                           </span>
                         </div>
                         <div className="px-2 pb-2 space-y-1">
@@ -1664,7 +1664,6 @@ function ValidationPanel({
             {severityGroups.critical.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="text-[13px]">🔴</span>
                   <span className="text-[12px] font-semibold text-red-400/80">High Rejection Risk</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-bold">{severityGroups.critical.length}</span>
                 </div>
@@ -1685,7 +1684,6 @@ function ValidationPanel({
             {severityGroups.warnings.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="text-[13px]">🟡</span>
                   <span className="text-[12px] font-semibold text-amber-400/80">Probably Acceptable</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold">{severityGroups.warnings.length}</span>
                 </div>
@@ -1706,7 +1704,6 @@ function ValidationPanel({
             {severityGroups.passed.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="text-[13px]">🟢</span>
                   <span className="text-[12px] font-semibold text-green-400/70">Safe for KDP</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-400/70 font-medium">{severityGroups.passed.length}</span>
                 </div>
@@ -2743,14 +2740,14 @@ export default function PreviewStep() {
   const isSpreadView = previewViewMode === 'spread' && bookType !== 'kindle';
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#1e1f22]">
+    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_12%,rgba(45,212,191,0.08),transparent_28%),linear-gradient(180deg,#111317,#07090d)]">
       {/* ================================================================== */}
       {/* PRIMARY TOOLBAR (top, ~52px) — Breadcrumb + Mode + Navigation      */}
       {/* LEFT: Import → Configure → Review breadcrumb                       */}
       {/* CENTER: 📄 Single View | 📖 Spread View                           */}
       {/* RIGHT: ◀ Previous | Page X / Y | Next ▶                          */}
       {/* ================================================================== */}
-      <div className="shrink-0 h-[52px] flex items-center justify-between px-3 border-b border-white/[0.06] bg-[#232529]">
+      <div className="h-[52px] shrink-0 flex items-center justify-between border-b border-[#f4efe5]/10 bg-[#090b0e]/95 px-3 shadow-[0_1px_0_rgba(244,239,229,0.04)]">
         {/* LEFT: Breadcrumb — Import → Configure → Review */}
         <div className="flex items-center gap-1.5">
           <button
@@ -2791,7 +2788,6 @@ export default function PreviewStep() {
               aria-label="Single Page View"
               aria-pressed={previewViewMode === 'single'}
             >
-              <span className="text-[16px] leading-none">📄</span>
               <span>Single View</span>
             </button>
             <button
@@ -2807,7 +2803,6 @@ export default function PreviewStep() {
               aria-label="Spread View"
               aria-pressed={previewViewMode === 'spread'}
             >
-              <span className="text-[16px] leading-none">📖</span>
               <span>Spread View</span>
             </button>
           </div>
@@ -2864,7 +2859,7 @@ export default function PreviewStep() {
       {/* ================================================================== */}
       {/* SECONDARY TOOLBAR — Overlays + Zoom Controls                       */}
       {/* ================================================================== */}
-      <div className="shrink-0 h-9 flex items-center justify-between px-3 border-b border-white/[0.04] bg-[#1e1f22]/80">
+      <div className="h-9 shrink-0 flex items-center justify-between border-b border-[#f4efe5]/10 bg-[#0a0c0f]/80 px-3 backdrop-blur-xl">
         {/* Left: Overlay toggles */}
         <div className="flex items-center gap-1">
           {allowedOverlays.length > 0 && (
@@ -2951,7 +2946,7 @@ export default function PreviewStep() {
         {/* CENTER: Preview canvas area — dark workspace */}
         <div
           ref={canvasContainerRef}
-          className="flex-1 relative overflow-hidden flex items-center justify-center"
+          className="relative flex flex-1 items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_42%,rgba(244,239,229,0.055),transparent_36%),linear-gradient(180deg,#15171b,#0a0c10)]"
           onDoubleClick={handleDoubleClick}
           style={{
             background: 'radial-gradient(ellipse at center, #232529 0%, #1e1f22 100%)',
@@ -3052,7 +3047,7 @@ export default function PreviewStep() {
         </div>
 
         {/* RIGHT: Validation Panel (~25%) */}
-        <div className="w-[25%] min-w-[280px] max-w-[380px] shrink-0 border-l border-white/[0.06] flex flex-col min-h-0">
+        <div className="flex min-h-0 w-[25%] min-w-[280px] max-w-[380px] shrink-0 flex-col border-l border-[#f4efe5]/10 bg-[#090b0e]/90 shadow-[-18px_0_60px_rgba(0,0,0,0.16)]">
           <ValidationPanel
             bookType={bookType}
             bookConfig={bookConfig}
@@ -3086,7 +3081,7 @@ export default function PreviewStep() {
       {/* ================================================================== */}
       {/* STATUS BAR (bottom, ~28px)                                         */}
       {/* ================================================================== */}
-      <div className="shrink-0 h-7 flex items-center justify-between px-3 border-t border-white/[0.06] bg-[#232529]">
+      <div className="h-7 shrink-0 flex items-center justify-between border-t border-[#f4efe5]/10 bg-[#090b0e]/95 px-3">
         {/* Left: Page info */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex items-center gap-1.5 shrink-0">

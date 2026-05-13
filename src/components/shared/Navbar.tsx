@@ -1,42 +1,42 @@
-'use client';
+'use client'
 
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { BookOpen, Shield, Box, HomeIcon } from 'lucide-react';
+import { BookOpen, Box, HomeIcon, Shield } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Home', icon: HomeIcon },
   { href: '/setup', label: 'Smart Setup', icon: BookOpen },
   { href: '/checker', label: 'Checker', icon: Shield },
   { href: '/preview', label: '3D Preview', icon: Box },
-] as const;
+] as const
 
 export default function Navbar() {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '/';
-    return pathname.startsWith(href);
-  };
+    if (href === '/') return pathname === '/'
+    return pathname.startsWith(href)
+  }
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/[0.06]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#07090d]/78 backdrop-blur-2xl">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-          <div className="w-7 h-7 rounded-lg bg-white/[0.08] flex items-center justify-center">
-            <BookOpen className="w-3.5 h-3.5 text-white/70" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-cyan-200/15 bg-cyan-200/[0.08] shadow-[0_0_30px_rgba(103,232,249,0.08)]">
+            <BookOpen className="h-4 w-4 text-cyan-100/85" />
           </div>
-          <span className="text-sm font-semibold text-white/80 tracking-tight hidden sm:block">KDPPreflight</span>
+          <span className="hidden text-sm font-semibold tracking-tight text-white/88 sm:block">KDPPreflight</span>
         </Link>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 rounded-full border border-white/[0.06] bg-white/[0.035] p-1">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
                 isActive(href)
-                  ? 'bg-white/[0.08] text-white/80'
-                  : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
+                  ? 'bg-white text-slate-950 shadow-sm'
+                  : 'text-white/42 hover:bg-white/[0.06] hover:text-white/72'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -46,5 +46,5 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
-  );
+  )
 }

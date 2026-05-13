@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   RotateCcw,
   BookOpen,
   ChevronLeft,
   ChevronRight,
-  Camera,
   Sun,
   Moon,
   Monitor,
@@ -19,10 +18,9 @@ import {
   Info,
   X,
   Eye,
-  Grid3X3,
   Columns2,
-  Search,
   BookText,
+  CloudOff,
 } from 'lucide-react';
 import { BookType, CameraPreset } from '@/types/kdp';
 import type { Preview3DState, Preview3DActions } from './BookPreview3D';
@@ -60,7 +58,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
     <>
       {/* ━━━ Top bar - Book type selector ━━━ */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-        <div className="flex items-center bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 p-1 gap-1">
+        <div className="flex items-center gap-1 rounded-2xl border border-[#f4efe5]/10 bg-[#080a0d]/75 p-1 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(244,239,229,0.08)] backdrop-blur-xl">
           <BookTypeButton
             active={state.bookType === 'paperback'}
             onClick={() => actions.setBookType('paperback')}
@@ -83,8 +81,8 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
       </div>
 
       {/* ━━━ Left toolbar - View controls ━━━ */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-        <div className="flex flex-col gap-2 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 p-2">
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
+        <div className="flex flex-col gap-2 rounded-2xl border border-[#f4efe5]/10 bg-[#080a0d]/75 p-2 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(244,239,229,0.08)] backdrop-blur-xl">
           <ToolBarButton
             onClick={actions.resetCamera}
             icon={<RotateCcw className="w-4 h-4" />}
@@ -166,7 +164,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
               <CameraPresetButton
                 active={activePreset === 'free'}
                 onClick={() => actions.setCameraPreset('free')}
-                icon={<Search className="w-3.5 h-3.5" />}
+                icon={<RotateCcw className="w-3.5 h-3.5" />}
                 label="Free orbit"
               />
             </div>
@@ -217,8 +215,8 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
         <div className="flex flex-col gap-2 items-center">
           {/* Camera preset quick buttons */}
-          <div className="flex items-center gap-1 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 px-2 py-1.5">
-            {CAMERA_PRESETS.map((preset) => (
+          <div className="flex items-center gap-1 rounded-2xl border border-[#f4efe5]/10 bg-[#080a0d]/75 px-2 py-1.5 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(244,239,229,0.08)] backdrop-blur-xl">
+            {CAMERA_PRESETS.filter((preset) => ['front', 'back', 'spine'].includes(preset.key)).map((preset) => (
               <button
                 key={preset.key}
                 onClick={() => actions.setCameraPreset(preset.key)}
@@ -236,7 +234,7 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
           </div>
 
           {/* Page navigation + Export */}
-          <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl rounded-2xl border border-white/10 px-4 py-2.5">
+          <div className="flex items-center gap-3 rounded-2xl border border-[#f4efe5]/10 bg-[#080a0d]/75 px-4 py-2.5 shadow-[0_22px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(244,239,229,0.08)] backdrop-blur-xl">
             <button
               onClick={actions.prevPage}
               disabled={state.currentPage <= 0 || state.isFlipping}
@@ -279,20 +277,16 @@ export default function PreviewToolbar({ state, actions, totalPages, measurement
 
             <button
               onClick={() => actions.exportScreenshot()}
-              className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs"
-              title="Export PNG"
-            >
-              <Camera className="w-4 h-4" />
-              <span className="hidden sm:inline">Export</span>
-            </button>
-            <button
-              onClick={() => actions.exportScreenshot()}
-              className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors text-xs"
-              title="Export HD"
+              className="inline-flex min-h-[34px] items-center gap-2 rounded-[10px] bg-[linear-gradient(180deg,#f8efe0,#d7c6a1)] px-3 text-xs font-extrabold text-[#11100d] transition hover:-translate-y-px"
+              title="Export transparent PNG"
             >
               <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">HD</span>
+              <span className="hidden sm:inline">Export transparent PNG</span>
             </button>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-teal-300/15 bg-teal-400/[0.045] px-2.5 py-1.5 text-[11px] font-semibold text-teal-50/65">
+            <CloudOff className="h-3.5 w-3.5" />
+            <span>Preview export runs locally. Files are not stored.</span>
           </div>
         </div>
       </div>

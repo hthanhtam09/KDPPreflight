@@ -1,11 +1,11 @@
 'use client';
 
-import React from 'react';
-import { Upload, Settings, BookOpen, Monitor, Box, ChevronRight } from 'lucide-react';
+import { BookOpen, Monitor, Box } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import ConfigStep from './ConfigStep';
 import ImportStep from './ImportStep';
 import PreviewStep from './PreviewStep';
+import { StepProgress } from '@/components/workspace/ProductWorkspace';
 
 // ─── Step Indicator ─────────────────────────────────────────────────────────
 
@@ -13,9 +13,9 @@ function StepIndicator() {
   const { checkerStep, setCheckerStep, bookType, uploadedManuscript } = useAppStore();
 
   const steps = [
-    { key: 'import' as const, label: 'Import', icon: Upload },
-    { key: 'config' as const, label: 'Configure', icon: Settings },
-    { key: 'preview' as const, label: 'Preview', icon: BookOpen },
+    { key: 'import' as const, label: 'Import' },
+    { key: 'config' as const, label: 'Configure' },
+    { key: 'preview' as const, label: 'Preview' },
   ];
 
   const currentIndex = steps.findIndex(s => s.key === checkerStep);
@@ -34,41 +34,21 @@ function StepIndicator() {
     return false;
   };
 
+  const reachableSteps = steps.map((step, i) => ({
+    ...step,
+    reachable: isStepReachable(step.key, i),
+  }));
+
   return (
-    <div className="flex items-center gap-1">
-      {steps.map((step, i) => {
-        const Icon = step.icon;
-        const isActive = checkerStep === step.key;
-        const isPast = i < currentIndex;
-        const isClickable = isStepReachable(step.key, i);
-
-        return (
-          <React.Fragment key={step.key}>
-            {i > 0 && (
-              <ChevronRight className={`w-3.5 h-3.5 transition-colors duration-300 ${
-                isPast ? 'text-emerald-500/40' : 'text-white/10'
-              }`} />
-            )}
-            <button
-              onClick={() => isClickable && setCheckerStep(step.key)}
-              disabled={!isClickable}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                isActive
-                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
-                  : isPast
-                    ? 'text-emerald-400/50 hover:text-emerald-400/70 hover:bg-emerald-500/[0.06]'
-                    : isClickable
-                      ? 'text-white/40 hover:text-white/60 hover:bg-white/[0.04]'
-                      : 'text-white/20 cursor-not-allowed'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{step.label}</span>
-            </button>
-          </React.Fragment>
-        );
-      })}
-
+    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <StepProgress
+        steps={reachableSteps.map((step) => ({ key: step.key, label: step.label }))}
+        current={checkerStep}
+        onStepClick={(step) => {
+          const target = reachableSteps.find((item) => item.key === step.key);
+          if (target?.reachable) setCheckerStep(target.key);
+        }}
+      />
       {/* Book type badge */}
       <div className="ml-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] text-[10px] text-white/30">
         {bookType === 'kindle' && <Monitor className="w-3 h-3" />}
@@ -92,9 +72,13 @@ export default function CheckerFeature() {
 
   // Import and Config steps have normal layout with step indicator
   return (
-    <div className="space-y-4">
+    <div className="min-h-full text-[#f7f1e7]">
       {/* Step indicator */}
       <StepIndicator />
+      <div className="my-4 flex items-center justify-between gap-4 rounded-2xl border border-[#f4efe5]/10 bg-[#f4efe5]/[0.035] px-4 py-3 max-md:flex-col max-md:items-start">
+        <strong className="text-sm font-semibold text-[#f4efe5]/90">KDP preflight control room</strong>
+        <span className="flex-1 text-[13px] leading-normal text-[#c8c0b3]/75">Import files, confirm specs, then inspect page-by-page issues with risk levels and fixes.</span>
+      </div>
 
       {/* Step content */}
       {checkerStep === 'import' && <ImportStep />}

@@ -22,6 +22,7 @@ import {
 import {
   TrimSizeKey, BleedType, PaperType, InteriorType, BookType, BookConfig,
 } from '@/types/kdp';
+import { StepProgress } from '@/components/workspace/ProductWorkspace';
 
 // ─── Constants ────────────────────────────────────────────────────────────
 
@@ -1689,9 +1690,17 @@ export default function SetupFeature() {
   const handleNext = () => goToStep(currentStep + 1);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-full text-[#f7f1e7]">
       {/* Step Indicator */}
-      <StepIndicator currentStep={currentStep} onStepClick={goToStep} />
+      <StepProgress
+        steps={STEPS.map((step) => ({ key: step.id, label: step.label }))}
+        current={currentStep}
+        onStepClick={(step) => goToStep(Number(step.key))}
+      />
+      <div className="my-4 flex items-center justify-between gap-4 rounded-2xl border border-[#f4efe5]/10 bg-[#f4efe5]/[0.035] px-4 py-3 max-md:flex-col max-md:items-start">
+        <strong className="text-sm font-semibold text-[#f4efe5]/90">Smart planning workspace</strong>
+        <span className="flex-1 text-[13px] leading-normal text-[#c8c0b3]/75">Live KDP specs update as you choose trim, bleed, paper, and page count.</span>
+      </div>
 
       {/* Step Content */}
       <AnimatePresence mode="wait">

@@ -34,6 +34,7 @@ import {
 import { loadPDF, loadImage, preRenderAllForPreview } from '@/engine/pdf-processor';
 import { analyzePagesForIssues, computeValidationSummary } from '@/engine/validator';
 import { TRIM_SIZES, TrimSizeKey, calculateMeasurements } from '@/engine/kdp-constants';
+import { TrustBadge } from '@/components/workspace/ProductWorkspace';
 
 // ---------------------------------------------------------------------------
 // Build unified book sequence (Cover → Blank → Interior)
@@ -967,6 +968,9 @@ export default function ImportStep() {
         <p className="text-sm text-white/40 max-w-md mx-auto">
           Upload your files and we&apos;ll auto-detect trim size, page count, bleed settings, and more.
         </p>
+        <div className="flex justify-center pt-2">
+          <TrustBadge variant="full" />
+        </div>
       </div>
 
       {/* ---- Type Switcher ---- */}

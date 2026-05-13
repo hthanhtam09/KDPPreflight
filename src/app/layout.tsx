@@ -15,17 +15,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KDPPreflight — Check Your KDP Book Before Upload",
-  description: "Validate dimensions, check bleed & margins, preview your book in realistic 3D. The complete preflight tool for Amazon KDP creators. Free, fast, client-side.",
-  keywords: ["KDP cover checker", "KDP bleed checker", "KDP trim size checker", "KDP manuscript checker", "KDP preview tool", "KDP cover template", "Amazon KDP validation", "book formatting"],
+  metadataBase: new URL("https://kdppreflight.app"),
+  title: {
+    default: "KDPPreflight — KDP Formatter, Checker, Bleed Tool and 3D Preview",
+    template: "%s — KDPPreflight",
+  },
+  description: "Catch KDP mistakes before Amazon does. Validate covers, manuscripts, bleed, trim size, spine width, DPI, and preview paperback or hardcover books in realistic 3D.",
+  keywords: ["KDP formatter", "KDP preview tool", "KDP bleed checker", "KDP cover checker", "KDP manuscript checker", "KDP trim size tool", "KDP book preview", "KDP paperback preview", "KDP hardcover preview", "KDP upload errors", "Amazon KDP formatting tool"],
   authors: [{ name: "KDPPreflight" }],
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "KDPPreflight — Check Your KDP Book Before Upload",
-    description: "Validate dimensions, check bleed & margins, preview your book in realistic 3D.",
+    title: "KDPPreflight — Catch KDP Mistakes Before Amazon Does",
+    description: "A privacy-first KDP formatter, cover checker, manuscript checker, bleed checker, trim size tool, and realistic 3D book preview.",
+    url: "/",
+    siteName: "KDPPreflight",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "KDPPreflight — KDP Formatter and 3D Preview Tool",
+    description: "Validate KDP files before upload with local-first checks and realistic 3D previews.",
   },
 };
 

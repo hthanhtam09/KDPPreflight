@@ -3,11 +3,6 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Upload,
-  Settings2,
-  Sparkles,
-  Box,
-  CheckCircle2,
   ArrowLeft,
   Loader2,
 } from 'lucide-react';
@@ -20,6 +15,7 @@ import ImportStep from './ImportStep';
 import ConfigStep from './ConfigStep';
 import GenerateStep from './GenerateStep';
 import type { Preview3DState, Preview3DActions } from './BookPreview3D';
+import { StepProgress } from '@/components/workspace/ProductWorkspace';
 
 // Dynamic import to avoid SSR issues with Three.js
 const BookPreview3D = dynamic(() => import('./BookPreview3D'), { ssr: false });
@@ -31,14 +27,13 @@ const BookPreview3D = dynamic(() => import('./BookPreview3D'), { ssr: false });
 interface StepDef {
   key: PreviewFlowStep;
   label: string;
-  icon: React.ReactNode;
 }
 
 const STEPS: StepDef[] = [
-  { key: 'import', label: 'Import', icon: <Upload className="w-4 h-4" /> },
-  { key: 'config', label: 'Config', icon: <Settings2 className="w-4 h-4" /> },
-  { key: 'generate', label: 'Generate', icon: <Sparkles className="w-4 h-4" /> },
-  { key: 'preview', label: '3D Preview', icon: <Box className="w-4 h-4" /> },
+  { key: 'import', label: 'Import' },
+  { key: 'config', label: 'Config' },
+  { key: 'generate', label: 'Generate' },
+  { key: 'preview', label: '3D Preview' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -225,76 +220,18 @@ export default function PreviewFeature() {
   }, [canGoToStep, setPreviewFlowStep]);
 
   // Get step index
-  const currentStepIndex = STEPS.findIndex(s => s.key === previewFlowStep);
   const isInPreviewStep = previewFlowStep === 'preview';
 
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0f]">
+    <div className="flex h-full min-h-0 flex-col bg-transparent text-[#f7f1e7]">
       {/* ─── Step Indicator ─── */}
       {!isInPreviewStep && (
-        <div className="shrink-0 border-b border-white/[0.06] bg-[#0a0a0f]/80 backdrop-blur-xl">
-          <div className="max-w-3xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              {STEPS.map((step, index) => {
-                const isCompleted = index < currentStepIndex;
-                const isActive = index === currentStepIndex;
-                const isClickable = canGoToStep(step.key);
-
-                return (
-                  <div key={step.key} className="flex items-center flex-1 last:flex-none">
-                    {/* Step circle + label */}
-                    <button
-                      onClick={() => handleStepClick(step.key)}
-                      disabled={!isClickable}
-                      className={`flex flex-col items-center gap-1.5 transition-all ${
-                        isClickable ? 'cursor-pointer' : 'cursor-default'
-                      }`}
-                    >
-                      <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all border-2 ${
-                          isActive
-                            ? 'bg-gradient-to-br from-violet-500 to-fuchsia-500 border-transparent text-white shadow-lg shadow-violet-500/20'
-                            : isCompleted
-                              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
-                              : 'bg-white/[0.04] border-white/[0.08] text-white/20'
-                        }`}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle2 className="w-4 h-4" />
-                        ) : (
-                          step.icon
-                        )}
-                      </div>
-                      <span
-                        className={`text-[10px] font-medium transition-colors ${
-                          isActive
-                            ? 'text-white/80'
-                            : isCompleted
-                              ? 'text-white/50'
-                              : 'text-white/20'
-                        }`}
-                      >
-                        {step.label}
-                      </span>
-                    </button>
-
-                    {/* Connector line */}
-                    {index < STEPS.length - 1 && (
-                      <div className="flex-1 mx-3 h-px mt-[-14px]">
-                        <div
-                          className={`h-full transition-all ${
-                            index < currentStepIndex
-                              ? 'bg-emerald-500/30'
-                              : 'bg-white/[0.06]'
-                          }`}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        <div className="flex items-center justify-between gap-3 border-b border-[#f4efe5]/10 bg-[#080a0d]/75 px-4 py-3 backdrop-blur-xl">
+          <StepProgress
+            steps={STEPS.map((step) => ({ key: step.key, label: step.label }))}
+            current={previewFlowStep}
+            onStepClick={(step) => handleStepClick(step.key as PreviewFlowStep)}
+          />
         </div>
       )}
 
