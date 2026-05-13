@@ -81,7 +81,8 @@
   --duration-base: 220ms;
   --duration-panel: 320ms;
   --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
-  --z-nav: 50;
+  --nav-height: 4rem;
+  --z-nav: 80;
   --z-overlay: 60;
   --z-modal: 70;
 
@@ -235,6 +236,10 @@
   body {
     overflow-x: hidden;
   }
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable both-edges;
+  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings:
@@ -378,6 +383,1052 @@
   box-shadow: var(--shadow-elevated);
 }
 
+@media (min-width: 1024px) {
+  :root {
+    --nav-height: 4.35rem;
+  }
+}
+
+.issue-card::before,
+.workflow-card-featured::before,
+.guide-card::before,
+.final-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 46%);
+  opacity: 0;
+  transition: opacity 220ms var(--ease-premium);
+}
+
+.issue-card:hover::before,
+.workflow-card-featured::before,
+.guide-card:hover::before,
+.final-cta::before {
+  opacity: 1;
+}
+
+.issue-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.38rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.issue-card:hover .issue-badge {
+  position: relative;
+  border-color: color-mix(in srgb, var(--success) 28%, var(--border));
+  background: var(--validation-success);
+  color: transparent;
+}
+
+.issue-card:hover .issue-badge::after {
+  content: 'Detected';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--success) 88%, var(--foreground));
+}
+
+.issue-preview,
+.workflow-visual {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in srgb, var(--foreground) 3%, transparent) 1px, transparent 1px),
+    color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+  background-size: 22px 22px;
+}
+
+.issue-preview {
+  margin-top: 1.25rem;
+  height: 7.25rem;
+}
+
+.issue-page {
+  position: absolute;
+  inset: 0.8rem 1rem 0.8rem 1rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+  border-radius: 0.45rem;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+
+.issue-artwork,
+.issue-white-edge,
+.issue-expected-outline,
+.issue-actual-outline,
+.issue-spine,
+.issue-safe,
+.issue-risk-zone,
+.issue-barcode,
+.issue-text-line,
+.issue-selected-edge,
+.issue-scan-line,
+.issue-hover-label {
+  position: absolute;
+}
+
+.issue-artwork {
+  inset: 0.8rem;
+  border-radius: 0.3rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 24%, transparent), transparent 48%),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--foreground) 7%, transparent) 0 7px, transparent 7px 14px);
+}
+
+.issue-white-edge {
+  inset-block: 0.5rem;
+  right: 0.5rem;
+  width: 0.72rem;
+  border-radius: 0.22rem;
+  background: color-mix(in srgb, var(--background) 88%, white);
+  box-shadow: inset 3px 0 8px color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.issue-expected-outline {
+  inset: 0.35rem;
+  border: 1px dashed color-mix(in srgb, var(--primary) 78%, transparent);
+  border-radius: 0.35rem;
+}
+
+.issue-actual-outline {
+  inset: 0.78rem 1.18rem 0.78rem 0.78rem;
+  border: 2px solid color-mix(in srgb, var(--danger) 50%, transparent);
+  border-radius: 0.3rem;
+}
+
+.issue-safe {
+  inset: 1.15rem;
+  border: 1px dashed color-mix(in srgb, var(--success) 55%, transparent);
+  border-radius: 0.28rem;
+}
+
+.issue-selected-edge {
+  opacity: 0;
+  border-radius: 0.24rem;
+  background: color-mix(in srgb, var(--warning) 34%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warning) 32%, transparent);
+}
+
+.issue-scan-line {
+  inset-block: 0;
+  left: 0;
+  z-index: 3;
+  width: 34%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 48%, transparent), transparent);
+}
+
+.issue-hover-label {
+  right: 0.8rem;
+  bottom: 0.68rem;
+  z-index: 4;
+  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--border));
+  border-radius: 999px;
+  background: var(--surface-glass);
+  padding: 0.32rem 0.55rem;
+  color: color-mix(in srgb, var(--warning) 86%, var(--foreground));
+  font-size: 0.68rem;
+  font-weight: 850;
+  opacity: 0;
+  transform: translateY(4px);
+  backdrop-filter: blur(12px);
+}
+
+.issue-card:hover .issue-scan-line {
+  animation: scan-x-once 1.45s var(--ease-premium) 1;
+}
+
+.issue-card:hover .issue-selected-edge {
+  animation: issue-highlight-once 1.15s var(--ease-premium) 1 0.28s both;
+}
+
+.issue-card:hover .issue-hover-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.issue-preview-bleed .issue-selected-edge {
+  inset-block: 0.5rem;
+  right: 0.5rem;
+  width: 0.72rem;
+}
+
+.issue-preview-bleed:hover .issue-artwork,
+.issue-card:hover .issue-preview-bleed .issue-artwork {
+  inset: 0.35rem;
+}
+
+.issue-preview-trim .issue-artwork,
+.issue-preview-trim .issue-white-edge,
+.issue-preview-trim .issue-safe {
+  display: none;
+}
+
+.issue-preview-trim .issue-page {
+  inset: 1rem 1.25rem 1rem 1.25rem;
+  background: transparent;
+}
+
+.issue-preview-trim .issue-expected-outline {
+  inset: 0.25rem;
+  border-width: 2px;
+}
+
+.issue-preview-trim .issue-actual-outline {
+  inset: 0.9rem 1.35rem 0.9rem 0.65rem;
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.issue-card:hover .issue-preview-trim .issue-actual-outline {
+  transform: translateX(0.42rem);
+}
+
+.issue-preview-trim .issue-selected-edge {
+  inset: 0.9rem 0.4rem 0.9rem auto;
+  width: 0.86rem;
+  border: 1px solid color-mix(in srgb, var(--danger) 48%, transparent);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
+.issue-preview-spine .issue-artwork,
+.issue-preview-spine .issue-white-edge,
+.issue-preview-spine .issue-safe,
+.issue-preview-spine .issue-actual-outline {
+  display: none;
+}
+
+.issue-preview-spine .issue-page {
+  inset: 0.95rem 1.2rem;
+  background: linear-gradient(90deg, var(--card) 0 43%, color-mix(in srgb, var(--primary) 16%, transparent) 43% 55%, var(--card) 55%);
+}
+
+.issue-spine {
+  left: 44%;
+  top: 0;
+  bottom: 0;
+  width: 10%;
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
+  border-inline: 1px dashed color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+.issue-card:hover .issue-preview-spine .issue-spine {
+  animation: spine-width-once 1.25s var(--ease-premium) 1 both;
+}
+
+.issue-preview-spine .issue-selected-edge {
+  left: 44%;
+  top: 0;
+  bottom: 0;
+  width: 15%;
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+.issue-preview-safe .issue-artwork,
+.issue-preview-safe .issue-white-edge,
+.issue-preview-safe .issue-actual-outline {
+  display: none;
+}
+
+.issue-risk-zone {
+  inset: 0.35rem;
+  border: 8px solid color-mix(in srgb, var(--warning) 12%, transparent);
+  border-radius: 0.35rem;
+}
+
+.issue-barcode {
+  right: 0.8rem;
+  bottom: 0.7rem;
+  width: 2.2rem;
+  height: 1rem;
+  border: 1px solid color-mix(in srgb, var(--danger) 36%, transparent);
+  border-radius: 0.16rem;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--foreground) 70%, transparent) 0 2px, transparent 2px 5px);
+}
+
+.issue-text-line {
+  right: 0.8rem;
+  height: 0.24rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+.issue-text-one {
+  top: 1rem;
+  width: 3rem;
+}
+
+.issue-text-two {
+  top: 1.42rem;
+  width: 2.35rem;
+}
+
+.issue-card:hover .issue-preview-safe .issue-barcode,
+.issue-card:hover .issue-preview-safe .issue-text-line {
+  transform: translate(-1rem, -0.45rem);
+  background-color: color-mix(in srgb, var(--success) 36%, transparent);
+  border-color: color-mix(in srgb, var(--success) 38%, transparent);
+}
+
+.issue-preview-safe .issue-selected-edge {
+  right: 0.62rem;
+  bottom: 0.55rem;
+  width: 3rem;
+  height: 1.4rem;
+  background: color-mix(in srgb, var(--warning) 22%, transparent);
+}
+
+.workflow-card-featured {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 46%),
+    var(--card);
+  box-shadow: var(--shadow-elevated);
+}
+
+.workflow-visual {
+  height: 9rem;
+}
+
+.workflow-visual-featured {
+  height: 11rem;
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+}
+
+.workflow-calculator,
+.workflow-scanner,
+.workflow-book-preview {
+  position: absolute;
+  inset: 0.85rem 1rem 2.15rem;
+}
+
+.workflow-field,
+.workflow-result-line,
+.workflow-ready,
+.workflow-file,
+.workflow-warning,
+.workflow-export {
+  position: absolute;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  color: var(--foreground);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: var(--shadow-soft);
+}
+
+.workflow-field {
+  left: 0;
+  width: 46%;
+  padding: 0.45rem 0.5rem;
+}
+
+.workflow-field-trim {
+  top: 0;
+}
+
+.workflow-field-pages {
+  top: 2.05rem;
+}
+
+.workflow-field-paper {
+  top: 4.1rem;
+}
+
+.workflow-calc-arrow {
+  position: absolute;
+  left: 49%;
+  top: 2.9rem;
+  width: 14%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--primary), transparent);
+  transform-origin: left center;
+}
+
+.workflow-result-line {
+  right: 0;
+  width: 38%;
+  padding: 0.45rem 0.5rem;
+  color: color-mix(in srgb, var(--primary) 86%, var(--foreground));
+}
+
+.workflow-result-line {
+  top: 1.15rem;
+}
+
+.workflow-result-spine {
+  top: 3.25rem;
+}
+
+.workflow-ready {
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.42rem 0.52rem;
+  color: var(--success);
+}
+
+.ds-card-interactive:hover .workflow-calc-arrow {
+  animation: draw-width 0.95s var(--ease-premium) 1;
+}
+
+.ds-card-interactive:hover .workflow-result-line,
+.ds-card-interactive:hover .workflow-ready {
+  animation: success-pop 0.42s var(--ease-premium) 1 both;
+}
+
+.ds-card-interactive:hover .workflow-result-spine {
+  animation-delay: 0.25s;
+}
+
+.ds-card-interactive:hover .workflow-ready {
+  animation-delay: 0.52s;
+}
+
+.workflow-file {
+  left: 0;
+  width: 45%;
+  padding: 0.42rem 0.5rem;
+}
+
+.workflow-file-cover {
+  top: 0;
+}
+
+.workflow-file-manuscript {
+  top: 1.95rem;
+}
+
+.workflow-scan-page {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0.1rem;
+  width: 48%;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+  border-radius: 0.52rem;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+
+.workflow-page-art {
+  position: absolute;
+  inset: 0.7rem;
+  border-radius: 0.32rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, transparent), transparent 48%),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--foreground) 7%, transparent) 0 7px, transparent 7px 14px);
+}
+
+.workflow-page-bleed {
+  position: absolute;
+  inset: 0.35rem;
+  border: 7px solid color-mix(in srgb, var(--danger) 18%, transparent);
+  border-radius: 0.32rem;
+}
+
+.workflow-page-trim {
+  position: absolute;
+  inset: 0.72rem;
+  border: 1px dashed color-mix(in srgb, var(--primary) 66%, transparent);
+  border-radius: 0.26rem;
+}
+
+.workflow-scan {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  z-index: 3;
+  width: 38%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 52%, transparent), transparent);
+}
+
+.workflow-warning {
+  left: 0;
+  bottom: 0;
+  padding: 0.45rem 0.52rem;
+  color: color-mix(in srgb, var(--warning) 88%, var(--foreground));
+  opacity: 0.92;
+}
+
+.workflow-card-featured .workflow-scanner .workflow-scan {
+  animation: scanner-story 10s var(--ease-premium) infinite;
+}
+
+.workflow-card-featured .workflow-warning {
+  animation: warning-story 10s var(--ease-premium) infinite;
+}
+
+.workflow-card-featured .workflow-page-bleed {
+  animation: bleed-story 10s var(--ease-premium) infinite;
+}
+
+.workflow-book-back,
+.workflow-book-spine,
+.workflow-book-front,
+.workflow-book-safe,
+.workflow-export {
+  position: absolute;
+}
+
+.workflow-book-preview {
+  perspective: 600px;
+}
+
+.workflow-book-back {
+  left: 16%;
+  top: 16%;
+  width: 42%;
+  height: 68%;
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-radius: 0.38rem 0 0 0.38rem;
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  transform: skewY(-4deg);
+}
+
+.workflow-book-spine {
+  left: 56%;
+  top: 14%;
+  width: 10%;
+  height: 72%;
+  border-inline: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+.workflow-book-front {
+  left: 64%;
+  top: 16%;
+  width: 30%;
+  height: 68%;
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-radius: 0 0.38rem 0.38rem 0;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 26%, transparent), transparent 58%),
+    var(--card);
+  transform: skewY(4deg);
+  transform-origin: left center;
+}
+
+.workflow-book-safe {
+  inset: 0.55rem;
+  border: 1px dashed color-mix(in srgb, var(--success) 55%, transparent);
+  border-radius: 0.24rem;
+  opacity: 0;
+}
+
+.workflow-export {
+  right: 0.2rem;
+  bottom: 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  padding: 0.38rem 0.48rem;
+  color: var(--success);
+  opacity: 0;
+}
+
+.ds-card-interactive:hover .workflow-book-preview {
+  transform: rotateY(-3deg) translateY(-1px);
+}
+
+.ds-card-interactive:hover .workflow-book-spine {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+.ds-card-interactive:hover .workflow-book-safe,
+.ds-card-interactive:hover .workflow-export {
+  opacity: 1;
+}
+
+.workflow-status {
+  position: absolute;
+  bottom: 0.72rem;
+  left: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-glass);
+  padding: 0.35rem 0.58rem;
+  color: var(--foreground);
+  font-size: 0.72rem;
+  font-weight: 750;
+  backdrop-filter: blur(12px);
+}
+
+.result-demo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 78% 20%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 34%),
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in srgb, var(--foreground) 2.5%, transparent) 1px, transparent 1px);
+  background-size: auto, 38px 38px, 38px 38px;
+  opacity: 0.8;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  background: color-mix(in srgb, var(--surface-elevated) 78%, transparent);
+  padding: 0.95rem 1rem;
+}
+
+.result-row strong,
+.result-row small {
+  display: block;
+}
+
+.result-row strong {
+  color: var(--foreground);
+  font-size: 0.85rem;
+}
+
+.result-row small {
+  margin-top: 0.15rem;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+}
+
+.result-row-warning,
+.result-row-default,
+.result-row-success {
+  animation: result-row-focus 12s var(--ease-premium) 1 both;
+}
+
+.result-row-warning {
+  border-color: color-mix(in srgb, var(--warning) 32%, var(--border));
+  color: var(--warning);
+}
+
+.result-row-default {
+  animation-delay: 1.6s;
+}
+
+.result-row-success {
+  border-color: color-mix(in srgb, var(--success) 32%, var(--border));
+  color: var(--success);
+  animation-delay: 3.2s;
+}
+
+.result-stage {
+  position: relative;
+  min-height: 24rem;
+}
+
+.result-page {
+  position: absolute;
+  width: min(46%, 14rem);
+  aspect-ratio: 0.73;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+  border-radius: 0.65rem;
+  background: var(--card);
+  box-shadow: var(--shadow-elevated);
+}
+
+.result-page-before {
+  left: 5%;
+  top: 8%;
+  transform: rotate(-4deg);
+}
+
+.result-page-after {
+  right: 5%;
+  bottom: 4%;
+  transform: rotate(4deg);
+}
+
+.result-label,
+.result-pass,
+.result-apply {
+  position: absolute;
+  z-index: 4;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-glass);
+  padding: 0.35rem 0.55rem;
+  color: var(--foreground);
+  font-size: 0.68rem;
+  font-weight: 800;
+  backdrop-filter: blur(12px);
+}
+
+.result-label {
+  left: 0.65rem;
+  top: 0.65rem;
+}
+
+.result-art {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 22%, transparent), transparent 46%),
+    repeating-linear-gradient(0deg, transparent 0 14px, color-mix(in srgb, var(--foreground) 6%, transparent) 15px 16px);
+}
+
+.result-white-edge {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  width: 0.8rem;
+  background: color-mix(in srgb, var(--background) 88%, white);
+  box-shadow: inset 3px 0 10px color-mix(in srgb, var(--warning) 10%, transparent);
+  animation: issue-highlight-once 12s var(--ease-premium) 1 both;
+}
+
+.result-bleed-fill {
+  position: absolute;
+  inset: 0;
+  border: 10px solid color-mix(in srgb, var(--success) 18%, transparent);
+}
+
+.result-trim-line {
+  position: absolute;
+  inset: 0.72rem;
+  border: 1px dashed color-mix(in srgb, var(--primary) 74%, transparent);
+}
+
+.result-measure {
+  position: absolute;
+  z-index: 5;
+  color: var(--warning);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.result-measure-x {
+  bottom: 0.55rem;
+  left: 42%;
+}
+
+.result-measure-y {
+  right: 0.35rem;
+  top: 46%;
+  transform: rotate(90deg);
+}
+
+.result-pass {
+  bottom: 0.7rem;
+  right: 0.7rem;
+  color: var(--success);
+  animation: success-pop 0.45s var(--ease-premium) 1 5.9s both;
+}
+
+.result-apply {
+  bottom: 42%;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--success);
+  transform: translateX(-50%);
+  animation: apply-fix-once 1.2s var(--ease-premium) 1 4.4s both;
+}
+
+.privacy-visual {
+  position: relative;
+  min-height: 24rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background:
+    radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 36%),
+    color-mix(in srgb, var(--surface) 62%, transparent);
+}
+
+.privacy-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(circle, black, transparent 72%);
+}
+
+.privacy-browser {
+  position: absolute;
+  inset: 3rem clamp(1rem, 8vw, 5rem);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-radius: 1rem;
+  background: var(--surface-glass);
+  box-shadow: var(--shadow-elevated);
+  backdrop-filter: blur(18px);
+}
+
+.privacy-browser-bar {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem;
+}
+
+.privacy-browser-bar i {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground) 18%, transparent);
+}
+
+.privacy-file,
+.privacy-result {
+  position: absolute;
+  z-index: 2;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-glass);
+  padding: 0.42rem 0.65rem;
+  color: var(--foreground);
+  font-size: 0.72rem;
+  font-weight: 800;
+  backdrop-filter: blur(12px);
+}
+
+.privacy-file {
+  left: 1rem;
+  top: 4.3rem;
+}
+
+.privacy-result {
+  right: 1rem;
+  bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--success);
+  animation: success-pop 0.45s var(--ease-premium) 1 2.1s both;
+}
+
+.privacy-data-path {
+  position: absolute;
+  left: 4.3rem;
+  right: 4.3rem;
+  top: 6.6rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  transform-origin: left center;
+  animation: draw-width 1.45s var(--ease-premium) 1 0.45s both;
+}
+
+.privacy-core {
+  position: absolute;
+  inset: 3.2rem 1rem 1rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.45rem;
+  text-align: center;
+}
+
+.privacy-core strong {
+  color: var(--foreground);
+  font-size: 1rem;
+}
+
+.privacy-core small {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+}
+
+.privacy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
+  padding: 0.75rem 0.85rem;
+  color: var(--foreground);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.privacy-badge svg {
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.final-cta {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 46%),
+    var(--surface-elevated);
+  box-shadow: var(--shadow-elevated);
+}
+
+.final-cta > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes scan-x-once {
+  0% {
+    opacity: 0;
+    transform: translateX(-70%);
+  }
+  18%,
+  82% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(320%);
+  }
+}
+
+@keyframes issue-highlight-once {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  20%,
+  74% {
+    opacity: 1;
+  }
+}
+
+@keyframes draw-width {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes draw-height {
+  0% {
+    transform: scaleY(0);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes success-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes apply-fix-once {
+  0% {
+    opacity: 0;
+    transform: translate(-58%, 0);
+  }
+  35%,
+  76% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes spine-width-once {
+  0% {
+    width: 10%;
+    transform: translateX(0);
+  }
+  55% {
+    width: 16%;
+    transform: translateX(-4%);
+  }
+  100% {
+    width: 15%;
+    transform: translateX(-3%);
+  }
+}
+
+@keyframes scanner-story {
+  0%,
+  12% {
+    opacity: 0;
+    transform: translateX(-80%);
+  }
+  18%,
+  36% {
+    opacity: 0.72;
+  }
+  44%,
+  100% {
+    opacity: 0;
+    transform: translateX(330%);
+  }
+}
+
+@keyframes bleed-story {
+  0%,
+  42%,
+  100% {
+    border-color: color-mix(in srgb, var(--danger) 18%, transparent);
+    box-shadow: none;
+  }
+  52%,
+  68% {
+    border-color: color-mix(in srgb, var(--warning) 44%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warning) 18%, transparent);
+  }
+}
+
+@keyframes warning-story {
+  0%,
+  48% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  58%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes result-row-focus {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  8%,
+  18% {
+    box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 24%, transparent);
+  }
+}
+
 .ds-button-primary {
   background: linear-gradient(180deg, color-mix(in srgb, var(--primary-hover) 26%, var(--primary)), var(--primary));
   color: var(--primary-foreground);
@@ -459,27 +1510,59 @@
 /* ─── Marquee animation ──────────────────── */
 @keyframes marquee {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
 .animate-marquee {
-  animation: marquee 32s linear infinite;
+  animation: marquee 28s linear infinite;
+}
+
+.landing-marquee {
+  animation: marquee 34s linear infinite;
+  backface-visibility: hidden;
   will-change: transform;
 }
 
+.landing-marquee:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
-    animation: none;
+  .animate-marquee,
+  .issue-card:hover .issue-scan-line,
+  .issue-card:hover .issue-selected-edge,
+  .ds-card-interactive:hover .workflow-dimension-x,
+  .ds-card-interactive:hover .workflow-dimension-y,
+  .ds-card-interactive:hover .workflow-visual-checker .workflow-scan,
+  .ds-card-interactive:hover .workflow-visual-checker .workflow-validation,
+  .result-row-warning,
+  .result-row-default,
+  .result-row-success,
+  .result-white-edge,
+  .result-pass,
+  .result-apply,
+  .privacy-result,
+  .privacy-data-path,
+  .workflow-card-featured .workflow-scanner .workflow-scan,
+  .workflow-card-featured .workflow-warning,
+  .workflow-card-featured .workflow-page-bleed {
+    animation: none !important;
   }
 
   *,
   *::before,
   *::after {
     transition: none !important;
-    animation-duration: 0.01ms !important;
+  }
+
+  .workflow-validation,
+  .result-pass,
+  .privacy-result {
+    opacity: 1;
+    transform: none;
   }
 }

@@ -313,7 +313,7 @@ export default function PreviewFeature() {
                 {/* Back to Config button */}
                 <button
                   onClick={() => setPreviewFlowStep('config')}
-                  className="ds-focus ds-control absolute right-3 top-[4.25rem] z-10 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:right-4 sm:top-4"
+                  className="ds-focus ds-control absolute left-3 top-[4.25rem] z-20 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:left-4"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Config

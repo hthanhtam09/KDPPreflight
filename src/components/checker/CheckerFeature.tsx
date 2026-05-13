@@ -1,6 +1,7 @@
 'use client';
 
-import { BookOpen, Monitor, Box } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { BookOpen, Monitor, Box, FileUp, ScanLine, Target, ClipboardCheck } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import ConfigStep from './ConfigStep';
 import ImportStep from './ImportStep';
@@ -70,14 +71,40 @@ export default function CheckerFeature() {
     <div className="min-h-full text-foreground">
       {/* Step indicator */}
       <StepIndicator />
-      <div className="ds-card-glass my-4 flex items-center justify-between gap-4 px-4 py-3 max-md:flex-col max-md:items-start">
-        <strong className="text-sm font-semibold text-foreground/90">KDP preflight control room</strong>
-        <span className="flex-1 text-[13px] leading-normal text-muted-foreground">Import files, confirm specs, then inspect page-by-page issues with risk levels and fixes.</span>
+      <div className="my-4 rounded-xl border border-border bg-surface-glass p-4 shadow-card backdrop-blur-xl">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">KDP Checker</p>
+            <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground">Preflight scanner and issue navigator</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Upload cover and manuscript files, scan for practical KDP risks, then jump from each issue to the exact page or area.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-4 lg:min-w-[560px]">
+            <WorkflowPill icon={<FileUp className="h-3.5 w-3.5" />} label="Upload" active={checkerStep === 'import'} />
+            <WorkflowPill icon={<ScanLine className="h-3.5 w-3.5" />} label="Scan" active={checkerStep === 'import'} />
+            <WorkflowPill icon={<Target className="h-3.5 w-3.5" />} label="Inspect" active={checkerStep === 'preview'} />
+            <WorkflowPill icon={<ClipboardCheck className="h-3.5 w-3.5" />} label="Fix report" active={checkerStep === 'preview'} />
+          </div>
+        </div>
       </div>
 
       {/* Step content */}
       {checkerStep === 'import' && <ImportStep />}
       {checkerStep === 'config' && <ConfigStep />}
+    </div>
+  );
+}
+
+function WorkflowPill({ icon, label, active }: { icon: ReactNode; label: string; active: boolean }) {
+  return (
+    <div
+      className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold ${
+        active ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border bg-surface text-muted-foreground'
+      }`}
+    >
+      {icon}
+      {label}
     </div>
   );
 }

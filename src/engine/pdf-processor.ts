@@ -12,8 +12,10 @@ async function getPdfjs() {
   
   pdfjsLoading = (async () => {
     const lib = await import('pdfjs-dist');
-    // Point to the worker file we copied to public/
-    lib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+    lib.GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.min.mjs',
+      import.meta.url
+    ).toString();
     pdfjsLib = lib;
     return lib;
   })();

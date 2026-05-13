@@ -32,7 +32,7 @@ export function AppShell({
   return (
     <PageTransition>
       <div className={studio
-        ? 'ws-shell flex h-[calc(100svh-56px)] min-h-[560px] flex-col overflow-hidden pb-0 lg:min-h-[720px]'
+        ? 'ws-shell flex h-[calc(100svh-var(--nav-height))] min-h-[560px] flex-col overflow-hidden pb-0 lg:min-h-[720px]'
         : 'ws-shell'
       }>
         <FeatureHeader eyebrow={eyebrow} title={title} description={description} status={status} action={action} studio={studio} />
