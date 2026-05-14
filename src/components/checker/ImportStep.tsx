@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   Upload,
   FileText,
@@ -156,18 +156,19 @@ function TypeSwitcher({
   ];
 
   return (
-    <div className="grid w-full grid-cols-3 gap-1 rounded-xl border border-foreground/[0.18] bg-foreground/[0.18] p-1 dark:bg-foreground/[0.04] dark:border-foreground/[0.06] sm:inline-grid sm:w-auto">
+    <div className="grid w-full grid-cols-3 gap-1 rounded-xl border border-border bg-secondary/70 p-1 shadow-soft sm:inline-grid sm:w-auto">
       {options.map(({ key, label, icon: Icon }) => {
         const active = bookType === key;
         return (
           <button
             key={key}
             onClick={() => setBookType(key)}
-            className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
+            className={`ds-focus flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
               active
-                ? 'bg-foreground/[0.16] dark:bg-foreground/[0.08] text-foreground/90 shadow-sm'
-                : 'text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 hover:text-foreground/85 dark:text-foreground/60 hover:bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03]'
+                ? 'bg-primary text-primary-foreground shadow-soft'
+                : 'text-muted-foreground hover:bg-surface-elevated hover:text-foreground'
             }`}
+            type="button"
           >
             <Icon className="w-4 h-4" />
             <span className="truncate">{label}</span>
@@ -227,16 +228,17 @@ function UploadZone({
       onDragLeave={() => setDragActive(false)}
       onDrop={handleDrop}
       onClick={() => !isProcessing && inputRef.current?.click()}
-      className={`relative flex min-h-[170px] cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-5 text-center transition-all duration-300 sm:min-h-[180px] sm:p-8 ${
+      className={`relative flex min-h-[176px] cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border p-5 text-center shadow-soft transition-all duration-300 sm:min-h-[190px] sm:p-8 ${
         isProcessing
-          ? 'border-success/20 bg-success/[0.03] cursor-wait'
+          ? 'cursor-wait border-success/25 bg-success/[0.04]'
           : dragActive
-            ? 'border-success/40 bg-success/[0.06] scale-[1.01]'
+            ? 'scale-[1.01] border-success/45 bg-success/[0.08] shadow-card'
             : uploadedFile
-              ? 'border-success/20 bg-success/[0.03]'
-              : 'border-foreground/25 dark:border-foreground/10 hover:border-foreground/30 dark:border-foreground/20 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]'
+              ? 'border-success/25 bg-success/[0.04]'
+              : 'border-border bg-card hover:border-primary/35 hover:bg-surface-elevated'
       }`}
     >
+      <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <input
         ref={inputRef}
         type="file"
@@ -250,38 +252,40 @@ function UploadZone({
 
       {isProcessing ? (
         <>
-          <Loader2 className="w-10 h-10 text-success/60 animate-spin" />
-          <p className="text-sm text-foreground/80 dark:text-foreground/50">Analyzing file…</p>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10">
+            <Loader2 className="h-6 w-6 animate-spin text-success" />
+          </div>
+          <p className="text-sm font-medium text-foreground">Analyzing file...</p>
         </>
       ) : uploadedFile ? (
         <>
-          <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-            <CheckCircle2 className="w-6 h-6 text-success" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10">
+            <CheckCircle2 className="h-6 w-6 text-success" />
           </div>
           <div className="min-w-0 max-w-full">
             <p className="truncate text-sm font-medium text-success">{uploadedFile.name}</p>
-            <p className="text-xs text-foreground/65 dark:text-foreground/30 mt-0.5">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {formatSize(uploadedFile.size)}
               {uploadedFile.pageCount ? ` · ${uploadedFile.pageCount} pages` : ''}
             </p>
           </div>
-          <p className="text-[11px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 mt-1">Click or drop to replace</p>
+          <p className="mt-1 text-[11px] font-medium text-muted-foreground">Click or drop to replace</p>
         </>
       ) : (
         <>
           <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-300 ${
-              dragActive ? 'bg-success/10' : 'bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04]'
+            className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300 ${
+              dragActive ? 'bg-success/10' : 'bg-secondary'
             }`}
           >
             <ZoneIcon
-              className={`w-7 h-7 transition-colors duration-300 ${
-                dragActive ? 'text-success' : 'text-foreground/20'
+              className={`h-7 w-7 transition-colors duration-300 ${
+                dragActive ? 'text-success' : 'text-primary/70'
               }`}
             />
           </div>
-          <p className="text-sm text-foreground/85 dark:text-foreground/60">{label}</p>
-          <p className="text-xs text-foreground/65 dark:text-foreground/25">Drop file or click to browse</p>
+          <p className="text-sm font-semibold text-foreground">{label}</p>
+          <p className="text-xs text-muted-foreground">Drop file here or click to browse</p>
         </>
       )}
     </div>
@@ -883,19 +887,15 @@ export default function ImportStep() {
     startBackgroundPreviewProcessing,
   ]);
 
-  // -----------------------------------------------------------------------
-  // Reconstruct detectionInfo from store data when returning to Import step
-  // -----------------------------------------------------------------------
-  useEffect(() => {
-    // If detectionInfo is null but we have uploaded files (user came back),
-    // reconstruct detectionInfo from the store's bookConfig and measurements
-    if (detectionInfo || !uploadedManuscript) return;
+  const resolvedDetectionInfo = useMemo<DetectionInfo | null>(() => {
+    if (detectionInfo) return detectionInfo;
+    if (!uploadedManuscript) return null;
 
     const m = measurements;
     const hasBleed = bookConfig.bleed === 'bleed';
     const trim = TRIM_SIZES[bookConfig.trimSize as TrimSizeKey];
 
-    setDetectionInfo({
+    return {
       trimSize: trim?.label ?? `${m.trimWidthIn}" × ${m.trimHeightIn}"`,
       widthIn: m.trimWidthIn,
       heightIn: m.trimHeightIn,
@@ -903,23 +903,23 @@ export default function ImportStep() {
       bleed: hasBleed ? 'With Bleed (0.125")' : 'No Bleed',
       dpi: 300,
       orientation: m.trimHeightIn >= m.trimWidthIn ? 'portrait' : 'landscape',
-      confidence: 0.85, // Restored from previous session
-    });
+      confidence: 0.85,
+    };
   }, [detectionInfo, uploadedManuscript, measurements, bookConfig]);
 
   // -----------------------------------------------------------------------
   // Continue to Config step – update store with detected values
   // -----------------------------------------------------------------------
   const handleContinue = useCallback(() => {
-    if (detectionInfo) {
+    if (resolvedDetectionInfo) {
       // Fresh upload: use detected values
-      const { key: trimKey } = matchTrimSize(detectionInfo.widthIn, detectionInfo.heightIn);
-      const hasBleed = detectionInfo.bleed.includes('With Bleed');
+      const { key: trimKey } = matchTrimSize(resolvedDetectionInfo.widthIn, resolvedDetectionInfo.heightIn);
+      const hasBleed = resolvedDetectionInfo.bleed.includes('With Bleed');
 
       updateBookConfig({
         trimSize: trimKey,
         bleed: hasBleed ? 'bleed' : 'no-bleed',
-        pageCount: detectionInfo.pageCount,
+        pageCount: resolvedDetectionInfo.pageCount,
         bookType,
         binding: bookType === 'hardcover' ? 'hardcover' : 'paperback',
       });
@@ -927,7 +927,7 @@ export default function ImportStep() {
     // Even without detectionInfo (e.g. returning to Import),
     // the bookConfig is already set from a previous continue, so just navigate.
     setCheckerStep('config');
-  }, [detectionInfo, bookType, updateBookConfig, setCheckerStep]);
+  }, [resolvedDetectionInfo, bookType, updateBookConfig, setCheckerStep]);
 
   // -----------------------------------------------------------------------
   // Determine what upload zones to show and whether continue is enabled
@@ -959,13 +959,13 @@ export default function ImportStep() {
   // Render
   // -----------------------------------------------------------------------
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-8">
+    <div className="mx-auto w-full max-w-5xl space-y-7">
       {/* ---- Header ---- */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground/90 tracking-tight">
+      <div className="mx-auto max-w-2xl space-y-3 text-center">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Import Your Book
         </h2>
-        <p className="text-sm text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 max-w-md mx-auto">
+        <p className="mx-auto max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
           Upload your files and we&apos;ll auto-detect trim size, page count, bleed settings, and more.
         </p>
         <div className="flex justify-center pt-2">
@@ -979,64 +979,68 @@ export default function ImportStep() {
       </div>
 
       {/* ---- Upload Zones ---- */}
-      <div
-        className={`grid gap-4 ${
-          showCoverZone && showManuscriptZone
-            ? 'grid-cols-1 sm:grid-cols-2'
-            : 'grid-cols-1'
-        }`}
-      >
-        {/* Kindle single zone */}
-        {showKindleZone && (
-          <UploadZone
-            label="Upload Kindle File (EPUB or PDF)"
-            accept=".epub,.pdf"
-            onFile={handleKindleUpload}
-            isProcessing={manuscriptProcessing}
-            uploadedFile={uploadedManuscript}
-            icon={FileText}
-          />
-        )}
+      <div className="ds-card-elevated overflow-hidden p-4 sm:p-5">
+        {/* ---- Upload Zones ---- */}
+        <div
+          className={`grid gap-4 ${
+            showCoverZone && showManuscriptZone
+              ? 'grid-cols-1 lg:grid-cols-2'
+              : 'grid-cols-1'
+          }`}
+        >
+          {/* Kindle single zone */}
+          {showKindleZone && (
+            <UploadZone
+              label="Upload Kindle File (EPUB or PDF)"
+              accept=".epub,.pdf"
+              onFile={handleKindleUpload}
+              isProcessing={manuscriptProcessing}
+              uploadedFile={uploadedManuscript}
+              icon={FileText}
+            />
+          )}
 
-        {/* Cover zone */}
-        {showCoverZone && (
-          <UploadZone
-            label="Upload Cover (PDF, PNG, JPG)"
-            accept=".pdf,.png,.jpg,.jpeg"
-            onFile={handleCoverUpload}
-            isProcessing={coverProcessing}
-            uploadedFile={uploadedCover}
-            icon={ImageIcon}
-          />
-        )}
+          {/* Cover zone */}
+          {showCoverZone && (
+            <UploadZone
+              label="Upload Cover (PDF, PNG, JPG)"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onFile={handleCoverUpload}
+              isProcessing={coverProcessing}
+              uploadedFile={uploadedCover}
+              icon={ImageIcon}
+            />
+          )}
 
-        {/* Manuscript zone */}
-        {showManuscriptZone && (
-          <UploadZone
-            label="Upload Manuscript (PDF)"
-            accept=".pdf"
-            onFile={handleManuscriptUpload}
-            isProcessing={manuscriptProcessing}
-            uploadedFile={uploadedManuscript}
-            icon={FileText}
-          />
-        )}
-      </div>
+          {/* Manuscript zone */}
+          {showManuscriptZone && (
+            <UploadZone
+              label="Upload Manuscript (PDF)"
+              accept=".pdf"
+              onFile={handleManuscriptUpload}
+              isProcessing={manuscriptProcessing}
+              uploadedFile={uploadedManuscript}
+              icon={FileText}
+            />
+          )}
+        </div>
 
-      {/* ---- File info hints ---- */}
-      <div className="text-[11px] text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 space-y-0.5 px-1">
-        {bookType === 'kindle' ? (
-          <>
-            <p>· Kindle files: EPUB or PDF up to 650 MB</p>
-            <p>· We&apos;ll check interior formatting and reflow compatibility</p>
-          </>
-        ) : (
-          <>
-            <p>· Cover: PDF, PNG, or JPG up to 650 MB</p>
-            <p>· Manuscript: PDF only, minimum 24 pages</p>
-            <p>· We&apos;ll auto-detect trim size, bleed, and page count</p>
-          </>
-        )}
+        {/* ---- File info hints ---- */}
+        <div className="mt-4 grid gap-2 border-t border-border pt-4 text-xs text-muted-foreground sm:grid-cols-3">
+          {bookType === 'kindle' ? (
+            <>
+              <p>EPUB or PDF up to 650 MB</p>
+              <p>Interior formatting and reflow checks</p>
+              <p>Local browser-only processing</p>
+            </>
+          ) : (
+            <>
+              <p>Cover: PDF, PNG, or JPG up to 650 MB</p>
+              <p>Manuscript: PDF only, minimum 24 pages</p>
+              <p>Auto-detect trim, bleed, and page count</p>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ---- Processing overlay ---- */}
@@ -1066,9 +1070,9 @@ export default function ImportStep() {
       )}
 
       {/* ---- Detection results (no continue button — that's in the sticky footer) ---- */}
-      {detectionInfo && !anyProcessing && (
+      {resolvedDetectionInfo && !anyProcessing && (
         <DetectionResults
-          info={detectionInfo}
+          info={resolvedDetectionInfo}
           processingActive={bgProcessingActive}
         />
       )}

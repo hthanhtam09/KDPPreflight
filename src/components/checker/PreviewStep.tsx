@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ChevronLeft,
   ChevronRight,
@@ -245,6 +246,8 @@ function computeSpreads(pages: BookPage[]): SpreadModel[] {
 interface PageOverlayProps {
   width: number;
   height: number;
+  pageWidthIn?: number;
+  pageHeightIn?: number;
   overlays: OverlayType[];
   measurements: {
     bleedIn: number;
@@ -265,13 +268,23 @@ interface PageOverlayProps {
   focusMode?: boolean;
 }
 
-function PageOverlay({ width, height, overlays, measurements, isLeftPage, isCoverPage, coverWidthIn, trimWidthIn, highlightRegion, highlightSeverity, focusMode }: PageOverlayProps) {
-  const referenceWidthIn = isCoverPage && coverWidthIn ? coverWidthIn : measurements.trimWidthIn;
+function PageOverlay({ width, height, pageWidthIn, pageHeightIn, overlays, measurements, isLeftPage, isCoverPage, coverWidthIn, trimWidthIn, highlightRegion, highlightSeverity, focusMode }: PageOverlayProps) {
+  const referenceWidthIn = isCoverPage && coverWidthIn ? coverWidthIn : (pageWidthIn || measurements.trimWidthIn);
+  const referenceHeightIn = pageHeightIn || measurements.trimHeightIn;
   const pxPerIn = width / referenceWidthIn;
   const bleedPx = measurements.bleedIn * pxPerIn;
   const safePx = measurements.safeAreaIn * pxPerIn;
   const gutterPx = measurements.gutterIn * pxPerIn;
   const hingePx = measurements.hingeIn * pxPerIn;
+  const pageHasBleed = !isCoverPage && (
+    referenceWidthIn > measurements.trimWidthIn + measurements.bleedIn ||
+    referenceHeightIn > measurements.trimHeightIn + measurements.bleedIn
+  );
+  const trimX = pageHasBleed ? Math.max(0, (width - measurements.trimWidthIn * pxPerIn) / 2) : 0;
+  const trimY = pageHasBleed ? Math.max(0, (height - measurements.trimHeightIn * pxPerIn) / 2) : 0;
+  const trimW = pageHasBleed ? Math.min(width, measurements.trimWidthIn * pxPerIn) : width;
+  const trimH = pageHasBleed ? Math.min(height, measurements.trimHeightIn * pxPerIn) : height;
+  const labelOffset = 8;
 
   const elements: React.ReactNode[] = [];
 
@@ -304,9 +317,24 @@ function PageOverlay({ width, height, overlays, measurements, isLeftPage, isCove
   overlays.forEach((ov) => {
     switch (ov) {
       case 'bleed':
+        if (isCoverPage) {
+          elements.push(
+            <rect key={ov} x={0} y={0} width={width} height={height}
+              fill={OVERLAY_CONFIG.bleed.svgFill} stroke={OVERLAY_CONFIG.bleed.svgStroke} strokeWidth={2} strokeDasharray="8 4" />,
+          );
+        } else {
+          const band = Math.max(bleedPx, 10);
+          elements.push(<rect key={`${ov}-top`} x={0} y={0} width={width} height={Math.min(band, height / 3)} fill={OVERLAY_CONFIG.bleed.svgFill} />);
+          elements.push(<rect key={`${ov}-bottom`} x={0} y={Math.max(0, height - band)} width={width} height={Math.min(band, height / 3)} fill={OVERLAY_CONFIG.bleed.svgFill} />);
+          elements.push(<rect key={`${ov}-left`} x={0} y={0} width={Math.min(band, width / 3)} height={height} fill={OVERLAY_CONFIG.bleed.svgFill} />);
+          elements.push(<rect key={`${ov}-right`} x={Math.max(0, width - band)} y={0} width={Math.min(band, width / 3)} height={height} fill={OVERLAY_CONFIG.bleed.svgFill} />);
+          elements.push(
+            <rect key={ov} x={0} y={0} width={width} height={height}
+              fill="none" stroke={OVERLAY_CONFIG.bleed.svgStroke} strokeWidth={2} strokeDasharray="8 4" />,
+          );
+        }
         elements.push(
-          <rect key={ov} x={-bleedPx} y={-bleedPx} width={width + bleedPx * 2} height={height + bleedPx * 2}
-            fill={OVERLAY_CONFIG.bleed.svgFill} stroke={OVERLAY_CONFIG.bleed.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />,
+          <text key={`${ov}-label`} x={labelOffset} y={18} fill={OVERLAY_CONFIG.bleed.svgStroke} fontSize={12} fontWeight={700}>Bleed</text>,
         );
         break;
       case 'trim':
@@ -314,49 +342,55 @@ function PageOverlay({ width, height, overlays, measurements, isLeftPage, isCove
           const wrapPx = 0.0625 * pxPerIn;
           const spinePx = (coverWidthIn - 2 * trimWidthIn - 2 * measurements.bleedIn - 2 * wrapPx) * pxPerIn;
           const bleedOff = measurements.bleedIn * pxPerIn;
-          elements.push(<rect key={`${ov}-back`} x={bleedOff} y={bleedOff} width={trimWidthIn * pxPerIn} height={height - bleedOff * 2} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={0.75} strokeDasharray="6 4" />);
-          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn} y={bleedOff} width={trimWidthIn * pxPerIn} height={height - bleedOff * 2} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={0.75} strokeDasharray="6 4" />);
+          elements.push(<rect key={`${ov}-back`} x={bleedOff} y={bleedOff} width={trimWidthIn * pxPerIn} height={height - bleedOff * 2} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={2} strokeDasharray="6 4" />);
+          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn} y={bleedOff} width={trimWidthIn * pxPerIn} height={height - bleedOff * 2} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={2} strokeDasharray="6 4" />);
           const spineStart = bleedOff + trimWidthIn * pxPerIn + wrapPx;
-          elements.push(<line key={`${ov}-spine-l`} x1={spineStart} y1={0} x2={spineStart} y2={height} stroke={OVERLAY_CONFIG.spine.svgStroke} strokeWidth={0.75} strokeDasharray="6 3" />);
-          elements.push(<line key={`${ov}-spine-r`} x1={spineStart + spinePx} y1={0} x2={spineStart + spinePx} y2={height} stroke={OVERLAY_CONFIG.spine.svgStroke} strokeWidth={0.75} strokeDasharray="6 3" />);
+          elements.push(<line key={`${ov}-spine-l`} x1={spineStart} y1={0} x2={spineStart} y2={height} stroke={OVERLAY_CONFIG.spine.svgStroke} strokeWidth={2} strokeDasharray="6 3" />);
+          elements.push(<line key={`${ov}-spine-r`} x1={spineStart + spinePx} y1={0} x2={spineStart + spinePx} y2={height} stroke={OVERLAY_CONFIG.spine.svgStroke} strokeWidth={2} strokeDasharray="6 3" />);
         } else {
           elements.push(
-            <rect key={ov} x={0} y={0} width={width} height={height} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={0.75} strokeDasharray="6 4" />,
+            <rect key={ov} x={trimX} y={trimY} width={trimW} height={trimH} fill="none" stroke={OVERLAY_CONFIG.trim.svgStroke} strokeWidth={2} strokeDasharray="6 4" />,
           );
         }
+        elements.push(
+          <text key={`${ov}-label`} x={trimX + labelOffset} y={trimY + 34} fill={OVERLAY_CONFIG.trim.svgStroke} fontSize={12} fontWeight={700}>Trim</text>,
+        );
         break;
       case 'safe-area':
         if (isCoverPage && coverWidthIn && trimWidthIn) {
           const bleedOff = measurements.bleedIn * pxPerIn;
-          elements.push(<rect key={`${ov}-back`} x={bleedOff + safePx} y={bleedOff + safePx} width={trimWidthIn * pxPerIn - safePx * 2} height={height - bleedOff * 2 - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
-          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn + safePx} y={bleedOff + safePx} width={trimWidthIn * pxPerIn - safePx * 2} height={height - bleedOff * 2 - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={`${ov}-back`} x={bleedOff + safePx} y={bleedOff + safePx} width={trimWidthIn * pxPerIn - safePx * 2} height={height - bleedOff * 2 - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={2} strokeDasharray="8 4" />);
+          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn + safePx} y={bleedOff + safePx} width={trimWidthIn * pxPerIn - safePx * 2} height={height - bleedOff * 2 - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={2} strokeDasharray="8 4" />);
         } else {
           elements.push(
-            <rect key={ov} x={safePx} y={safePx} width={width - safePx * 2} height={height - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />,
+            <rect key={ov} x={trimX + safePx} y={trimY + safePx} width={trimW - safePx * 2} height={trimH - safePx * 2} fill={OVERLAY_CONFIG['safe-area'].svgFill} stroke={OVERLAY_CONFIG['safe-area'].svgStroke} strokeWidth={2} strokeDasharray="8 4" />,
           );
         }
+        elements.push(
+          <text key={`${ov}-label`} x={trimX + safePx + labelOffset} y={trimY + safePx + 18} fill={OVERLAY_CONFIG['safe-area'].svgStroke} fontSize={12} fontWeight={700}>Safe</text>,
+        );
         break;
       case 'gutter':
         if (isLeftPage) {
-          elements.push(<rect key={ov} x={0} y={0} width={gutterPx} height={height} fill={OVERLAY_CONFIG.gutter.svgFill} stroke={OVERLAY_CONFIG.gutter.svgStroke} strokeWidth={0.75} strokeDasharray="6 3" />);
+          elements.push(<rect key={ov} x={0} y={0} width={gutterPx} height={height} fill={OVERLAY_CONFIG.gutter.svgFill} stroke={OVERLAY_CONFIG.gutter.svgStroke} strokeWidth={2} strokeDasharray="6 3" />);
         } else {
-          elements.push(<rect key={ov} x={width - gutterPx} y={0} width={gutterPx} height={height} fill={OVERLAY_CONFIG.gutter.svgFill} stroke={OVERLAY_CONFIG.gutter.svgStroke} strokeWidth={0.75} strokeDasharray="6 3" />);
+          elements.push(<rect key={ov} x={width - gutterPx} y={0} width={gutterPx} height={height} fill={OVERLAY_CONFIG.gutter.svgFill} stroke={OVERLAY_CONFIG.gutter.svgStroke} strokeWidth={2} strokeDasharray="6 3" />);
         }
         break;
       case 'hinge':
         if (isCoverPage && coverWidthIn && trimWidthIn) {
           const bleedOff = measurements.bleedIn * pxPerIn;
-          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn} y={bleedOff} width={hingePx} height={height - bleedOff * 2} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
-          elements.push(<rect key={`${ov}-back`} x={bleedOff + trimWidthIn * pxPerIn - hingePx} y={bleedOff} width={hingePx} height={height - bleedOff * 2} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={`${ov}-front`} x={width - bleedOff - trimWidthIn * pxPerIn} y={bleedOff} width={hingePx} height={height - bleedOff * 2} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={2} strokeDasharray="8 4" />);
+          elements.push(<rect key={`${ov}-back`} x={bleedOff + trimWidthIn * pxPerIn - hingePx} y={bleedOff} width={hingePx} height={height - bleedOff * 2} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={2} strokeDasharray="8 4" />);
         } else if (isLeftPage) {
-          elements.push(<rect key={ov} x={0} y={0} width={hingePx} height={height} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={ov} x={0} y={0} width={hingePx} height={height} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={2} strokeDasharray="8 4" />);
         } else {
-          elements.push(<rect key={ov} x={width - hingePx} y={0} width={hingePx} height={height} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={0.75} strokeDasharray="8 4" />);
+          elements.push(<rect key={ov} x={width - hingePx} y={0} width={hingePx} height={height} fill={OVERLAY_CONFIG.hinge.svgFill} stroke={OVERLAY_CONFIG.hinge.svgStroke} strokeWidth={2} strokeDasharray="8 4" />);
         }
         break;
       case 'crop': {
         const cropPx = 0.0625 * pxPerIn;
-        elements.push(<rect key={ov} x={cropPx} y={cropPx} width={width - cropPx * 2} height={height - cropPx * 2} fill={OVERLAY_CONFIG.crop.svgFill} stroke={OVERLAY_CONFIG.crop.svgStroke} strokeWidth={0.75} strokeDasharray="4 4" />);
+        elements.push(<rect key={ov} x={cropPx} y={cropPx} width={width - cropPx * 2} height={height - cropPx * 2} fill={OVERLAY_CONFIG.crop.svgFill} stroke={OVERLAY_CONFIG.crop.svgStroke} strokeWidth={2} strokeDasharray="4 4" />);
         break;
       }
       default:
@@ -388,13 +422,12 @@ function PageOverlay({ width, height, overlays, measurements, isLeftPage, isCove
 
   if (elements.length === 0) return null;
 
-  const viewBoxPadding = measurements.bleedIn * pxPerIn;
   return (
     <svg
       className="absolute inset-0 pointer-events-none z-10"
       width={width}
       height={height}
-      viewBox={`${-viewBoxPadding} ${-viewBoxPadding} ${width + viewBoxPadding * 2} ${height + viewBoxPadding * 2}`}
+      viewBox={`0 0 ${width} ${height}`}
       style={{ overflow: 'visible' }}
     >
       {elements}
@@ -436,7 +469,7 @@ function PageRenderer({
     if (bookType === 'kindle') return [];
     if (isCoverPage) return activeOverlays;
     if (isInterior) return activeOverlays;
-    return [];
+    return activeOverlays.filter((overlay) => overlay === 'trim' || overlay === 'safe-area' || overlay === 'gutter' || overlay === 'crop');
   }, [bookType, isCoverPage, isInterior, activeOverlays]);
 
   return (
@@ -478,6 +511,8 @@ function PageRenderer({
           <PageOverlay
             width={width}
             height={height}
+            pageWidthIn={page.widthIn}
+            pageHeightIn={page.heightIn}
             overlays={pageOverlays}
             measurements={measurements}
             isLeftPage={isLeftPage}
@@ -2023,18 +2058,50 @@ function FitDropdown({
   onFitSelect: (mode: FitMode) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const updateMenuPosition = useCallback(() => {
+    const trigger = ref.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = 160;
+    setMenuPosition({
+      top: rect.bottom + 8,
+      left: Math.min(window.innerWidth - menuWidth - 12, Math.max(12, rect.right - menuWidth)),
+    });
+  }, []);
+
+  const toggleOpen = useCallback(() => {
+    if (!open) updateMenuPosition();
+    setOpen((value) => !value);
+  }, [open, updateMenuPosition]);
 
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        ref.current &&
+        !ref.current.contains(target) &&
+        menuRef.current &&
+        !menuRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     };
+    const handleReposition = () => updateMenuPosition();
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [open, updateMenuPosition]);
 
   const items: { mode: FitMode; label: string; shortcut: string }[] = [
     { mode: 'fit-page', label: 'Fit Page', shortcut: '0' },
@@ -2046,15 +2113,19 @@ function FitDropdown({
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setOpen(!open)}
+        onClick={toggleOpen}
         className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-foreground/65 dark:text-foreground/30 hover:text-foreground/80 dark:text-foreground/50 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
       >
         <Maximize2 className="w-3 h-3" />
         <span className="hidden sm:inline">Fit</span>
         <ChevronDown className={`w-2.5 h-2.5 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 bg-muted border border-foreground/[0.22] dark:border-foreground/[0.08] rounded-lg shadow-xl py-1 min-w-[140px] z-50">
+      {open && createPortal(
+        <div
+          ref={menuRef}
+          className="fixed z-[9999] min-w-40 rounded-lg border border-border bg-popover py-1 shadow-elevated"
+          style={{ top: menuPosition.top, left: menuPosition.left }}
+        >
           {items.map((item) => (
             <button
               key={item.mode}
@@ -2067,7 +2138,8 @@ function FitDropdown({
               {item.shortcut && <span className="text-[9px] text-foreground/55 dark:text-foreground/15 font-mono">{item.shortcut}</span>}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
@@ -2083,21 +2155,55 @@ function OverlayDropdown({
   onToggle: (overlay: OverlayType) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const updateMenuPosition = useCallback(() => {
+    const trigger = ref.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = 192;
+    setMenuPosition({
+      top: rect.bottom + 8,
+      left: Math.min(window.innerWidth - menuWidth - 12, Math.max(12, rect.right - menuWidth)),
+    });
+  }, []);
+
+  const toggleOpen = useCallback(() => {
+    if (!open) updateMenuPosition();
+    setOpen((value) => !value);
+  }, [open, updateMenuPosition]);
 
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        ref.current &&
+        !ref.current.contains(target) &&
+        menuRef.current &&
+        !menuRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
     };
+    const handleReposition = () => updateMenuPosition();
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [open, updateMenuPosition]);
 
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setOpen(!open)}
+        onClick={toggleOpen}
         className="flex h-9 items-center gap-2 rounded-md border border-border bg-surface px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
       >
         <Eye className="h-3.5 w-3.5 text-primary" />
@@ -2105,8 +2211,12 @@ function OverlayDropdown({
         <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">{activeOverlays.length}</span>
         <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-border bg-popover p-1.5 shadow-elevated">
+      {open && createPortal(
+        <div
+          ref={menuRef}
+          className="fixed z-[9999] w-48 rounded-lg border border-border bg-popover p-1.5 shadow-elevated"
+          style={{ top: menuPosition.top, left: menuPosition.left }}
+        >
           {overlays.length === 0 ? (
             <div className="px-2 py-2 text-xs text-muted-foreground">No overlays for this format</div>
           ) : (
@@ -2128,7 +2238,8 @@ function OverlayDropdown({
               );
             })
           )}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
