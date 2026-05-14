@@ -1,12 +1,17 @@
 'use client';
 
+import { useEffect } from 'react';
 import CheckerFeature from '@/components/checker/CheckerFeature';
 import PreviewStep from '@/components/checker/PreviewStep';
 import { AppShell, FeatureFAQ, RestoreSessionNotice, WorkspacePanel } from '@/components/workspace/ProductWorkspace';
 import { useAppStore } from '@/store/use-app-store';
 
 export default function CheckerPageClient() {
-  const { checkerStep } = useAppStore();
+  const { checkerStep, activateFeatureWorkspace } = useAppStore();
+
+  useEffect(() => {
+    activateFeatureWorkspace('checker');
+  }, [activateFeatureWorkspace]);
 
   // PreviewStep is an app workspace with its own sticky toolbar and internal
   // panel scrolling, so render it outside the marketing-style AppShell chrome.

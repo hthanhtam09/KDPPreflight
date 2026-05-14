@@ -38,7 +38,11 @@ const STEPS: StepDef[] = [
   { key: 'preview', label: '3D Preview' },
 ];
 
-const BLEED_INCH = 0.125;
+const PREVIEW_ONLY_OVERLAYS: Preview3DOverlays = {
+  bleed: false,
+  trim: false,
+  safe: false,
+};
 
 // ---------------------------------------------------------------------------
 // Main Preview Feature Component — 4-Step Orchestrator
@@ -55,6 +59,7 @@ export default function PreviewFeature() {
     isProcessing,
     processingMessage,
     generationProgress,
+    activateFeatureWorkspace,
   } = useAppStore();
   const safeBookConfig = bookConfig ?? DEFAULT_BOOK_CONFIG;
   const safeMeasurements = measurements ?? calculateMeasurements(safeBookConfig);
@@ -62,11 +67,10 @@ export default function PreviewFeature() {
   const [coverSegments, setCoverSegments] = useState<CoverSegments | null>(null);
   const exportRef = useRef<(() => void) | null>(null);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [overlays, setOverlays] = useState<Preview3DOverlays>({
-    bleed: true,
-    trim: true,
-    safe: true,
-  });
+
+  useEffect(() => {
+    activateFeatureWorkspace('preview');
+  }, [activateFeatureWorkspace]);
 
   // Derive coverUrl from store instead of syncing via effect
   const coverUrl = useMemo(
@@ -93,26 +97,6 @@ export default function PreviewFeature() {
     () => ({ ...previewState, bookType: safeBookConfig.bookType || previewState.bookType }),
     [previewState, safeBookConfig.bookType],
   );
-
-  const bleedInfo = useMemo(() => {
-    const expectedWidth = safeMeasurements.trimWidthIn + BLEED_INCH * 2;
-    const expectedHeight = safeMeasurements.trimHeightIn + BLEED_INCH * 2;
-    const bleedEnabled = safeBookConfig.bleed === 'bleed';
-    const notRequired = safeBookConfig.bookType === 'kindle';
-    return {
-      enabled: bleedEnabled,
-      status: notRequired ? 'Not required' : bleedEnabled ? 'Enabled' : 'Missing',
-      label: notRequired
-        ? 'Bleed not required'
-        : bleedEnabled
-          ? `Bleed enabled · ${expectedWidth.toFixed(3)}" x ${expectedHeight.toFixed(3)}"`
-          : `Bleed missing · expected ${expectedWidth.toFixed(3)}" x ${expectedHeight.toFixed(3)}"`,
-      expectedPageSize: `${expectedWidth.toFixed(3)}" x ${expectedHeight.toFixed(3)}"`,
-      actualPageSize: bleedEnabled
-        ? `${expectedWidth.toFixed(3)}" x ${expectedHeight.toFixed(3)}"`
-        : `${safeMeasurements.trimWidthIn.toFixed(3)}" x ${safeMeasurements.trimHeightIn.toFixed(3)}"`,
-    };
-  }, [safeBookConfig.bleed, safeBookConfig.bookType, safeMeasurements.trimHeightIn, safeMeasurements.trimWidthIn]);
 
   // ---- 3D Actions ----
   const actions: Preview3DActions = {
@@ -358,14 +342,11 @@ export default function PreviewFeature() {
                   onNext={kindleNextPage}
                   onGoToPage={kindleGoToPage}
                   onBack={() => setPreviewFlowStep('config')}
-                  bleedInfo={bleedInfo}
                   measurements={{
                     pageCount: safeBookConfig.pageCount,
                     bookType: safeBookConfig.bookType,
                     coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
                     pageSource: `${safeBookConfig.pageCount} rendered pages`,
-                    expectedPageSize: bleedInfo.expectedPageSize,
-                    actualPageSize: bleedInfo.actualPageSize,
                   }}
                 />
               ) : (
@@ -377,7 +358,7 @@ export default function PreviewFeature() {
                     state={effectivePreviewState}
                     onStateChange={handleStateChange}
                     onExportRef={exportRef}
-                    overlays={overlays}
+                    overlays={PREVIEW_ONLY_OVERLAYS}
                   />
 
                   <PreviewToolbar
@@ -386,9 +367,6 @@ export default function PreviewFeature() {
                     totalPages={safeBookConfig.pageCount}
                     isConfigOpen={isConfigOpen}
                     onCloseConfig={() => setIsConfigOpen(false)}
-                    overlays={overlays}
-                    onOverlayChange={(key, value) => setOverlays(prev => ({ ...prev, [key]: value }))}
-                    bleedInfo={bleedInfo}
                     measurements={{
                       trimWidth: safeMeasurements.trimWidthIn.toFixed(2),
                       trimHeight: safeMeasurements.trimHeightIn.toFixed(2),
@@ -398,8 +376,6 @@ export default function PreviewFeature() {
                       coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
                       pageSource: `${safeBookConfig.pageCount} rendered pages`,
                       paperType: safeBookConfig.paper,
-                      expectedPageSize: bleedInfo.expectedPageSize,
-                      actualPageSize: bleedInfo.actualPageSize,
                     }}
                   />
 

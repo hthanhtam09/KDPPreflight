@@ -45,10 +45,10 @@ function ConfigCard({ icon, label, helpText, children, accent }: ConfigCardProps
 
   return (
     <div
-      className={`group rounded-xl border transition-all duration-300 ${
+      className={`group rounded-xl border shadow-soft transition-all duration-300 ${
         accent
-          ? 'bg-success/[0.06] border-success/20'
-          : 'bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border-foreground/[0.18] dark:border-foreground/[0.06] hover:border-foreground/[0.25] dark:border-foreground/[0.12]'
+          ? 'border-primary/25 bg-primary/[0.06]'
+          : 'border-border bg-card hover:border-primary/25 hover:bg-surface-elevated'
       }`}
     >
       <div className="p-4">
@@ -56,16 +56,16 @@ function ConfigCard({ icon, label, helpText, children, accent }: ConfigCardProps
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-2.5">
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-              accent ? 'bg-success/20' : 'bg-foreground/[0.13] dark:bg-foreground/[0.06]'
+              accent ? 'bg-primary/15 text-primary' : 'bg-secondary text-primary'
             }`}>
               {icon}
             </div>
-            <span className="min-w-0 break-words text-sm font-medium text-foreground/80">{label}</span>
+            <span className="min-w-0 break-words text-sm font-semibold text-foreground">{label}</span>
           </div>
           {helpText && (
             <button
               onClick={() => setShowHelp(!showHelp)}
-              className="w-5 h-5 rounded-full flex items-center justify-center text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 hover:text-foreground/80 dark:text-foreground/50 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] transition-colors"
+              className="w-5 h-5 rounded-full flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
               title="Toggle help"
             >
               <Info className="w-3.5 h-3.5" />
@@ -78,9 +78,9 @@ function ConfigCard({ icon, label, helpText, children, accent }: ConfigCardProps
 
         {/* Help Text */}
         {helpText && showHelp && (
-          <div className="mt-3 flex gap-2 items-start bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] rounded-lg p-2.5 transition-all duration-200">
-            <ShieldCheck className="w-3.5 h-3.5 text-success mt-0.5 shrink-0" />
-            <p className="text-[11px] text-foreground/80 dark:text-foreground/50 leading-relaxed">{helpText}</p>
+          <div className="mt-3 flex gap-2 items-start rounded-lg border border-primary/15 bg-primary/[0.06] p-2.5 transition-all duration-200">
+            <ShieldCheck className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{helpText}</p>
           </div>
         )}
       </div>
@@ -88,7 +88,7 @@ function ConfigCard({ icon, label, helpText, children, accent }: ConfigCardProps
       {/* Bottom help (always visible) */}
       {helpText && !showHelp && (
         <div className="px-4 pb-3">
-          <p className="text-[10px] text-foreground/65 dark:text-foreground/25 truncate">{helpText}</p>
+          <p className="text-[10px] text-muted-foreground truncate">{helpText}</p>
         </div>
       )}
     </div>
@@ -110,8 +110,8 @@ function OptionBtn({ label, active, onClick, className = '' }: OptionBtnProps) {
       onClick={onClick}
       className={`min-w-0 flex-1 rounded-lg px-2.5 py-2 text-xs font-medium leading-tight transition-all duration-200 sm:flex-none sm:px-3 ${
         active
-          ? 'bg-success/20 text-success border border-success/30 shadow-sm shadow-success/10'
-          : 'bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 border border-transparent hover:bg-foreground/[0.16] dark:bg-foreground/[0.08] hover:text-foreground/65'
+          ? 'border border-primary/35 bg-primary text-primary-foreground shadow-sm shadow-primary/15'
+          : 'border border-border bg-secondary/70 text-muted-foreground hover:border-primary/25 hover:bg-surface-elevated hover:text-foreground'
       } ${className}`}
     >
       {active && <Check className="w-3 h-3 inline mr-1 -mt-0.5" />}
@@ -134,7 +134,7 @@ function KindleConfigCards() {
     <div className="space-y-3">
       {/* Font Embedding */}
       <ConfigCard
-        icon={<Type className="w-3.5 h-3.5 text-success" />}
+        icon={<Type className="w-3.5 h-3.5 text-primary" />}
         label="Font Embedding"
         helpText="Embedded fonts ensure your book displays consistently across all Kindle devices and apps. Without embedding, Kindle may substitute fonts."
       >
@@ -146,7 +146,7 @@ function KindleConfigCards() {
 
       {/* TOC Validation */}
       <ConfigCard
-        icon={<BookMarked className="w-3.5 h-3.5 text-success" />}
+        icon={<BookMarked className="w-3.5 h-3.5 text-primary" />}
         label="TOC Validation"
         helpText="Validates your Table of Contents has proper NCX and HTML navigation. KDP requires a functional TOC for Kindle books."
       >
@@ -158,7 +158,7 @@ function KindleConfigCards() {
 
       {/* Reflow Testing */}
       <ConfigCard
-        icon={<Move className="w-3.5 h-3.5 text-success" />}
+        icon={<Move className="w-3.5 h-3.5 text-primary" />}
         label="Reflow Testing"
         helpText="Tests how your content reflows across different font sizes and device orientations. Critical for a good reading experience."
       >
@@ -170,7 +170,7 @@ function KindleConfigCards() {
 
       {/* Image Scaling */}
       <ConfigCard
-        icon={<ImageIcon className="w-3.5 h-3.5 text-success" />}
+        icon={<ImageIcon className="w-3.5 h-3.5 text-primary" />}
         label="Image Scaling"
         helpText="Controls how images are processed. 'Optimized' resizes for Kindle screens while maintaining quality. 'None' keeps original sizes."
       >
@@ -183,7 +183,7 @@ function KindleConfigCards() {
 
       {/* Readability Mode */}
       <ConfigCard
-        icon={<Palette className="w-3.5 h-3.5 text-success" />}
+        icon={<Palette className="w-3.5 h-3.5 text-primary" />}
         label="Readability Mode"
         helpText="Large Print increases font size for accessibility. Dyslexia-friendly uses specialized fonts and spacing recommended for readers with dyslexia."
       >
@@ -243,7 +243,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
     <div className="space-y-3">
       {/* Trim Size */}
       <ConfigCard
-        icon={<Maximize2 className="w-3.5 h-3.5 text-success" />}
+        icon={<Maximize2 className="w-3.5 h-3.5 text-primary" />}
         label="Trim Size"
         helpText="Select a KDP-approved trim size. This determines your book's final printed dimensions and affects spine width calculation."
       >
@@ -270,7 +270,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
         {bookConfig.trimSize === 'custom' && !isHardcover && (
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <div>
-              <label className="text-[10px] text-foreground/65 dark:text-foreground/30 mb-1 block">Width (inches)</label>
+              <label className="mb-1 block text-[10px] text-muted-foreground">Width (inches)</label>
               <input
                 type="number"
                 value={customWidth}
@@ -278,12 +278,12 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
                 step="0.01"
                 min="5"
                 max="8.5"
-                className="w-full bg-foreground/[0.20] dark:bg-foreground/[0.12] dark:bg-foreground/[0.05] border border-foreground/25 dark:border-foreground/10 rounded-lg px-3 py-1.5 text-xs text-foreground/80 focus:outline-none focus:border-success/40 transition-colors"
+                className="ds-control ds-focus w-full rounded-lg px-3 py-1.5 text-xs"
                 placeholder="6.0"
               />
             </div>
             <div>
-              <label className="text-[10px] text-foreground/65 dark:text-foreground/30 mb-1 block">Height (inches)</label>
+              <label className="mb-1 block text-[10px] text-muted-foreground">Height (inches)</label>
               <input
                 type="number"
                 value={customHeight}
@@ -291,7 +291,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
                 step="0.01"
                 min="5"
                 max="11"
-                className="w-full bg-foreground/[0.20] dark:bg-foreground/[0.12] dark:bg-foreground/[0.05] border border-foreground/25 dark:border-foreground/10 rounded-lg px-3 py-1.5 text-xs text-foreground/80 focus:outline-none focus:border-success/40 transition-colors"
+                className="ds-control ds-focus w-full rounded-lg px-3 py-1.5 text-xs"
                 placeholder="9.0"
               />
             </div>
@@ -301,7 +301,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
 
       {/* Bleed */}
       <ConfigCard
-        icon={<ScanLine className="w-3.5 h-3.5 text-success" />}
+        icon={<ScanLine className="w-3.5 h-3.5 text-primary" />}
         label="Bleed"
         helpText={
           bookConfig.bleed === 'bleed'
@@ -317,7 +317,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
 
       {/* Paper Type */}
       <ConfigCard
-        icon={<Layers className="w-3.5 h-3.5 text-success" />}
+        icon={<Layers className="w-3.5 h-3.5 text-primary" />}
         label="Paper Type"
         helpText="Paper type affects spine width calculation. Cream and premium paper are thicker per page, resulting in a wider spine."
       >
@@ -335,7 +335,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
 
       {/* Interior Type */}
       <ConfigCard
-        icon={<Palette className="w-3.5 h-3.5 text-success" />}
+        icon={<Palette className="w-3.5 h-3.5 text-primary" />}
         label="Interior Type"
         helpText="Interior type determines printing method. B&W is most cost-effective. Color options use higher quality printing processes."
       >
@@ -353,7 +353,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
 
       {/* Page Count */}
       <ConfigCard
-        icon={<FileText className="w-3.5 h-3.5 text-success" />}
+        icon={<FileText className="w-3.5 h-3.5 text-primary" />}
         label="Page Count"
         helpText="Spine width is automatically calculated from page count and paper type. KDP requires even page numbers within the valid range."
         accent
@@ -361,7 +361,7 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => handlePageCountChange(String(bookConfig.pageCount - 2))}
-            className="w-8 h-8 rounded-lg bg-foreground/[0.13] dark:bg-foreground/[0.06] hover:bg-foreground/[0.1] flex items-center justify-center text-foreground/80 dark:text-foreground/50 hover:text-foreground/80 transition-colors"
+            className="ds-focus flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-secondary/70 text-muted-foreground transition-colors hover:border-primary/25 hover:bg-surface-elevated hover:text-foreground"
           >
             <Minus className="w-3.5 h-3.5" />
           </button>
@@ -372,11 +372,11 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
             min={24}
             max={isHardcover ? 550 : 828}
             step={2}
-            className="flex-1 bg-foreground/[0.20] dark:bg-foreground/[0.12] dark:bg-foreground/[0.05] border border-foreground/25 dark:border-foreground/10 rounded-lg px-3 py-2 text-center text-sm font-mono text-foreground/80 focus:outline-none focus:border-success/40 transition-colors"
+            className="ds-control ds-focus flex-1 rounded-lg px-3 py-2 text-center font-mono text-sm"
           />
           <button
             onClick={() => handlePageCountChange(String(bookConfig.pageCount + 2))}
-            className="w-8 h-8 rounded-lg bg-foreground/[0.13] dark:bg-foreground/[0.06] hover:bg-foreground/[0.1] flex items-center justify-center text-foreground/80 dark:text-foreground/50 hover:text-foreground/80 transition-colors"
+            className="ds-focus flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-secondary/70 text-muted-foreground transition-colors hover:border-primary/25 hover:bg-surface-elevated hover:text-foreground"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
@@ -384,29 +384,29 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
         {autoPageCount && autoPageCount !== bookConfig.pageCount && (
           <button
             onClick={() => handlePageCountChange(String(autoPageCount))}
-            className="mt-2 text-[10px] text-success/60 hover:text-success transition-colors flex items-center gap-1"
+            className="mt-2 flex items-center gap-1 text-[10px] text-primary transition-colors hover:text-primary-hover"
           >
             <RotateCcw className="w-3 h-3" />
             Auto-fill from manuscript: {autoPageCount} pages
           </button>
         )}
-        <p className="text-[10px] text-foreground/65 dark:text-foreground/25 mt-2">
+        <p className="mt-2 text-[10px] text-muted-foreground">
           Range: 24–{isHardcover ? '550' : '828'} pages • Spine: {formatInches(measurements.spineWidthIn)}
         </p>
       </ConfigCard>
 
       {/* Binding */}
       <ConfigCard
-        icon={<BookOpen className="w-3.5 h-3.5 text-foreground/65 dark:text-foreground/30" />}
+        icon={<BookOpen className="w-3.5 h-3.5 text-primary" />}
         label={`Binding: ${isHardcover ? 'Hardcover' : 'Paperback'}`}
         helpText={isHardcover
           ? 'Hardcover binding includes a rigid case wrap with hinge and wrap zones for proper folding.'
           : 'Perfect binding with a glued spine. The most common and cost-effective binding for KDP.'
         }
       >
-        <div className="flex items-center gap-2 bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] rounded-lg px-3 py-2">
-          <Lock className="w-3.5 h-3.5 text-foreground/85 dark:text-foreground/60 dark:text-foreground/20" />
-          <span className="text-xs text-foreground/65 dark:text-foreground/30">{isHardcover ? 'Hardcover' : 'Paperback'} — set during import</span>
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/60 px-3 py-2">
+          <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">{isHardcover ? 'Hardcover' : 'Paperback'} — set during import</span>
         </div>
       </ConfigCard>
 
@@ -418,11 +418,11 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
             label="Hinge Area"
             helpText="Required folding area for hardcover binding. The hinge allows the cover to open smoothly without damaging the spine."
           >
-            <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.16] px-3 py-2.5 dark:bg-foreground/[0.03] sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Hinge width</span>
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-secondary/50 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs text-muted-foreground">Hinge width</span>
               <span className="text-sm font-mono text-warning">{formatInches(HARDCOVER_HINGE_IN)}</span>
             </div>
-            <p className="text-[10px] text-foreground/65 dark:text-foreground/25 mt-1.5">0.375" on each side — auto-calculated for hardcover</p>
+            <p className="mt-1.5 text-[10px] text-muted-foreground">0.375" on each side — auto-calculated for hardcover</p>
           </ConfigCard>
 
           <ConfigCard
@@ -430,11 +430,11 @@ function PrintConfigCards({ isHardcover }: { isHardcover: boolean }) {
             label="Wrap Zone"
             helpText="The wrap zone extends the cover around the hardcover case. This area wraps around the board edges and onto the inside."
           >
-            <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.16] px-3 py-2.5 dark:bg-foreground/[0.03] sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Wrap width</span>
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-secondary/50 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs text-muted-foreground">Wrap width</span>
               <span className="text-sm font-mono text-warning">{formatInches(HARDCOVER_WRAP_IN)}</span>
             </div>
-            <p className="text-[10px] text-foreground/65 dark:text-foreground/25 mt-1.5">0.625" on each side — auto-calculated for hardcover</p>
+            <p className="mt-1.5 text-[10px] text-muted-foreground">0.625" on each side — auto-calculated for hardcover</p>
           </ConfigCard>
         </>
       )}
@@ -512,23 +512,23 @@ function MeasurementsDisplay() {
 
   if (bookType === 'kindle') {
     return (
-      <div className="bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06] rounded-xl p-4">
-        <h4 className="text-xs text-foreground/80 dark:text-foreground/50 uppercase tracking-wider mb-3 flex items-center gap-2">
-          <Monitor className="w-3.5 h-3.5" />
+      <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
+        <h4 className="mb-3 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+          <Monitor className="w-3.5 h-3.5 text-primary" />
           Kindle Format
         </h4>
         <div className="space-y-2">
-          <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.13] p-2 dark:bg-foreground/[0.02] sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Format</span>
-            <span className="text-xs text-foreground/85 dark:text-foreground/70">KFX / MOBI / EPUB</span>
+          <div className="flex flex-col gap-1 rounded-lg border border-border bg-secondary/50 p-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-xs text-muted-foreground">Format</span>
+            <span className="text-xs text-foreground">KFX / MOBI / EPUB</span>
           </div>
-          <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.13] p-2 dark:bg-foreground/[0.02] sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Reflowable</span>
-            <span className="text-xs text-success">Yes</span>
+          <div className="flex flex-col gap-1 rounded-lg border border-border bg-secondary/50 p-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-xs text-muted-foreground">Reflowable</span>
+            <span className="text-xs text-primary">Yes</span>
           </div>
-          <div className="flex flex-col gap-1 rounded-lg bg-foreground/[0.13] p-2 dark:bg-foreground/[0.02] sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Max File Size</span>
-            <span className="text-xs text-foreground/85 dark:text-foreground/70">650 MB</span>
+          <div className="flex flex-col gap-1 rounded-lg border border-border bg-secondary/50 p-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-xs text-muted-foreground">Max File Size</span>
+            <span className="text-xs text-foreground">650 MB</span>
           </div>
         </div>
       </div>
@@ -536,9 +536,9 @@ function MeasurementsDisplay() {
   }
 
   return (
-    <div className="bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06] rounded-xl p-4">
-      <h4 className="text-xs text-foreground/80 dark:text-foreground/50 uppercase tracking-wider mb-3 flex items-center gap-2">
-        <Ruler className="w-3.5 h-3.5" />
+    <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
+      <h4 className="mb-3 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+        <Ruler className="w-3.5 h-3.5 text-primary" />
         Calculated Measurements
       </h4>
       <div className="space-y-1.5">
@@ -547,16 +547,16 @@ function MeasurementsDisplay() {
             key={item.label}
             className={`flex flex-col gap-2 rounded-lg p-2 transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between ${
               (item as any).highlight
-                ? 'bg-success/[0.08] border border-success/20'
-                : 'bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]'
+                ? 'bg-primary/[0.08] border border-primary/20'
+                : 'border border-border bg-secondary/50'
             }`}
           >
             <div className="min-w-0">
-              <p className="text-[11px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/45">{item.label}</p>
-              <p className="text-[9px] text-foreground/65 dark:text-foreground/25 truncate">{item.sub}</p>
+              <p className="text-[11px] text-foreground">{item.label}</p>
+              <p className="text-[9px] text-muted-foreground truncate">{item.sub}</p>
             </div>
             <p className={`break-words font-mono text-xs font-medium sm:ml-2 sm:shrink-0 sm:text-right ${
-              (item as any).highlight ? 'text-success' : 'text-foreground/70'
+              (item as any).highlight ? 'text-primary' : 'text-foreground'
             }`}>
               {item.value}
             </p>
@@ -646,7 +646,7 @@ function CoverVisualization() {
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col items-center justify-center">
-      <h3 className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 uppercase tracking-wider mb-4">
+      <h3 className="mb-4 text-xs uppercase tracking-wider text-muted-foreground">
         {isHardcover ? 'Hardcover' : 'Paperback'} Cover Layout
       </h3>
       <svg
@@ -907,27 +907,27 @@ function CoverVisualization() {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-3 justify-center mt-3">
-        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
-          <div className="w-3 h-0.5 border border-dashed border-foreground/30 dark:border-foreground/20" /> Full Cover
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <div className="w-3 h-0.5 border border-dashed border-muted-foreground/40" /> Full Cover
         </div>
         {bleed > 0 && (
-          <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <div className="w-3 h-0.5 bg-danger/30" /> Bleed
           </div>
         )}
-        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
-          <div className="w-3 h-0.5 bg-success/40" /> Spine
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <div className="w-3 h-0.5 bg-primary/45" /> Spine
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <div className="w-3 h-0.5 border border-dashed border-primary/30" /> Safe Zone
         </div>
         {!isHardcover && (
-          <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <div className="w-3 h-0.5 border border-dashed border-primary/30" /> Barcode
           </div>
         )}
         {isHardcover && (
-          <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <div className="w-3 h-0.5 border border-dashed border-warning/30" /> Hinge/Wrap
           </div>
         )}
@@ -941,7 +941,7 @@ function CoverVisualization() {
 function KindleVisualization() {
   return (
     <div className="flex h-full w-full min-w-0 flex-col items-center justify-center">
-      <h3 className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 uppercase tracking-wider mb-6">
+      <h3 className="mb-6 text-xs uppercase tracking-wider text-muted-foreground">
         Kindle Digital Preview
       </h3>
 
@@ -997,10 +997,10 @@ function KindleVisualization() {
       </div>
 
       <div className="mt-4 flex flex-wrap justify-center gap-3 sm:gap-4">
-        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <Monitor className="w-3 h-3" /> Reflowable Layout
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <Type className="w-3 h-3" /> Embedded Fonts
         </div>
       </div>
@@ -1018,13 +1018,13 @@ function AutoFillBanner() {
   if (!hasAutoFill) return null;
 
   return (
-    <div className="bg-success/[0.08] border border-success/20 rounded-xl p-3 flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center shrink-0">
-        <Check className="w-4 h-4 text-success" />
+    <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/[0.08] p-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+        <Check className="w-4 h-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-success font-medium">Auto-detected from import</p>
-        <p className="text-[10px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">
+        <p className="text-xs text-primary font-medium">Auto-detected from import</p>
+        <p className="text-[10px] text-muted-foreground">
           {uploadedManuscript?.pageCount} pages detected — you can still adjust settings manually
         </p>
       </div>
@@ -1061,12 +1061,12 @@ export default function ConfigStep() {
       <div className="flex min-w-0 flex-col gap-4 overflow-y-visible pr-0 lg:max-h-[calc(100vh-200px)] lg:w-[400px] lg:shrink-0 lg:overflow-y-auto lg:pr-1 xl:w-[440px] custom-scrollbar">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-success/15 flex items-center justify-center text-success">
+          <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center text-primary">
             {bookTypeIcon}
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-foreground/90">Configure</h2>
-            <p className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">{bookTypeLabel} — set your book specifications</p>
+            <h2 className="text-lg font-semibold text-foreground">Configure</h2>
+            <p className="text-xs text-muted-foreground">{bookTypeLabel} — set your book specifications</p>
           </div>
         </div>
 
@@ -1083,7 +1083,7 @@ export default function ConfigStep() {
       {/* ─── RIGHT: Live Visualization + Sticky Action ─── */}
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         {/* Live Visualization */}
-        <div className="flex min-h-[320px] flex-1 items-center justify-center rounded-2xl border border-foreground/[0.18] bg-foreground/[0.13] p-4 dark:bg-foreground/[0.02] dark:border-foreground/[0.06] sm:min-h-[420px] sm:p-6 lg:min-h-[500px] lg:p-8">
+        <div className="flex min-h-[320px] flex-1 items-center justify-center rounded-2xl border border-border bg-card p-4 shadow-soft sm:min-h-[420px] sm:p-6 lg:min-h-[500px] lg:p-8">
           <CoverVisualization />
         </div>
 
@@ -1091,14 +1091,14 @@ export default function ConfigStep() {
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             onClick={() => setCheckerStep('import')}
-            className="flex items-center justify-center gap-2 rounded-xl border border-foreground/[0.18] bg-foreground/[0.18] px-4 py-3 text-xs text-foreground/80 transition-all duration-200 hover:bg-foreground/[0.16] hover:text-foreground/85 dark:bg-foreground/[0.04] dark:border-foreground/[0.06] dark:text-foreground/50 dark:hover:text-foreground/70"
+            className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/70 px-4 py-3 text-xs text-muted-foreground transition-all duration-200 hover:border-primary/25 hover:bg-surface-elevated hover:text-foreground"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Import
           </button>
           <button
             onClick={() => setCheckerStep('preview')}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-success hover:bg-success text-foreground font-semibold text-sm transition-all duration-200 shadow-lg shadow-success/25"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm transition-all duration-200 shadow-lg shadow-primary/25"
           >
             Start Review
             <ArrowRight className="w-4 h-4" />

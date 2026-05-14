@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import type { CameraPreset } from '@/types/kdp';
-import type { Preview3DActions, Preview3DOverlays, Preview3DState } from './BookPreview3D';
+import type { Preview3DActions, Preview3DState } from './BookPreview3D';
 
 interface PreviewToolbarProps {
   state: Preview3DState;
@@ -21,15 +21,6 @@ interface PreviewToolbarProps {
   totalPages: number;
   isConfigOpen: boolean;
   onCloseConfig: () => void;
-  overlays: Preview3DOverlays;
-  onOverlayChange: (key: keyof Preview3DOverlays, value: boolean) => void;
-  bleedInfo: {
-    enabled: boolean;
-    status: string;
-    label: string;
-    expectedPageSize: string;
-    actualPageSize: string;
-  };
   measurements: {
     trimWidth: string;
     trimHeight: string;
@@ -39,8 +30,6 @@ interface PreviewToolbarProps {
     coverSource: string;
     pageSource: string;
     paperType: string;
-    expectedPageSize: string;
-    actualPageSize: string;
   };
 }
 
@@ -56,9 +45,6 @@ export default function PreviewToolbar({
   totalPages,
   isConfigOpen,
   onCloseConfig,
-  overlays,
-  onOverlayChange,
-  bleedInfo,
   measurements,
 }: PreviewToolbarProps) {
   const isAtFirstSpread = state.bookPose === 'open' && state.currentPage <= 1;
@@ -81,18 +67,6 @@ export default function PreviewToolbar({
       <div className="pointer-events-auto absolute right-3 top-3 flex items-center gap-2 sm:right-4">
         <IconButton title="Config info" onClick={actions.toggleConfig} icon={<Info className="h-4 w-4" />} active={isConfigOpen} />
         <IconButton title="Export current view" onClick={() => actions.exportScreenshot()} icon={<Download className="h-4 w-4" />} primary />
-      </div>
-
-      <div className="pointer-events-none absolute left-1/2 top-3 hidden -translate-x-1/2 sm:block">
-        <div className={`rounded-full border px-3 py-1.5 text-xs font-semibold shadow-soft backdrop-blur-xl ${
-          bleedInfo.enabled
-            ? 'border-success/30 bg-success/15 text-success'
-            : bleedInfo.status === 'Not required'
-              ? 'border-border bg-background/70 text-muted-foreground'
-              : 'border-warning/40 bg-warning/15 text-warning'
-        }`}>
-          {bleedInfo.label}
-        </div>
       </div>
 
       <div className="pointer-events-auto absolute bottom-4 left-1/2 flex max-w-[calc(100vw-1.5rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-xl border border-white/20 bg-background/70 p-1.5 shadow-soft backdrop-blur-xl">
@@ -141,32 +115,8 @@ export default function PreviewToolbar({
               </button>
             </div>
             <div className="space-y-2 overflow-y-auto p-3">
-              <div className={`rounded-lg border px-3 py-2 ${
-                bleedInfo.enabled
-                  ? 'border-success/30 bg-success/10'
-                  : bleedInfo.status === 'Not required'
-                    ? 'border-border bg-surface'
-                    : 'border-warning/35 bg-warning/10'
-              }`}>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Bleed</p>
-                <p className={`mt-1 text-sm font-semibold ${
-                  bleedInfo.enabled ? 'text-success' : bleedInfo.status === 'Not required' ? 'text-foreground' : 'text-warning'
-                }`}>
-                  {bleedInfo.label}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-surface px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Inspection overlays</p>
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  <OverlayToggle label="Bleed" checked={overlays.bleed} onChange={(checked) => onOverlayChange('bleed', checked)} />
-                  <OverlayToggle label="Trim" checked={overlays.trim} onChange={(checked) => onOverlayChange('trim', checked)} />
-                  <OverlayToggle label="Safe" checked={overlays.safe} onChange={(checked) => onOverlayChange('safe', checked)} />
-                </div>
-              </div>
               <InfoRow label="Book type" value={measurements.bookType} />
               <InfoRow label="Trim size" value={`${measurements.trimWidth}" x ${measurements.trimHeight}"`} />
-              <InfoRow label="Expected page size" value={measurements.expectedPageSize} />
-              <InfoRow label="Actual rendered page size" value={measurements.actualPageSize} />
               <InfoRow label="Page count" value={String(measurements.pageCount)} />
               <InfoRow label="Spine width" value={`${measurements.spine}"`} />
               <InfoRow label="Cover source" value={measurements.coverSource} />
@@ -236,24 +186,6 @@ function IconButton({
     >
       {icon}
     </button>
-  );
-}
-
-function OverlayToggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
-  return (
-    <label className={`ds-focus flex h-9 cursor-pointer items-center justify-center rounded-lg border text-xs font-semibold ${
-      checked
-        ? 'border-primary/40 bg-primary text-primary-foreground'
-        : 'border-border bg-background/60 text-muted-foreground hover:text-foreground'
-    }`}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="sr-only"
-      />
-      {label}
-    </label>
   );
 }
 

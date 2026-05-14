@@ -89,14 +89,11 @@ interface KindlePreviewProps {
   onNext: () => void;
   onGoToPage: (page: number) => void;
   onBack: () => void;
-  bleedInfo: { status: string; label: string };
   measurements: {
     pageCount: number;
     bookType: string;
     coverSource: string;
     pageSource: string;
-    expectedPageSize: string;
-    actualPageSize: string;
   };
 }
 
@@ -111,7 +108,6 @@ export default function KindlePreview({
   onNext,
   onGoToPage,
   onBack,
-  bleedInfo,
   measurements,
 }: KindlePreviewProps) {
   const { pdfPageDataUrls } = useAppStore();
@@ -289,9 +285,6 @@ export default function KindlePreview({
         <div className="flex flex-col items-center gap-1">
           <span className="text-xs font-semibold tracking-wide text-foreground/60">
             Kindle Preview
-          </span>
-          <span className="rounded-full border border-foreground/10 bg-background/50 px-2.5 py-px text-[10px] leading-none text-muted-foreground backdrop-blur-sm">
-            {bleedInfo.label}
           </span>
         </div>
 
@@ -508,8 +501,6 @@ export default function KindlePreview({
             <div className="space-y-2 overflow-y-auto p-3">
               <InfoRow label="Book type"            value={measurements.bookType} />
               <InfoRow label="Page count"           value={String(measurements.pageCount)} />
-              <InfoRow label="Expected page size"   value={measurements.expectedPageSize} />
-              <InfoRow label="Actual page size"     value={measurements.actualPageSize} />
               <InfoRow label="Cover source"         value={measurements.coverSource} />
               <InfoRow label="Page source"          value={measurements.pageSource} />
             </div>

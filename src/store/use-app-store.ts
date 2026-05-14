@@ -11,6 +11,37 @@ import { DEFAULT_BOOK_CONFIG, calculateMeasurements } from '@/engine/kdp-constan
 import type { PDFAnalysisResult } from '@/engine/validator';
 import type { SaveStatus } from '@/lib/persistence';
 
+type FeatureWorkspaceName = 'checker' | 'preview';
+
+interface FeatureWorkspaceState {
+  bookConfig: BookConfig;
+  measurements: CalculatedMeasurements;
+  uploadedCover: UploadedFile | null;
+  uploadedManuscript: UploadedFile | null;
+  bookType: BookType;
+  currentPage: number;
+  totalPages: number;
+  activeOverlays: OverlayType[];
+  pageAnalyses: PageAnalysis[];
+  pageIssues: PageIssue[];
+  pdfPageDataUrls: Map<number, string>;
+  bookPages: BookPage[];
+  coverDataUrl: string;
+  previewCache: PreviewAssetCache | null;
+  processingStatus: ProcessingStatus;
+  previewReady: boolean;
+  pageIssuesExtended: PageIssueExtended[];
+  selectedIssueId: string | null;
+  issueFilter: IssueFilter;
+  spreadModels: SpreadModel[];
+  pdfAnalysis: PDFAnalysisResult | null;
+  detectedConfig: DetectedConfig | null;
+  generationProgress: GenerationProgress;
+  previewGenerated: boolean;
+  checkerStep: CheckerStep;
+  previewFlowStep: PreviewFlowStep;
+}
+
 interface AppStore {
   // Navigation
   view: AppView;
@@ -142,12 +173,83 @@ interface AppStore {
   previewGenerated: boolean;
   setPreviewGenerated: (generated: boolean) => void;
 
+  // Feature workspace isolation
+  activeFeatureWorkspace: FeatureWorkspaceName | null;
+  checkerWorkspace: FeatureWorkspaceState;
+  previewWorkspace: FeatureWorkspaceState;
+  activateFeatureWorkspace: (feature: FeatureWorkspaceName) => void;
+
   // Reset
   reset: () => void;
 }
 
 const initialConfig: BookConfig = { ...DEFAULT_BOOK_CONFIG, bookType: 'paperback' };
 const initialMeasurements = calculateMeasurements(initialConfig);
+
+function createEmptyWorkspace(
+  checkerStep: CheckerStep = 'import',
+  previewFlowStep: PreviewFlowStep = 'import',
+): FeatureWorkspaceState {
+  return {
+    bookConfig: initialConfig,
+    measurements: initialMeasurements,
+    uploadedCover: null,
+    uploadedManuscript: null,
+    bookType: 'paperback',
+    currentPage: 0,
+    totalPages: 1,
+    activeOverlays: [],
+    pageAnalyses: [],
+    pageIssues: [],
+    pdfPageDataUrls: new Map(),
+    bookPages: [],
+    coverDataUrl: '',
+    previewCache: null,
+    processingStatus: 'idle',
+    previewReady: false,
+    pageIssuesExtended: [],
+    selectedIssueId: null,
+    issueFilter: { severity: 'all', category: 'all', search: '' },
+    spreadModels: [],
+    pdfAnalysis: null,
+    detectedConfig: null,
+    generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
+    previewGenerated: false,
+    checkerStep,
+    previewFlowStep,
+  };
+}
+
+function snapshotWorkspace(state: AppStore): FeatureWorkspaceState {
+  return {
+    bookConfig: state.bookConfig,
+    measurements: state.measurements,
+    uploadedCover: state.uploadedCover,
+    uploadedManuscript: state.uploadedManuscript,
+    bookType: state.bookType,
+    currentPage: state.currentPage,
+    totalPages: state.totalPages,
+    activeOverlays: state.activeOverlays,
+    pageAnalyses: state.pageAnalyses,
+    pageIssues: state.pageIssues,
+    pdfPageDataUrls: new Map(state.pdfPageDataUrls),
+    bookPages: state.bookPages,
+    coverDataUrl: state.coverDataUrl,
+    previewCache: state.previewCache,
+    processingStatus: state.processingStatus,
+    previewReady: state.previewReady,
+    pageIssuesExtended: state.pageIssuesExtended,
+    selectedIssueId: state.selectedIssueId,
+    issueFilter: state.issueFilter,
+    spreadModels: state.spreadModels,
+    pdfAnalysis: state.pdfAnalysis,
+    detectedConfig: state.detectedConfig,
+    generationProgress: state.generationProgress,
+    previewGenerated: state.previewGenerated,
+    checkerStep: state.checkerStep,
+    previewFlowStep: state.previewFlowStep,
+  };
+}
 
 // Load dismissed hints from localStorage
 function loadDismissedHints(): string[] {
@@ -331,6 +433,55 @@ export const useAppStore = create<AppStore>((set, get) => ({
   previewGenerated: false,
   setPreviewGenerated: (generated) => set({ previewGenerated: generated }),
 
+  // Feature workspace isolation
+  activeFeatureWorkspace: null,
+  checkerWorkspace: createEmptyWorkspace('import', 'import'),
+  previewWorkspace: createEmptyWorkspace('import', 'import'),
+  activateFeatureWorkspace: (feature) =>
+    set((state) => {
+      if (state.activeFeatureWorkspace === feature) return {};
+
+      const currentSnapshot = snapshotWorkspace(state);
+      const target = feature === 'checker' ? state.checkerWorkspace : state.previewWorkspace;
+      const updates: Partial<AppStore> = {
+        activeFeatureWorkspace: feature,
+        bookConfig: target.bookConfig,
+        measurements: target.measurements,
+        uploadedCover: target.uploadedCover,
+        uploadedManuscript: target.uploadedManuscript,
+        bookType: target.bookType,
+        currentPage: target.currentPage,
+        totalPages: target.totalPages,
+        activeOverlays: target.activeOverlays,
+        pageAnalyses: target.pageAnalyses,
+        pageIssues: target.pageIssues,
+        pdfPageDataUrls: new Map(target.pdfPageDataUrls),
+        bookPages: target.bookPages,
+        coverDataUrl: target.coverDataUrl,
+        previewCache: target.previewCache,
+        processingStatus: target.processingStatus,
+        previewReady: target.previewReady,
+        pageIssuesExtended: target.pageIssuesExtended,
+        selectedIssueId: target.selectedIssueId,
+        issueFilter: target.issueFilter,
+        spreadModels: target.spreadModels,
+        pdfAnalysis: target.pdfAnalysis,
+        detectedConfig: target.detectedConfig,
+        generationProgress: target.generationProgress,
+        previewGenerated: target.previewGenerated,
+        checkerStep: target.checkerStep,
+        previewFlowStep: target.previewFlowStep,
+      };
+
+      if (state.activeFeatureWorkspace === 'checker') {
+        updates.checkerWorkspace = currentSnapshot;
+      } else if (state.activeFeatureWorkspace === 'preview') {
+        updates.previewWorkspace = currentSnapshot;
+      }
+
+      return updates;
+    }),
+
   // Reset
   reset: () =>
     set({
@@ -371,5 +522,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
       detectedConfig: null,
       generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
       previewGenerated: false,
+      activeFeatureWorkspace: null,
+      checkerWorkspace: createEmptyWorkspace('import', 'import'),
+      previewWorkspace: createEmptyWorkspace('import', 'import'),
     }),
 }));

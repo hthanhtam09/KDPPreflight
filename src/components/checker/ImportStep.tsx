@@ -230,11 +230,11 @@ function UploadZone({
       onClick={() => !isProcessing && inputRef.current?.click()}
       className={`relative flex min-h-[176px] cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border p-5 text-center shadow-soft transition-all duration-300 sm:min-h-[190px] sm:p-8 ${
         isProcessing
-          ? 'cursor-wait border-success/25 bg-success/[0.04]'
+          ? 'cursor-wait border-primary/25 bg-primary/[0.04]'
           : dragActive
-            ? 'scale-[1.01] border-success/45 bg-success/[0.08] shadow-card'
+            ? 'scale-[1.01] border-primary/45 bg-primary/[0.08] shadow-card'
             : uploadedFile
-              ? 'border-success/25 bg-success/[0.04]'
+              ? 'border-primary/25 bg-primary/[0.04]'
               : 'border-border bg-card hover:border-primary/35 hover:bg-surface-elevated'
       }`}
     >
@@ -252,18 +252,18 @@ function UploadZone({
 
       {isProcessing ? (
         <>
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10">
-            <Loader2 className="h-6 w-6 animate-spin text-success" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
           <p className="text-sm font-medium text-foreground">Analyzing file...</p>
         </>
       ) : uploadedFile ? (
         <>
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10">
-            <CheckCircle2 className="h-6 w-6 text-success" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <CheckCircle2 className="h-6 w-6 text-primary" />
           </div>
           <div className="min-w-0 max-w-full">
-            <p className="truncate text-sm font-medium text-success">{uploadedFile.name}</p>
+            <p className="truncate text-sm font-semibold text-primary">{uploadedFile.name}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {formatSize(uploadedFile.size)}
               {uploadedFile.pageCount ? ` · ${uploadedFile.pageCount} pages` : ''}
@@ -275,12 +275,12 @@ function UploadZone({
         <>
           <div
             className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300 ${
-              dragActive ? 'bg-success/10' : 'bg-secondary'
+              dragActive ? 'bg-primary/10' : 'bg-secondary'
             }`}
           >
             <ZoneIcon
               className={`h-7 w-7 transition-colors duration-300 ${
-                dragActive ? 'text-success' : 'text-primary/70'
+                dragActive ? 'text-primary' : 'text-primary/70'
               }`}
             />
           </div>
@@ -306,10 +306,10 @@ const PROCESSING_STEPS: Omit<ProcessingStep, 'status'>[] = [
 
 function ProcessingOverlay({ steps }: { steps: ProcessingStep[] }) {
   return (
-    <div className="space-y-3 rounded-2xl border border-foreground/[0.18] bg-foreground/[0.16] p-4 dark:bg-foreground/[0.03] dark:border-foreground/[0.06] sm:p-6">
+    <div className="ds-card space-y-3 p-4 sm:p-6">
       <div className="flex items-center gap-2 mb-4">
-        <Loader2 className="w-4 h-4 text-success animate-spin" />
-        <span className="text-sm font-medium text-foreground/85 dark:text-foreground/70">Processing</span>
+        <Loader2 className="w-4 h-4 text-primary animate-spin" />
+        <span className="text-sm font-medium text-foreground">Processing</span>
       </div>
       {steps.map((step) => {
         const isActive = step.status === 'active';
@@ -327,20 +327,20 @@ function ProcessingOverlay({ steps }: { steps: ProcessingStep[] }) {
           >
             <div className="w-5 h-5 flex items-center justify-center shrink-0">
               {isComplete ? (
-                <CheckCircle2 className="w-4 h-4 text-success" />
+                <CheckCircle2 className="w-4 h-4 text-primary" />
               ) : isActive ? (
-                <Loader2 className="w-4 h-4 text-success/80 animate-spin" />
+                <Loader2 className="w-4 h-4 text-primary animate-spin" />
               ) : (
-                <div className="w-1.5 h-1.5 rounded-full bg-foreground/20" />
+                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/35" />
               )}
             </div>
             <span
               className={`text-sm transition-colors duration-300 ${
                 isComplete
-                  ? 'text-success/60 line-through'
-                  : isActive
-                    ? 'text-foreground/80'
-                    : 'text-foreground/30'
+                  ? 'text-primary/70 line-through'
+                : isActive
+                    ? 'text-foreground'
+                    : 'text-muted-foreground'
               }`}
             >
               {step.label}
@@ -379,7 +379,7 @@ function DetectionResults({
     info.confidence >= 0.8 ? 'High' : info.confidence >= 0.5 ? 'Medium' : 'Low';
   const confidenceColor =
     info.confidence >= 0.8
-      ? 'text-success bg-success/10 border-success/20'
+      ? 'text-primary bg-primary/10 border-primary/20'
       : info.confidence >= 0.5
         ? 'text-warning bg-warning/10 border-warning/20'
         : 'text-danger bg-danger/10 border-danger/20';
@@ -397,12 +397,12 @@ function DetectionResults({
   ];
 
   return (
-    <div className="bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06] rounded-2xl overflow-hidden">
+    <div className="ds-card overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col gap-3 border-b border-foreground/[0.18] px-4 py-4 dark:border-foreground/[0.06] sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div className="flex flex-col gap-3 border-b border-border bg-surface-elevated px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-success" />
-          <span className="text-sm font-medium text-foreground/80">Auto-Detected Settings</span>
+          <ShieldCheck className="w-4 h-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground">Auto-Detected Settings</span>
         </div>
         <span
           className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${confidenceColor}`}
@@ -413,21 +413,21 @@ function DetectionResults({
       </div>
 
       {/* Detail grid */}
-      <div className="grid grid-cols-1 gap-px bg-foreground/[0.18] dark:bg-foreground/[0.04] sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
         {details.map(({ icon: DIcon, label, value }) => (
-          <div key={label} className="flex min-w-0 flex-col gap-1.5 bg-background p-4">
-            <DIcon className="w-3.5 h-3.5 text-foreground/65 dark:text-foreground/25" />
-            <span className="text-[11px] text-foreground/65 dark:text-foreground/30 uppercase tracking-wider">{label}</span>
-            <span className="break-words text-sm font-medium text-foreground/80">{value}</span>
+          <div key={label} className="flex min-w-0 flex-col gap-1.5 bg-card p-4">
+            <DIcon className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{label}</span>
+            <span className="break-words text-sm font-semibold text-foreground">{value}</span>
           </div>
         ))}
       </div>
 
       {/* Processing indicator (no duplicate button) */}
       {processingActive && (
-        <div className="px-5 py-3 border-t border-foreground/[0.18] dark:border-foreground/[0.06] flex items-center gap-2">
-          <Loader2 className="w-3.5 h-3.5 text-success/60 animate-spin" />
-          <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">Preparing preview…</span>
+        <div className="px-5 py-3 border-t border-border bg-surface-elevated flex items-center gap-2">
+          <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
+          <span className="text-xs text-muted-foreground">Preparing preview...</span>
         </div>
       )}
     </div>
@@ -1050,9 +1050,9 @@ export default function ImportStep() {
 
       {/* ---- Background preview processing indicator ---- */}
       {bgProcessingActive && !anyProcessing && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] border border-foreground/[0.18] dark:border-foreground/[0.06]">
-          <Loader2 className="w-3.5 h-3.5 text-success/60 animate-spin" />
-          <span className="text-xs text-foreground/90 dark:text-foreground/75 dark:text-foreground/40">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card shadow-soft">
+          <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
+          <span className="text-xs text-muted-foreground">
             {processingStatus === 'parsing' && 'Parsing PDF...'}
             {processingStatus === 'rendering' && 'Rendering pages for preview...'}
             {processingStatus === 'analyzing' && 'Analyzing pages for issues...'}
@@ -1063,9 +1063,9 @@ export default function ImportStep() {
 
       {/* ---- Preview ready indicator ---- */}
       {processingStatus === 'ready' && previewReady && !anyProcessing && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-success/[0.04] border border-success/[0.10]">
-          <CheckCircle2 className="w-3.5 h-3.5 text-success/70" />
-          <span className="text-xs text-success/50">Preview ready — all pages rendered and analyzed</span>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/[0.06] border border-primary/20">
+          <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs text-primary">Preview ready — all pages rendered and analyzed</span>
         </div>
       )}
 
@@ -1082,7 +1082,7 @@ export default function ImportStep() {
         <div className="sticky bottom-4 z-10 flex justify-stretch sm:justify-end">
           <button
             onClick={handleContinue}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-success px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-success/25 transition-colors duration-200 hover:bg-success sm:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors duration-200 hover:bg-primary-hover sm:w-auto"
           >
             Continue to Configure
             <ChevronRight className="w-4 h-4" />
