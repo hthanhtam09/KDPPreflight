@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { LazyMotion, domAnimation, m } from 'framer-motion'
 import {
   ArrowRight,
   BookOpen,
@@ -236,13 +236,13 @@ function SectionHeader({
   id?: string
 }) {
   return (
-    <motion.div {...fadeUp} className="mx-auto mb-12 max-w-3xl text-center">
+    <m.div {...fadeUp} className="mx-auto mb-12 max-w-3xl text-center">
       <SectionLabel>{label}</SectionLabel>
       <h2 id={id} className="ds-heading text-balance text-3xl sm:text-[44px]">
         {title}
       </h2>
       <p className="ds-body mx-auto mt-5 max-w-2xl text-base">{body}</p>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -250,7 +250,7 @@ function IssueCard({ issue, index }: { issue: (typeof uploadIssues)[number]; ind
   const isSuccess = issue.status.includes('Pass')
 
   return (
-    <motion.article
+    <m.article
       {...fadeUp}
       transition={{ ...fadeUp.transition, delay: index * 0.06 }}
       className="ds-card ds-card-interactive issue-card group relative min-h-[292px] overflow-hidden p-5"
@@ -298,7 +298,7 @@ function IssueCard({ issue, index }: { issue: (typeof uploadIssues)[number]; ind
         <TriangleAlert className="h-3 w-3 text-warning" />
         {issue.badge}
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -316,10 +316,6 @@ function WorkflowVisual({ featured, visual }: { featured?: boolean; visual: stri
           <span className="workflow-calc-arrow" />
           <span className="workflow-result-line">Bleed 0.125"</span>
           <span className="workflow-result-line workflow-result-spine">Spine 0.676"</span>
-          <span className="workflow-ready">
-            <Check className="h-3 w-3" />
-            Spec ready
-          </span>
         </div>
       ) : visual === 'checker' ? (
         <div className="workflow-scanner">
@@ -356,7 +352,7 @@ function WorkflowVisual({ featured, visual }: { featured?: boolean; visual: stri
 
 function ResultDemo() {
   return (
-    <motion.div {...fadeUp} className="ds-card-elevated result-demo relative overflow-hidden p-[clamp(22px,4vw,40px)]">
+    <m.div {...fadeUp} className="ds-card-elevated result-demo relative overflow-hidden p-[clamp(22px,4vw,40px)]">
       <div className="relative z-10 grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
         <div>
           <p className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">
@@ -417,7 +413,7 @@ function ResultDemo() {
           </span>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -449,6 +445,7 @@ function PrivacyVisual() {
 
 export default function LandingPage() {
   return (
+    <LazyMotion features={domAnimation}>
     <div className="overflow-hidden">
       <section className="relative overflow-hidden bg-background">
         <div
@@ -472,14 +469,14 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 lg:pb-16 lg:pt-16">
           <div className="grid items-center gap-10 lg:grid-cols-[0.88fr_1.22fr] lg:gap-10">
             <div>
-              <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.46 }}>
+              <m.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.46 }}>
                 <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
                   <BookOpen className="h-3 w-3" />
                   Free KDP Preflight Tool for Amazon Creators
                 </span>
-              </motion.div>
+              </m.div>
 
-              <motion.h1
+              <m.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.08 }}
@@ -487,9 +484,9 @@ export default function LandingPage() {
               >
                 Fix bleed, trim, spine, and margin issues{' '}
                 <span className="text-primary">before KDP rejects</span> your upload.
-              </motion.h1>
+              </m.h1>
 
-              <motion.p
+              <m.p
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.18 }}
@@ -497,9 +494,9 @@ export default function LandingPage() {
               >
                 Scan your cover and manuscript PDF for practical KDP problems: bleed, trim size, spine width, safe
                 areas, margins, and export mistakes that create painful Amazon KDP upload errors.
-              </motion.p>
+              </m.p>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.27 }}
@@ -519,9 +516,9 @@ export default function LandingPage() {
                   <Ruler className="h-4 w-4" />
                   Calculate Book Specs
                 </Link>
-              </motion.div>
+              </m.div>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.36 }}
@@ -530,9 +527,9 @@ export default function LandingPage() {
                 <TrustNote>Files processed locally</TrustNote>
                 <TrustNote>No manuscript storage</TrustNote>
                 <TrustNote>Built for KDP creators</TrustNote>
-              </motion.div>
+              </m.div>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
@@ -552,7 +549,7 @@ export default function LandingPage() {
                   <span>3D preview</span>
                   <ArrowRight className="h-3 w-3" />
                 </Link>
-              </motion.div>
+              </m.div>
             </div>
 
             <div className="relative lg:-mr-10 xl:-mr-16">
@@ -576,7 +573,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <main>
+      <div>
         <section className="ds-section px-4 py-24 sm:px-6">
           <div className="mx-auto max-w-6xl">
             <SectionHeader
@@ -603,7 +600,7 @@ export default function LandingPage() {
               {steps.map((s) => {
                 const Icon = s.icon
                 return (
-                  <motion.article
+                  <m.article
                     key={s.step}
                     {...fadeUp}
                     className={`ds-card ds-card-interactive group relative overflow-hidden p-6 ${
@@ -636,7 +633,7 @@ export default function LandingPage() {
                       Open tool
                       <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-1" />
                     </Link>
-                  </motion.article>
+                  </m.article>
                 )
               })}
             </div>
@@ -655,7 +652,7 @@ export default function LandingPage() {
         </section>
 
         <section className="ds-section px-4 py-24 sm:px-6">
-          <motion.div
+          <m.div
             {...fadeUp}
             className="ds-card-elevated mx-auto grid max-w-6xl gap-10 overflow-hidden p-[clamp(28px,5vw,48px)] lg:grid-cols-[0.95fr_1.05fr] lg:items-center"
           >
@@ -679,7 +676,7 @@ export default function LandingPage() {
               </div>
             </div>
             <PrivacyVisual />
-          </motion.div>
+          </m.div>
         </section>
 
         <section className="ds-section px-4 py-24 sm:px-6" aria-labelledby="guide-heading">
@@ -692,7 +689,7 @@ export default function LandingPage() {
             />
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {guideItems.map((item, i) => (
-                <motion.article
+                <m.article
                   key={item.title}
                   {...fadeUp}
                   transition={{ ...fadeUp.transition, delay: i * 0.05 }}
@@ -703,7 +700,7 @@ export default function LandingPage() {
                   </span>
                   <h3 className="mb-3 text-lg font-bold leading-snug text-foreground">{item.title}</h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">{item.body}</p>
-                </motion.article>
+                </m.article>
               ))}
             </div>
           </div>
@@ -719,7 +716,7 @@ export default function LandingPage() {
             />
             <div className="grid gap-3 md:grid-cols-2">
               {faqs.map((faq, i) => (
-                <motion.article
+                <m.article
                   key={faq.q}
                   {...fadeUp}
                   transition={{ ...fadeUp.transition, delay: i * 0.025 }}
@@ -727,14 +724,14 @@ export default function LandingPage() {
                 >
                   <h3 className="text-[17px] font-bold leading-snug text-foreground">{faq.q}</h3>
                   <p className="mt-3.5 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
-                </motion.article>
+                </m.article>
               ))}
             </div>
           </div>
         </section>
 
         <section className="px-4 pb-28 pt-8 sm:px-6">
-          <motion.div {...fadeUp} className="final-cta mx-auto max-w-4xl overflow-hidden rounded-[var(--radius-panel)] p-8 text-center sm:p-12">
+          <m.div {...fadeUp} className="final-cta mx-auto max-w-4xl overflow-hidden rounded-[var(--radius-panel)] p-8 text-center sm:p-12">
             <SectionLabel>Before the next upload</SectionLabel>
             <h2 className="ds-heading mx-auto max-w-3xl text-balance text-4xl sm:text-6xl">
               Your PDF looks fine until KDP checks it.
@@ -758,9 +755,10 @@ export default function LandingPage() {
                 Calculate Book Specs
               </Link>
             </div>
-          </motion.div>
+          </m.div>
         </section>
-      </main>
+      </div>
     </div>
+    </LazyMotion>
   )
 }

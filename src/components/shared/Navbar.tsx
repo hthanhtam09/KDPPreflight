@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/setup", label: "Setup" },
   { href: "/checker", label: "Checker" },
   { href: "/preview", label: "3D Preview" },
+  { href: "/blog", label: "Blog" },
 ] as const;
 
 export default function Navbar() {

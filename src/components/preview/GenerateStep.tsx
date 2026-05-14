@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LazyMotion, domAnimation, m, AnimatePresence } from 'framer-motion';
 import {
   Loader2,
   CheckCircle2,
@@ -105,11 +105,11 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
 
       // Slice cover if we have a cover data URL
       if (coverDataUrl || uploadedCover?.dataUrl) {
-        setGenerationProgress(prev => ({
-          ...prev,
+        setGenerationProgress({
+          ...generationProgress,
           progress: 20,
           details: 'Calculating cover regions...',
-        }));
+        });
       }
 
       await delay(300);
@@ -129,11 +129,11 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
         const pageCount = bookConfig.pageCount;
         const pagesToRender = Math.min(pageCount, 100);
 
-        setGenerationProgress(prev => ({
-          ...prev,
+        setGenerationProgress({
+          ...generationProgress,
           progress: 35,
           details: `Rendering ${pagesToRender} pages...`,
-        }));
+        });
 
         const result = await loadPDF(manuscriptFile, {
           maxPages: pagesToRender,
@@ -148,20 +148,20 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
           }
           // Update progress
           if (i % 5 === 0) {
-            setGenerationProgress(prev => ({
-              ...prev,
+            setGenerationProgress({
+              ...generationProgress,
               progress: 35 + Math.round((i / result.pages.length) * 25),
               details: `Rendering page ${i + 1} of ${result.pages.length}...`,
-            }));
+            });
           }
         }
       } else {
         // No manuscript - skip with quick progress
-        setGenerationProgress(prev => ({
-          ...prev,
+        setGenerationProgress({
+          ...generationProgress,
           progress: 55,
           details: 'No manuscript to render',
-        }));
+        });
       }
 
       await delay(200);
@@ -184,28 +184,28 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
           // Pass segments back to parent
           onCoverSegments?.(segments);
 
-          setGenerationProgress(prev => ({
-            ...prev,
+          setGenerationProgress({
+            ...generationProgress,
             progress: 75,
             details: segments.isFullSpread
               ? 'Full cover spread detected and sliced'
               : 'Front cover image prepared',
-          }));
+          });
         } catch (err) {
           console.warn('Cover slicing failed (may be single image):', err);
           onCoverSegments?.(null);
-          setGenerationProgress(prev => ({
-            ...prev,
+          setGenerationProgress({
+            ...generationProgress,
             progress: 75,
             details: 'Cover prepared (single image mode)',
-          }));
+          });
         }
       } else {
-        setGenerationProgress(prev => ({
-          ...prev,
+        setGenerationProgress({
+          ...generationProgress,
           progress: 75,
           details: 'No cover file — using placeholder',
-        }));
+        });
       }
 
       await delay(300);
@@ -221,11 +221,11 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
 
       await delay(400);
 
-      setGenerationProgress(prev => ({
-        ...prev,
+      setGenerationProgress({
+        ...generationProgress,
         progress: 92,
         details: 'Preparing scene data...',
-      }));
+      });
 
       await delay(300);
 
@@ -292,7 +292,8 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
   return (
     <div className="ds-page-stage flex h-full items-center justify-center">
       <div className="max-w-lg w-full mx-auto px-4">
-        <motion.div
+        <LazyMotion features={domAnimation}>
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -306,12 +307,7 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
               ) : isComplete ? (
                 <CheckCircle2 className="h-7 w-7 text-success" />
               ) : (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                >
-                  <Sparkles className="h-7 w-7 text-primary" />
-                </motion.div>
+                <Sparkles className="h-7 w-7 animate-spin text-primary motion-reduce:animate-none" style={{ animationDuration: '2s' }} />
               )}
             </div>
             <h1 className="text-2xl font-bold text-foreground">
@@ -380,7 +376,8 @@ export default function GenerateStep({ onCoverSegments }: { onCoverSegments?: (s
               </Button>
             </div>
           )}
-        </motion.div>
+        </m.div>
+        </LazyMotion>
       </div>
     </div>
   );
@@ -402,8 +399,7 @@ function PhaseItem({
   details?: string;
 }) {
   return (
-    <motion.div
-      layout
+    <div
       className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all ${
         status === 'active'
           ? 'border border-primary/20 bg-primary/10'
@@ -415,20 +411,9 @@ function PhaseItem({
       {/* Status Icon */}
       <div className="shrink-0">
         {status === 'complete' ? (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          >
-            <CheckCircle2 className="h-5 w-5 text-success" />
-          </motion.div>
+          <CheckCircle2 className="h-5 w-5 text-success" />
         ) : status === 'active' ? (
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-          >
-            <Loader2 className="h-5 w-5 text-primary" />
-          </motion.div>
+          <Loader2 className="h-5 w-5 animate-spin text-primary motion-reduce:animate-none" />
         ) : (
           <Circle className="h-5 w-5 text-muted-foreground/35" />
         )}
@@ -448,14 +433,14 @@ function PhaseItem({
         </div>
         <AnimatePresence>
           {isCurrentPhase && details && (
-            <motion.p
+            <m.p
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               className="mt-0.5 text-xs text-muted-foreground"
             >
               {details}
-            </motion.p>
+            </m.p>
           )}
         </AnimatePresence>
       </div>
@@ -468,7 +453,7 @@ function PhaseItem({
       }`}>
         {status === 'complete' ? '✓' : `${PHASES.indexOf(phaseDef) + 1}/4`}
       </span>
-    </motion.div>
+    </div>
   );
 }
 

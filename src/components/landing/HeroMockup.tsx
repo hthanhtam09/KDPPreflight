@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
+import { LazyMotion, MotionConfig, domAnimation, m } from 'framer-motion';
 import { AlertTriangle, ArrowRight, Check, FileText, Loader2, X } from 'lucide-react';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 
@@ -108,6 +108,7 @@ function SeverityIcon({ s, fixing }: { s: Severity; fixing?: boolean }) {
   return <Check className={`mt-px h-4 w-4 shrink-0 ${HERO_TEXT.success}`} />;
 }
 
+// Pure CSS transition — no framer-motion remount on each status change
 function StatusBadge({ step }: { step: number }) {
   const status = STATUS_STEPS[step] ?? STATUS_STEPS[0];
   const idle = step === 0;
@@ -116,12 +117,8 @@ function StatusBadge({ step }: { step: number }) {
   const success = step >= 9;
 
   return (
-    <motion.div
-      key={status}
-      initial={{ opacity: 0.75, y: -2 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22 }}
-      className={`flex min-w-[206px] items-center justify-center gap-2 rounded-full border px-3 py-1.5 ${
+    <div
+      className={`flex min-w-[206px] items-center justify-center gap-2 rounded-full border px-3 py-1.5 transition-all duration-200 ${
         idle
           ? `border-border/70 bg-muted/45 ${HERO_TEXT.muted}`
           : working
@@ -141,7 +138,7 @@ function StatusBadge({ step }: { step: number }) {
         <span className="h-2 w-2 rounded-full bg-current opacity-45" />
       )}
       <span className="whitespace-nowrap text-[11px] font-semibold">{status}</span>
-    </motion.div>
+    </div>
   );
 }
 
@@ -204,7 +201,7 @@ function DocPreview({ step }: { step: number }) {
             <span className="text-[9px] font-semibold text-slate-400">PDF</span>
           </div>
 
-          <motion.span
+          <m.span
             className={`absolute inset-x-3 bottom-3 top-12 rounded-[4px] border-2 border-dashed ${
               fixed ? 'border-success/70' : 'border-destructive/60'
             }`}
@@ -233,14 +230,14 @@ function DocPreview({ step }: { step: number }) {
 
           {(scanning || rechecking) && !reduceMotion ? (
             <>
-              <motion.div
+              <m.div
                 key={rechecking ? 'recheck-fill' : 'scan-fill'}
                 className="pointer-events-none absolute inset-y-0 left-0 w-[44px] bg-gradient-to-r from-transparent via-primary/45 to-transparent mix-blend-multiply"
                 initial={{ x: -54 }}
                 animate={{ x: 246 }}
                 transition={{ duration: rechecking ? 1.15 : 2.45, ease: 'easeInOut' }}
               />
-              <motion.div
+              <m.div
                 key={rechecking ? 'recheck-line' : 'scan-line'}
                 className="pointer-events-none absolute inset-y-0 left-0 w-[2px] bg-primary shadow-[0_0_22px_rgba(192,132,87,0.65)]"
                 initial={{ x: -4 }}
@@ -251,7 +248,7 @@ function DocPreview({ step }: { step: number }) {
           ) : null}
 
           {selected && !fixed ? (
-            <motion.span
+            <m.span
               className="absolute right-4 top-[58px] h-3 w-3 rounded-full border-2 border-white bg-destructive shadow-[0_0_0_5px_rgba(220,38,38,0.18)]"
               animate={reduceMotion ? undefined : { scale: [1, 1.18, 1] }}
               transition={{ duration: 0.72, repeat: 1, ease: [0.22, 1, 0.36, 1] }}
@@ -260,35 +257,37 @@ function DocPreview({ step }: { step: number }) {
 
           {fixing && !reduceMotion ? (
             <>
-              <motion.span
-                className="absolute inset-x-5 bottom-5 top-14 rounded-[3px] border-2 border-primary/45"
-                initial={{ inset: '56px 20px 20px 20px', opacity: 0.28 }}
-                animate={{ inset: '48px 12px 12px 12px', opacity: 0 }}
+              {/* scale instead of inset — GPU-composited, no layout reflow */}
+              <m.span
+                className="absolute inset-x-3 bottom-3 top-12 origin-center rounded-[3px] border-2 border-primary/45"
+                initial={{ scale: 0.96, opacity: 0.28 }}
+                animate={{ scale: 1.04, opacity: 0 }}
                 transition={{ duration: 1.1, ease: 'easeOut' }}
               />
-              <motion.span
-                className="absolute inset-x-3 top-12 h-[3px] rounded-full bg-primary shadow-[0_0_18px_rgba(192,132,87,0.55)]"
-                initial={{ width: '0%' }}
-                animate={{ width: 'calc(100% - 24px)' }}
+              {/* scaleX instead of width — GPU-composited, no layout reflow */}
+              <m.span
+                className="absolute left-3 top-12 h-[3px] w-[calc(100%-24px)] origin-left rounded-full bg-primary shadow-[0_0_18px_rgba(192,132,87,0.55)]"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
                 transition={{ duration: 1.05, ease: 'easeInOut' }}
               />
             </>
           ) : null}
 
           {passed ? (
-            <motion.div
+            <m.div
               className={`absolute right-4 top-12 flex h-8 w-8 items-center justify-center rounded-full border border-success/35 bg-success/12 shadow-[0_0_24px_rgba(5,150,105,0.22)] ${HERO_TEXT.success}`}
               initial={{ scale: 0.7, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.32, ease: 'easeOut' }}
             >
               <Check className="h-4 w-4" />
-            </motion.div>
+            </m.div>
           ) : null}
         </div>
 
         {tooltip ? (
-          <motion.div
+          <m.div
             key={tooltip.title}
             initial={{ opacity: 0, y: 6, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -316,7 +315,7 @@ function DocPreview({ step }: { step: number }) {
             <p className="mt-0.5 truncate text-[10px] font-medium leading-tight text-foreground/82 dark:text-white/82">
               {tooltip.body}
             </p>
-          </motion.div>
+          </m.div>
         ) : null}
       </div>
 
@@ -345,7 +344,7 @@ function FooterResult({ step }: { step: number }) {
   const final = step >= 9;
 
   return (
-    <motion.div
+    <m.div
       className="flex flex-wrap items-center gap-2 border-t border-border/40 bg-muted/20 px-5 py-3.5"
       initial={{ opacity: 0 }}
       animate={{ opacity: hidden ? 0 : 1 }}
@@ -400,7 +399,7 @@ function FooterResult({ step }: { step: number }) {
       >
         {final ? 'Passed' : fixing ? 'Rechecking' : 'Needs fixing'}
       </span>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -453,125 +452,126 @@ export default function HeroMockup() {
   }, []);
 
   return (
-    <div className="relative mx-auto w-full max-w-[720px]" aria-hidden="true">
-      <div className="pointer-events-none absolute -inset-10 z-0 hidden opacity-70 lg:block">
-        <HeroScanScene activeStep={displayStep} />
-      </div>
-      <div
-        className="pointer-events-none absolute -inset-6 z-0 rounded-[36px] bg-[radial-gradient(circle_at_62%_45%,rgba(192,132,87,0.18),transparent_42%)] blur-2xl"
-        aria-hidden="true"
-      />
-
-      <motion.div
-        initial={{ opacity: 0, y: 18, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.7, delay: 0.34, ease: 'easeOut' }}
-        className="ds-card-glass relative z-10 overflow-hidden rounded-[24px] bg-surface/95"
-      >
-        <div className="relative z-10">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-muted/24 px-5 py-3">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-[5px]" aria-hidden="true">
-                <span className="block h-[10px] w-[10px] rounded-full bg-destructive/35" />
-                <span className="block h-[10px] w-[10px] rounded-full bg-warning/35" />
-                <span className="block h-[10px] w-[10px] rounded-full bg-success/35" />
-              </div>
-              <span className={`whitespace-nowrap text-[12px] font-semibold ${HERO_TEXT.muted}`}>KDP Preflight Checker</span>
+    <MotionConfig reducedMotion="user">
+      <LazyMotion features={domAnimation}>
+        <div className="relative mx-auto w-full max-w-[720px]" aria-hidden="true">
+          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[24px]">
+            <div className="absolute -inset-10 hidden opacity-70 lg:block">
+              <HeroScanScene activeStep={displayStep} />
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <FlowIndicator step={displayStep} />
-              <StatusBadge step={displayStep} />
-            </div>
+            <div
+              className="absolute -inset-6 rounded-[36px] bg-[radial-gradient(circle_at_62%_45%,rgba(192,132,87,0.18),transparent_42%)] blur-2xl"
+              aria-hidden="true"
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-[245px_1fr]">
-            <div className="space-y-4 border-b border-border/40 p-4 md:border-b-0 md:border-r md:p-5">
-              <div>
-                <p className={`mb-2 text-[10px] font-bold uppercase tracking-[0.16em] ${HERO_TEXT.quiet}`}>Files</p>
-                <div className="space-y-2">
-                  {UPLOAD_ITEMS.map((f, index) => (
-                    <motion.div
-                      key={f.key}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={displayStep >= 1 ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
-                      transition={{ duration: 0.28, delay: index * 0.08 }}
-                      className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-background/65 px-3 py-2.5"
-                    >
-                      <Check className={`h-4 w-4 shrink-0 ${HERO_TEXT.success}`} />
-                      <div className="min-w-0">
-                        <p className="truncate text-[12px] font-semibold leading-tight text-foreground">{f.name}</p>
-                        <p className={`truncate text-[10px] leading-tight ${HERO_TEXT.muted}`}>{f.meta}</p>
-                      </div>
-                    </motion.div>
-                  ))}
+          <m.div
+            initial={{ opacity: 0, y: 18, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.34, ease: 'easeOut' }}
+            className="ds-card-glass relative z-10 overflow-hidden rounded-[24px] bg-surface/95"
+          >
+            <div className="relative z-10">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-muted/24 px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-[5px]" aria-hidden="true">
+                    <span className="block h-[10px] w-[10px] rounded-full bg-destructive/35" />
+                    <span className="block h-[10px] w-[10px] rounded-full bg-warning/35" />
+                    <span className="block h-[10px] w-[10px] rounded-full bg-success/35" />
+                  </div>
+                  <span className={`whitespace-nowrap text-[12px] font-semibold ${HERO_TEXT.muted}`}>KDP Preflight Checker</span>
+                </div>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <FlowIndicator step={displayStep} />
+                  <StatusBadge step={displayStep} />
                 </div>
               </div>
 
-              <div>
-                <p className={`mb-2 text-[10px] font-bold uppercase tracking-[0.16em] ${HERO_TEXT.quiet}`}>
-                  Validation
-                </p>
-                <motion.div
-                  variants={{ show: { transition: { staggerChildren: 0.14 } } }}
-                  animate="show"
-                  className="space-y-2"
-                >
-                  {visibleValidationItems.map((item, i) => {
-                    const visible = displayStep >= 4 || reduceMotion;
-                    const selected = item.key === 'bleed' && displayStep === 5;
-                    const fixing = item.key === 'bleed' && displayStep === 6;
-                    const pulse = selected && !reduceMotion;
-
-                    return (
-                      <motion.div
-                        layout
-                        key={item.key}
-                        variants={{
-                          hidden: { opacity: 0, x: -12, scale: 0.98 },
-                          show: { opacity: 1, x: 0, scale: 1 },
-                        }}
-                        initial="hidden"
-                        animate={visible ? 'show' : 'hidden'}
-                        transition={{ duration: 0.34, ease: 'easeOut', delay: displayStep === 4 ? i * 0.15 : 0 }}
-                        className={`flex items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-colors ${severityBg(item.severity, selected)}`}
-                      >
-                        <SeverityIcon s={item.severity} fixing={fixing} />
-                        <motion.div
-                          className="min-w-0 flex-1"
-                          animate={pulse ? { opacity: [1, 0.84, 1] } : { opacity: 1 }}
-                          transition={{ duration: 0.7, repeat: pulse ? 1 : 0 }}
+              <div className="grid grid-cols-1 md:grid-cols-[245px_1fr]">
+                <div className="space-y-4 border-b border-border/40 p-4 md:border-b-0 md:border-r md:p-5">
+                  <div>
+                    <p className={`mb-2 text-[10px] font-bold uppercase tracking-[0.16em] ${HERO_TEXT.quiet}`}>Files</p>
+                    <div className="space-y-2">
+                      {UPLOAD_ITEMS.map((f, index) => (
+                        <m.div
+                          key={f.key}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={displayStep >= 1 ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+                          transition={{ duration: 0.28, delay: index * 0.08 }}
+                          className="flex items-center gap-2.5 rounded-xl border border-border/60 bg-background/65 px-3 py-2.5"
                         >
-                          <div className="flex min-w-0 items-center gap-2">
-                            <p className="truncate text-[12px] font-semibold leading-tight text-foreground">{fixing ? 'Fixing bleed issue' : item.label}</p>
-                            {selected ? (
-                              <span className={`shrink-0 rounded-full border border-destructive/25 bg-destructive/[0.08] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] ${HERO_TEXT.danger}`}>
-                                Selected
-                              </span>
-                            ) : item.key === 'bleed' && displayStep === 4 ? (
-                              <span className={`shrink-0 rounded-full border border-warning/25 bg-warning/[0.08] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] ${HERO_TEXT.warning}`}>
-                                View issue
-                              </span>
-                            ) : null}
+                          <Check className={`h-4 w-4 shrink-0 ${HERO_TEXT.success}`} />
+                          <div className="min-w-0">
+                            <p className="truncate text-[12px] font-semibold leading-tight text-foreground">{f.name}</p>
+                            <p className={`truncate text-[10px] leading-tight ${HERO_TEXT.muted}`}>{f.meta}</p>
                           </div>
-                          <p className={`mt-0.5 truncate text-[10px] leading-tight ${HERO_TEXT.muted}`}>
-                            {fixing ? 'Extending artwork to the required bleed' : item.detail}
-                          </p>
-                        </motion.div>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
+                        </m.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className={`mb-2 text-[10px] font-bold uppercase tracking-[0.16em] ${HERO_TEXT.quiet}`}>
+                      Validation
+                    </p>
+                    {/* Plain div — removed staggerChildren motion wrapper overhead */}
+                    <div className="space-y-2">
+                      {visibleValidationItems.map((item, i) => {
+                        const visible = displayStep >= 4 || reduceMotion;
+                        const selected = item.key === 'bleed' && displayStep === 5;
+                        const fixing = item.key === 'bleed' && displayStep === 6;
+                        const pulse = selected && !reduceMotion;
+
+                        return (
+                          // layout prop removed — no FLIP DOM measurement on each step change
+                          <m.div
+                            key={item.key}
+                            variants={{
+                              hidden: { opacity: 0, x: -12, scale: 0.98 },
+                              show: { opacity: 1, x: 0, scale: 1 },
+                            }}
+                            initial="hidden"
+                            animate={visible ? 'show' : 'hidden'}
+                            transition={{ duration: 0.34, ease: 'easeOut', delay: displayStep === 4 ? i * 0.15 : 0 }}
+                            className={`flex items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-colors ${severityBg(item.severity, selected)}`}
+                          >
+                            <SeverityIcon s={item.severity} fixing={fixing} />
+                            <div
+                              className={`min-w-0 flex-1 transition-opacity duration-700 ${pulse ? 'opacity-[0.84]' : 'opacity-100'}`}
+                            >
+                              <div className="flex min-w-0 items-center gap-2">
+                                <p className="truncate text-[12px] font-semibold leading-tight text-foreground">{fixing ? 'Fixing bleed issue' : item.label}</p>
+                                {selected ? (
+                                  <span className={`shrink-0 rounded-full border border-destructive/25 bg-destructive/[0.08] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] ${HERO_TEXT.danger}`}>
+                                    Selected
+                                  </span>
+                                ) : item.key === 'bleed' && displayStep === 4 ? (
+                                  <span className={`shrink-0 rounded-full border border-warning/25 bg-warning/[0.08] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] ${HERO_TEXT.warning}`}>
+                                    View issue
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className={`mt-0.5 truncate text-[10px] leading-tight ${HERO_TEXT.muted}`}>
+                                {fixing ? 'Extending artwork to the required bleed' : item.detail}
+                              </p>
+                            </div>
+                          </m.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center p-5 md:p-6">
+                  <DocPreview step={displayStep} />
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-center p-5 md:p-6">
-              <DocPreview step={displayStep} />
+              <FooterResult step={displayStep} />
             </div>
-          </div>
-
-          <FooterResult step={displayStep} />
+          </m.div>
         </div>
-      </motion.div>
-    </div>
+      </LazyMotion>
+    </MotionConfig>
   );
 }

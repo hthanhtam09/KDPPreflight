@@ -7,18 +7,20 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
-import { BookType, CameraPreset, PreviewFlowStep } from '@/types/kdp';
+import { CameraPreset, PreviewFlowStep } from '@/types/kdp';
 import { CoverSegments } from '@/engine/cover-parser';
+import { calculateMeasurements, DEFAULT_BOOK_CONFIG } from '@/engine/kdp-constants';
 import dynamic from 'next/dynamic';
 import PreviewToolbar from './PreviewToolbar';
 import ImportStep from './ImportStep';
 import ConfigStep from './ConfigStep';
 import GenerateStep from './GenerateStep';
-import type { Preview3DState, Preview3DActions } from './BookPreview3D';
+import type { Preview3DOverlays, Preview3DState, Preview3DActions } from './BookPreview3D';
 import { StepProgress } from '@/components/workspace/ProductWorkspace';
 
-// Dynamic import to avoid SSR issues with Three.js
+// Dynamic imports to avoid SSR issues with Three.js
 const BookPreview3D = dynamic(() => import('./BookPreview3D'), { ssr: false });
+const KindlePreview = dynamic(() => import('./KindlePreview'), { ssr: false });
 
 // ---------------------------------------------------------------------------
 // Step definitions
@@ -36,6 +38,8 @@ const STEPS: StepDef[] = [
   { key: 'preview', label: '3D Preview' },
 ];
 
+const BLEED_INCH = 0.125;
+
 // ---------------------------------------------------------------------------
 // Main Preview Feature Component — 4-Step Orchestrator
 // ---------------------------------------------------------------------------
@@ -48,14 +52,21 @@ export default function PreviewFeature() {
     measurements,
     bookConfig,
     coverDataUrl,
-    cameraPreset,
     isProcessing,
     processingMessage,
     generationProgress,
   } = useAppStore();
+  const safeBookConfig = bookConfig ?? DEFAULT_BOOK_CONFIG;
+  const safeMeasurements = measurements ?? calculateMeasurements(safeBookConfig);
 
   const [coverSegments, setCoverSegments] = useState<CoverSegments | null>(null);
   const exportRef = useRef<(() => void) | null>(null);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [overlays, setOverlays] = useState<Preview3DOverlays>({
+    bleed: true,
+    trim: true,
+    safe: true,
+  });
 
   // Derive coverUrl from store instead of syncing via effect
   const coverUrl = useMemo(
@@ -65,100 +76,149 @@ export default function PreviewFeature() {
 
   // 3D Preview State — derive bookType from config rather than syncing via effect
   const [previewState, setPreviewState] = useState<Preview3DState>(() => ({
-    isOpen: false,
-    currentPage: 0,
+    currentPage: 1,
     isFlipping: false,
     flipProgress: 0,
     flipDirection: 'forward',
-    bookType: bookConfig.bookType || 'paperback',
+    targetPage: null,
+    bookType: safeBookConfig.bookType || 'paperback',
     kindleDevice: 'paperwhite',
     darkMode: false,
-    bookState: 'closed',
-    cameraPreset: 'free',
+    bookPose: 'closedFront',
+    cameraPreset: 'front',
   }));
 
   // Keep bookType in sync via callback (not effect)
   const effectivePreviewState = useMemo(
-    () => ({ ...previewState, bookType: bookConfig.bookType || previewState.bookType }),
-    [previewState, bookConfig.bookType],
+    () => ({ ...previewState, bookType: safeBookConfig.bookType || previewState.bookType }),
+    [previewState, safeBookConfig.bookType],
   );
+
+  const bleedInfo = useMemo(() => {
+    const expectedWidth = safeMeasurements.trimWidthIn + BLEED_INCH * 2;
+    const expectedHeight = safeMeasurements.trimHeightIn + BLEED_INCH * 2;
+    const bleedEnabled = safeBookConfig.bleed === 'bleed';
+    const notRequired = safeBookConfig.bookType === 'kindle';
+    return {
+      enabled: bleedEnabled,
+      status: notRequired ? 'Not required' : bleedEnabled ? 'Enabled' : 'Missing',
+      label: notRequired
+        ? 'Bleed not required'
+        : bleedEnabled
+          ? `Bleed enabled · ${expectedWidth.toFixed(3)}" x ${expectedHeight.toFixed(3)}"`
+          : `Bleed missing · expected ${expectedWidth.toFixed(3)}" x ${expectedHeight.toFixed(3)}"`,
+      expectedPageSize: `${expectedWidth.toFixed(3)}" x ${expectedHeight.toFixed(3)}"`,
+      actualPageSize: bleedEnabled
+        ? `${expectedWidth.toFixed(3)}" x ${expectedHeight.toFixed(3)}"`
+        : `${safeMeasurements.trimWidthIn.toFixed(3)}" x ${safeMeasurements.trimHeightIn.toFixed(3)}"`,
+    };
+  }, [safeBookConfig.bleed, safeBookConfig.bookType, safeMeasurements.trimHeightIn, safeMeasurements.trimWidthIn]);
 
   // ---- 3D Actions ----
   const actions: Preview3DActions = {
-    toggleOpen: useCallback(() => {
-      setPreviewState(prev => ({
-        ...prev,
-        isOpen: !prev.isOpen,
-        bookState: prev.isOpen ? 'closing' : 'opening',
-      }));
-    }, []),
     nextPage: useCallback(() => {
       setPreviewState(prev => {
-        if (prev.isFlipping || prev.currentPage >= bookConfig.pageCount - 2) return prev;
+        if (prev.isFlipping || prev.bookPose === 'closedBack') return prev;
         return {
           ...prev,
           isFlipping: true,
           flipProgress: 0,
           flipDirection: 'forward',
-          bookState: 'flipping',
+          targetPage: null,
+          bookPose: 'open',
+          cameraPreset: 'open-spread',
         };
       });
-    }, [bookConfig.pageCount]),
+    }, [safeBookConfig.pageCount]),
     prevPage: useCallback(() => {
       setPreviewState(prev => {
-        if (prev.isFlipping || prev.currentPage <= 0) return prev;
+        if (prev.isFlipping || (prev.bookPose === 'open' && prev.currentPage <= 1)) return prev;
+        const fromBackCover = prev.bookPose === 'closedBack';
+        const lastSpread = safeBookConfig.pageCount <= 1 ? 1 : safeBookConfig.pageCount % 2 === 0 ? safeBookConfig.pageCount : safeBookConfig.pageCount - 1;
         return {
           ...prev,
           isFlipping: true,
           flipProgress: 0,
           flipDirection: 'backward',
-          bookState: 'flipping',
+          targetPage: fromBackCover ? lastSpread : null,
+          currentPage: fromBackCover ? lastSpread : prev.currentPage,
+          bookPose: 'open',
+          cameraPreset: 'open-spread',
         };
       });
-    }, []),
+    }, [safeBookConfig.pageCount]),
     goToPage: useCallback((page: number) => {
-      setPreviewState(prev => ({
-        ...prev,
-        currentPage: Math.max(0, Math.min(page, bookConfig.pageCount - 1)),
-        isFlipping: false,
-        flipProgress: 0,
-        bookState: prev.isOpen ? 'opened' : 'closed',
-      }));
-    }, [bookConfig.pageCount]),
-    setBookType: useCallback((type: BookType) => {
-      setPreviewState(prev => ({
-        ...prev,
-        bookType: type,
-        isOpen: type === 'kindle' ? false : prev.isOpen,
-      }));
-    }, []),
-    setKindleDevice: useCallback((device: 'paperwhite' | 'oasis' | 'tablet' | 'phone') => {
-      setPreviewState(prev => ({ ...prev, kindleDevice: device }));
-    }, []),
-    toggleDarkMode: useCallback(() => {
-      setPreviewState(prev => ({ ...prev, darkMode: !prev.darkMode }));
-    }, []),
-    resetCamera: useCallback(() => {
-      setPreviewState(prev => ({ ...prev, cameraPreset: 'free' }));
-    }, []),
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const clamped = Math.max(1, Math.min(Math.round(page), safeBookConfig.pageCount));
+      const normalized = clamped === 1 ? 1 : clamped % 2 === 0 ? clamped : clamped - 1;
+      setPreviewState(prev => {
+        if (prev.isFlipping) return prev;
+        if (reducedMotion || normalized === prev.currentPage) {
+          return {
+            ...prev,
+            currentPage: normalized,
+            targetPage: null,
+            isFlipping: false,
+            flipProgress: 0,
+            bookPose: 'open',
+            cameraPreset: 'open-spread',
+          };
+        }
+        return {
+          ...prev,
+          isFlipping: true,
+          flipProgress: 0,
+          flipDirection: normalized > prev.currentPage ? 'forward' : 'backward',
+          targetPage: normalized,
+          bookPose: 'open',
+          cameraPreset: 'open-spread',
+        };
+      });
+    }, [safeBookConfig.pageCount]),
     exportScreenshot: useCallback((_highRes?: boolean) => {
       if (exportRef.current) exportRef.current();
     }, []),
     setCameraPreset: useCallback((preset: CameraPreset) => {
-      setPreviewState(prev => ({ ...prev, cameraPreset: preset }));
+      setPreviewState(prev => {
+        if (preset === 'front') return { ...prev, bookPose: 'closedFront', isFlipping: false, flipProgress: 0, targetPage: null, cameraPreset: 'front' };
+        if (preset === 'back') return { ...prev, bookPose: 'closedBack', isFlipping: false, flipProgress: 0, targetPage: null, cameraPreset: 'back' };
+        if (preset === 'spine') return { ...prev, bookPose: 'closedSpine', isFlipping: false, flipProgress: 0, targetPage: null, cameraPreset: 'spine' };
+        return { ...prev, cameraPreset: preset };
+      });
     }, []),
+    toggleConfig: useCallback(() => setIsConfigOpen(prev => !prev), []),
   };
 
   const handleStateChange = useCallback((updates: Partial<Preview3DState>) => {
     setPreviewState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // ---- Keyboard navigation for 3D Preview ----
+  // ---- Kindle-specific page navigation (no flip animation) ----
+  const kindleNextPage = useCallback(() => {
+    setPreviewState(prev => ({
+      ...prev,
+      currentPage: Math.min(prev.currentPage + 1, safeBookConfig.pageCount),
+    }));
+  }, [safeBookConfig.pageCount]);
+
+  const kindlePrevPage = useCallback(() => {
+    setPreviewState(prev => ({
+      ...prev,
+      currentPage: Math.max(prev.currentPage - 1, 1),
+    }));
+  }, []);
+
+  const kindleGoToPage = useCallback((page: number) => {
+    const clamped = Math.max(1, Math.min(Math.round(page), safeBookConfig.pageCount));
+    setPreviewState(prev => ({ ...prev, currentPage: clamped }));
+  }, [safeBookConfig.pageCount]);
+
+  // ---- Keyboard navigation for Preview ----
   useEffect(() => {
     if (previewFlowStep !== 'preview') return;
+    const isKindle = safeBookConfig.bookType === 'kindle';
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't capture when user is typing in an input
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
@@ -168,42 +228,42 @@ export default function PreviewFeature() {
       switch (e.key) {
         case 'ArrowRight':
           e.preventDefault();
-          actions.nextPage();
+          isKindle ? kindleNextPage() : actions.nextPage();
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          actions.prevPage();
+          isKindle ? kindlePrevPage() : actions.prevPage();
           break;
         case 'o':
         case 'O':
-          actions.toggleOpen();
+          if (!isKindle) actions.setCameraPreset('open-spread');
           break;
         case 'f':
         case 'F':
-          actions.setCameraPreset('front');
+          if (!isKindle) actions.setCameraPreset('front');
           break;
         case 'b':
         case 'B':
-          actions.setCameraPreset('back');
+          if (!isKindle) actions.setCameraPreset('back');
           break;
         case 's':
         case 'S':
-          actions.setCameraPreset('spine');
+          if (!isKindle) actions.setCameraPreset('spine');
           break;
         case 'r':
         case 'R':
-          actions.resetCamera();
+          if (!isKindle) actions.setCameraPreset('front');
           break;
         case 'e':
         case 'E':
-          actions.exportScreenshot();
+          if (!isKindle) actions.exportScreenshot();
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [previewFlowStep, actions]);
+  }, [previewFlowStep, actions, safeBookConfig.bookType, kindleNextPage, kindlePrevPage]);
 
   // ---- Step navigation: can go back, not forward ----
   const canGoToStep = useCallback((step: PreviewFlowStep): boolean => {
@@ -286,59 +346,87 @@ export default function PreviewFeature() {
               transition={{ duration: 0.3 }}
               className="h-full relative"
             >
-              {/* 3D Viewport */}
-              <div className="h-full ds-page-stage">
-                <BookPreview3D
-                  coverUrl={coverUrl}
-                  coverSegments={coverSegments}
-                  state={effectivePreviewState}
-                  onStateChange={handleStateChange}
-                  onExportRef={exportRef}
-                  cameraPreset={cameraPreset}
-                />
-
-                {/* Premium Toolbar Overlay */}
-                <PreviewToolbar
-                  state={effectivePreviewState}
-                  actions={actions}
-                  totalPages={bookConfig.pageCount}
+              {effectivePreviewState.bookType === 'kindle' ? (
+                /* ── Kindle flat e-reader preview ── */
+                <KindlePreview
+                  currentPage={effectivePreviewState.currentPage}
+                  totalPages={safeBookConfig.pageCount}
+                  onPrev={kindlePrevPage}
+                  onNext={kindleNextPage}
+                  onGoToPage={kindleGoToPage}
+                  onBack={() => setPreviewFlowStep('config')}
+                  bleedInfo={bleedInfo}
                   measurements={{
-                    trimWidth: measurements.trimWidthIn.toFixed(2),
-                    trimHeight: measurements.trimHeightIn.toFixed(2),
-                    spine: measurements.spineWidthIn.toFixed(3),
-                    pageCount: bookConfig.pageCount,
+                    pageCount: safeBookConfig.pageCount,
+                    bookType: safeBookConfig.bookType,
+                    coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
+                    pageSource: `${safeBookConfig.pageCount} rendered pages`,
+                    expectedPageSize: bleedInfo.expectedPageSize,
+                    actualPageSize: bleedInfo.actualPageSize,
                   }}
                 />
+              ) : (
+                /* ── Physical book 3D preview ── */
+                <div className="h-full ds-page-stage">
+                  <BookPreview3D
+                    coverUrl={coverUrl}
+                    coverSegments={coverSegments}
+                    state={effectivePreviewState}
+                    onStateChange={handleStateChange}
+                    onExportRef={exportRef}
+                    overlays={overlays}
+                  />
 
-                {/* Back to Config button */}
-                <button
-                  onClick={() => setPreviewFlowStep('config')}
-                  className="ds-focus ds-control absolute left-3 top-[4.25rem] z-20 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:left-4"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  Config
-                </button>
+                  <PreviewToolbar
+                    state={effectivePreviewState}
+                    actions={actions}
+                    totalPages={safeBookConfig.pageCount}
+                    isConfigOpen={isConfigOpen}
+                    onCloseConfig={() => setIsConfigOpen(false)}
+                    overlays={overlays}
+                    onOverlayChange={(key, value) => setOverlays(prev => ({ ...prev, [key]: value }))}
+                    bleedInfo={bleedInfo}
+                    measurements={{
+                      trimWidth: safeMeasurements.trimWidthIn.toFixed(2),
+                      trimHeight: safeMeasurements.trimHeightIn.toFixed(2),
+                      spine: safeMeasurements.spineWidthIn.toFixed(3),
+                      pageCount: safeBookConfig.pageCount,
+                      bookType: safeBookConfig.bookType,
+                      coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
+                      pageSource: `${safeBookConfig.pageCount} rendered pages`,
+                      paperType: safeBookConfig.paper,
+                      expectedPageSize: bleedInfo.expectedPageSize,
+                      actualPageSize: bleedInfo.actualPageSize,
+                    }}
+                  />
 
-                {/* Processing overlay */}
-                {isProcessing && (
-                  <div className="absolute inset-0 z-30 flex items-center justify-center bg-overlay backdrop-blur-sm">
-                    <div className="ds-card-glass flex items-center gap-3 px-6 py-4">
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                      <span className="text-sm text-foreground/80">{processingMessage || 'Processing...'}</span>
+                  <button
+                    onClick={() => setPreviewFlowStep('config')}
+                    className="ds-focus ds-control absolute left-3 top-3 z-20 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:left-4"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Config
+                  </button>
+
+                  {isProcessing && (
+                    <div className="absolute inset-0 z-30 flex items-center justify-center bg-overlay backdrop-blur-sm">
+                      <div className="ds-card-glass flex items-center gap-3 px-6 py-4">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        <span className="text-sm text-foreground/80">{processingMessage || 'Processing...'}</span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Generation progress overlay (during re-generation) */}
-                {generationProgress.phase !== 'idle' && generationProgress.phase !== 'complete' && (
-                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-                    <div className="ds-card-glass flex items-center gap-3 rounded-xl px-4 py-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                      <span className="text-xs text-muted-foreground">{generationProgress.phaseLabel} — {generationProgress.progress}%</span>
+                  {generationProgress.phase !== 'idle' && generationProgress.phase !== 'complete' && (
+                    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+                      <div className="ds-card-glass flex items-center gap-3 rounded-xl px-4 py-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <span className="text-xs text-muted-foreground">{generationProgress.phaseLabel} — {generationProgress.progress}%</span>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

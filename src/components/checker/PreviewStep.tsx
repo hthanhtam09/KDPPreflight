@@ -1024,7 +1024,6 @@ function FriendlyIssueCard({
           ? 'border-foreground/[0.10] dark:border-foreground/[0.03] hover:border-foreground/[0.18] dark:border-foreground/[0.06]'
           : 'border-foreground/[0.25] dark:border-foreground/[0.12] dark:border-foreground/[0.04] hover:border-foreground/[0.22] dark:border-foreground/[0.08] hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]'
       }`}
-      layout
       initial={{ opacity: 0, y: 7 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay: staggerIndex * 0.05 }}

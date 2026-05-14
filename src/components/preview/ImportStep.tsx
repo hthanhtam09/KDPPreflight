@@ -1,65 +1,62 @@
-'use client';
+'use client'
 
-import { useState, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { BLEED_SIZE_IN, TRIM_SIZES } from '@/engine/kdp-constants'
+import { loadImage, loadPDF } from '@/engine/pdf-processor'
+import { useAppStore } from '@/store/use-app-store'
+import { BookType, DetectedConfig, TrimSizeKey, UploadedFile } from '@/types/kdp'
+import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import {
-  Upload,
+  AlertCircle,
+  BookMarked,
+  BookOpen,
+  CheckCircle2,
   FileText,
   ImageIcon,
-  BookOpen,
-  BookMarked,
-  Smartphone,
-  CheckCircle2,
   Loader2,
-  X,
+  Smartphone,
   Sparkles,
-  AlertCircle,
-} from 'lucide-react';
-import { useAppStore } from '@/store/use-app-store';
-import { BookType, TrimSizeKey, DetectedConfig, UploadedFile } from '@/types/kdp';
-import { loadPDF, loadImage } from '@/engine/pdf-processor';
-import { TRIM_SIZES, BLEED_SIZE_IN } from '@/engine/kdp-constants';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+  Upload,
+  X,
+} from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
 
 // ---------------------------------------------------------------------------
 // Auto-Detection: Match PDF dimensions to closest KDP trim size
 // ---------------------------------------------------------------------------
 
 async function detectConfigFromPDF(file: File): Promise<DetectedConfig> {
-  const result = await loadPDF(file, { maxPages: 5, renderScale: 1.0 });
-  const { widthIn, heightIn, pageCount } = result;
+  const result = await loadPDF(file, { maxPages: 5, renderScale: 1.0 })
+  const { widthIn, heightIn, pageCount } = result
 
   // Find closest trim size
-  let bestMatch: TrimSizeKey | null = null;
-  let bestDistance = Infinity;
+  let bestMatch: TrimSizeKey | null = null
+  let bestDistance = Infinity
 
   for (const [key, trim] of Object.entries(TRIM_SIZES)) {
-    if (key === 'custom') continue;
+    if (key === 'custom') continue
     // Check both orientations
-    const d1 = Math.abs(trim.widthIn - widthIn) + Math.abs(trim.heightIn - heightIn);
-    const d2 = Math.abs(trim.heightIn - widthIn) + Math.abs(trim.widthIn - heightIn);
-    const dist = Math.min(d1, d2);
+    const d1 = Math.abs(trim.widthIn - widthIn) + Math.abs(trim.heightIn - heightIn)
+    const d2 = Math.abs(trim.heightIn - widthIn) + Math.abs(trim.widthIn - heightIn)
+    const dist = Math.min(d1, d2)
     if (dist < bestDistance) {
-      bestDistance = dist;
-      bestMatch = key as TrimSizeKey;
+      bestDistance = dist
+      bestMatch = key as TrimSizeKey
     }
   }
 
   // Confidence based on how close the match is
-  const confidence = bestDistance < 0.02 ? 0.95 : bestDistance < 0.125 ? 0.8 : bestDistance < 0.5 ? 0.5 : 0.3;
+  const confidence = bestDistance < 0.02 ? 0.95 : bestDistance < 0.125 ? 0.8 : bestDistance < 0.5 ? 0.5 : 0.3
 
   // Detect bleed: if dimensions are larger than trim by ~0.125" on each side
-  let bleed: 'bleed' | 'no-bleed' = 'no-bleed';
+  let bleed: 'bleed' | 'no-bleed' = 'no-bleed'
   if (bestMatch && bestMatch !== 'custom') {
-    const trim = TRIM_SIZES[bestMatch];
-    const expectedBleedWidth = trim.widthIn + BLEED_SIZE_IN * 2;
-    const expectedBleedHeight = trim.heightIn + BLEED_SIZE_IN * 2;
-    if (
-      Math.abs(widthIn - expectedBleedWidth) < 0.05 ||
-      Math.abs(heightIn - expectedBleedHeight) < 0.05
-    ) {
-      bleed = 'bleed';
+    const trim = TRIM_SIZES[bestMatch]
+    const expectedBleedWidth = trim.widthIn + BLEED_SIZE_IN * 2
+    const expectedBleedHeight = trim.heightIn + BLEED_SIZE_IN * 2
+    if (Math.abs(widthIn - expectedBleedWidth) < 0.05 || Math.abs(heightIn - expectedBleedHeight) < 0.05) {
+      bleed = 'bleed'
     }
   }
 
@@ -70,7 +67,7 @@ async function detectConfigFromPDF(file: File): Promise<DetectedConfig> {
     confidence,
     paper: 'white',
     bookType: 'paperback',
-  };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -90,156 +87,108 @@ export default function ImportStep() {
     detectedConfig,
     bookConfig,
     updateBookConfig,
-  } = useAppStore();
+  } = useAppStore()
 
-  const [bookType, setBookType] = useState<BookType>(
-    detectedConfig?.bookType || bookConfig.bookType || 'paperback'
-  );
-  const [coverProcessing, setCoverProcessing] = useState(false);
-  const [manuscriptProcessing, setManuscriptProcessing] = useState(false);
-  const [coverDragActive, setCoverDragActive] = useState(false);
-  const [manuscriptDragActive, setManuscriptDragActive] = useState(false);
-  const [kindleDragActive, setKindleDragActive] = useState(false);
-  const [kindleProcessing, setKindleProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [bookType, setBookType] = useState<BookType>(detectedConfig?.bookType || bookConfig.bookType || 'paperback')
+  const [coverProcessing, setCoverProcessing] = useState(false)
+  const [manuscriptProcessing, setManuscriptProcessing] = useState(false)
+  const [coverDragActive, setCoverDragActive] = useState(false)
+  const [manuscriptDragActive, setManuscriptDragActive] = useState(false)
+  const [kindleDragActive, setKindleDragActive] = useState(false)
+  const [kindleProcessing, setKindleProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const coverInputRef = useRef<HTMLInputElement>(null);
-  const manuscriptInputRef = useRef<HTMLInputElement>(null);
-  const kindleInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null)
+  const manuscriptInputRef = useRef<HTMLInputElement>(null)
+  const kindleInputRef = useRef<HTMLInputElement>(null)
 
-  const isPaperOrHard = bookType === 'paperback' || bookType === 'hardcover';
-  const canContinue = isPaperOrHard
-    ? !!uploadedCover || !!uploadedManuscript
-    : !!uploadedManuscript; // Kindle just needs the file
+  const isPaperOrHard = bookType === 'paperback' || bookType === 'hardcover'
+  const canContinue = isPaperOrHard ? !!uploadedCover && !!uploadedManuscript : !!uploadedManuscript && !!uploadedCover
 
   // ---- Cover upload handler ----
-  const handleCoverUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-      setError('Cover must be a PDF, PNG, or JPEG file');
-      return;
-    }
-    setCoverProcessing(true);
-    setError(null);
-    try {
-      let dataUrl: string;
-      let width: number;
-      let height: number;
-
-      if (file.type === 'application/pdf') {
-        const result = await loadPDF(file, { maxPages: 1, renderScale: 2.5 });
-        if (result.pages.length === 0 || !result.pages[0].dataUrl) {
-          throw new Error('Cover PDF has no renderable pages');
-        }
-        dataUrl = result.pages[0].dataUrl;
-        width = result.widthIn;
-        height = result.heightIn;
-
-        // Auto-detect from cover PDF
-        const detected = await detectConfigFromPDF(file);
-        if (detected.confidence > 0.3) {
-          setDetectedConfig(detected);
-          if (detected.trimSize) {
-            updateBookConfig({ trimSize: detected.trimSize });
-          }
-          if (detected.pageCount) {
-            updateBookConfig({ pageCount: detected.pageCount });
-          }
-          if (detected.bleed) {
-            updateBookConfig({ bleed: detected.bleed });
-          }
-        }
-      } else {
-        const result = await loadImage(file);
-        dataUrl = result.dataUrl;
-        width = result.width;
-        height = result.height;
+  const handleCoverUpload = useCallback(
+    async (file: File) => {
+      if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+        setError('Cover must be a PDF, PNG, or JPEG file')
+        return
       }
+      setCoverProcessing(true)
+      setError(null)
+      try {
+        let dataUrl: string
+        let width: number
+        let height: number
 
-      setCoverDataUrl(dataUrl);
-      setUploadedCover({
-        id: crypto.randomUUID(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        file,
-        dimensions: { width, height },
-        dataUrl,
-      });
-    } catch (err) {
-      setError('Failed to process cover file');
-      console.error(err);
-    } finally {
-      setCoverProcessing(false);
-    }
-  }, [setUploadedCover, setCoverDataUrl, setDetectedConfig, updateBookConfig]);
+        if (file.type === 'application/pdf') {
+          const result = await loadPDF(file, { maxPages: 1, renderScale: 2.5 })
+          if (result.pages.length === 0 || !result.pages[0].dataUrl) {
+            throw new Error('Cover PDF has no renderable pages')
+          }
+          dataUrl = result.pages[0].dataUrl
+          width = result.widthIn
+          height = result.heightIn
+
+          // Auto-detect from cover PDF
+          const detected = await detectConfigFromPDF(file)
+          if (detected.confidence > 0.3) {
+            setDetectedConfig(detected)
+            if (detected.trimSize) {
+              updateBookConfig({ trimSize: detected.trimSize })
+            }
+            if (detected.pageCount) {
+              updateBookConfig({ pageCount: detected.pageCount })
+            }
+            if (detected.bleed) {
+              updateBookConfig({ bleed: detected.bleed })
+            }
+          }
+        } else {
+          const result = await loadImage(file)
+          dataUrl = result.dataUrl
+          width = result.width
+          height = result.height
+        }
+
+        setCoverDataUrl(dataUrl)
+        setUploadedCover({
+          id: crypto.randomUUID(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          file,
+          dimensions: { width, height },
+          dataUrl,
+        })
+      } catch (err) {
+        setError('Failed to process cover file')
+        console.error(err)
+      } finally {
+        setCoverProcessing(false)
+      }
+    },
+    [setUploadedCover, setCoverDataUrl, setDetectedConfig, updateBookConfig]
+  )
 
   // ---- Manuscript upload handler ----
-  const handleManuscriptUpload = useCallback(async (file: File) => {
-    if (file.type !== 'application/pdf') {
-      setError('Manuscript must be a PDF file');
-      return;
-    }
-    setManuscriptProcessing(true);
-    setError(null);
-    try {
-      const result = await loadPDF(file, { maxPages: 50, renderScale: 1.5 });
-
-      // Store pages
-      for (let i = 0; i < result.pages.length; i++) {
-        const page = result.pages[i];
-        if (page.dataUrl) {
-          setPdfPageDataUrl(i, page.dataUrl);
-        }
+  const handleManuscriptUpload = useCallback(
+    async (file: File) => {
+      if (file.type !== 'application/pdf') {
+        setError('Manuscript must be a PDF file')
+        return
       }
+      setManuscriptProcessing(true)
+      setError(null)
+      try {
+        const result = await loadPDF(file, { maxPages: 50, renderScale: 1.5 })
 
-      setUploadedManuscript({
-        id: crypto.randomUUID(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        file,
-        pageCount: result.pageCount,
-        dimensions: { width: result.widthIn * 300, height: result.heightIn * 300 },
-        dataUrl: '',
-      });
-
-      // Auto-detect from manuscript
-      const detected = await detectConfigFromPDF(file);
-      if (detected.confidence > 0.3) {
-        // Merge with existing detected config
-        setDetectedConfig(prev => prev ? { ...prev, ...detected } : detected);
-        if (detected.trimSize && !detectedConfig?.trimSize) {
-          updateBookConfig({ trimSize: detected.trimSize });
-        }
-        if (detected.pageCount) {
-          updateBookConfig({ pageCount: detected.pageCount });
-        }
-      }
-    } catch (err) {
-      setError('Failed to process manuscript');
-      console.error(err);
-    } finally {
-      setManuscriptProcessing(false);
-    }
-  }, [setUploadedManuscript, setPdfPageDataUrl, setDetectedConfig, updateBookConfig, detectedConfig]);
-
-  // ---- Kindle file upload handler ----
-  const handleKindleUpload = useCallback(async (file: File) => {
-    if (file.type !== 'application/pdf' && !file.name.endsWith('.epub')) {
-      setError('Kindle file must be a PDF or EPUB');
-      return;
-    }
-    setKindleProcessing(true);
-    setError(null);
-    try {
-      if (file.type === 'application/pdf') {
-        const result = await loadPDF(file, { maxPages: 50, renderScale: 1.5 });
+        // Store pages
         for (let i = 0; i < result.pages.length; i++) {
-          const page = result.pages[i];
+          const page = result.pages[i]
           if (page.dataUrl) {
-            setPdfPageDataUrl(i, page.dataUrl);
+            setPdfPageDataUrl(i, page.dataUrl)
           }
         }
+
         setUploadedManuscript({
           id: crypto.randomUUID(),
           name: file.name,
@@ -249,411 +198,492 @@ export default function ImportStep() {
           pageCount: result.pageCount,
           dimensions: { width: result.widthIn * 300, height: result.heightIn * 300 },
           dataUrl: '',
-        });
+        })
 
-        // Detect from kindle PDF
-        const detected = await detectConfigFromPDF(file);
-        detected.bookType = 'kindle';
-        setDetectedConfig(detected);
-        if (detected.pageCount) {
-          updateBookConfig({ pageCount: detected.pageCount });
+        // Auto-detect from manuscript
+        const detected = await detectConfigFromPDF(file)
+        if (detected.confidence > 0.3) {
+          // Merge with existing detected config
+          setDetectedConfig((prev: any) => (prev ? { ...prev, ...detected } : detected))
+          if (detected.trimSize && !detectedConfig?.trimSize) {
+            updateBookConfig({ trimSize: detected.trimSize })
+          }
+          if (detected.pageCount) {
+            updateBookConfig({ pageCount: detected.pageCount })
+          }
         }
+      } catch (err) {
+        setError('Failed to process manuscript')
+        console.error(err)
+      } finally {
+        setManuscriptProcessing(false)
       }
-      // EPUB: just store the reference, no rendering
-      else {
-        setUploadedManuscript({
-          id: crypto.randomUUID(),
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          file,
-          dataUrl: '',
-        });
+    },
+    [setUploadedManuscript, setPdfPageDataUrl, setDetectedConfig, updateBookConfig, detectedConfig]
+  )
+
+  // ---- Kindle file upload handler ----
+  const handleKindleUpload = useCallback(
+    async (file: File) => {
+      if (file.type !== 'application/pdf' && !file.name.endsWith('.epub')) {
+        setError('Kindle file must be a PDF or EPUB')
+        return
       }
-    } catch (err) {
-      setError('Failed to process Kindle file');
-      console.error(err);
-    } finally {
-      setKindleProcessing(false);
-    }
-  }, [setUploadedManuscript, setPdfPageDataUrl, setDetectedConfig, updateBookConfig]);
+      setKindleProcessing(true)
+      setError(null)
+      try {
+        if (file.type === 'application/pdf') {
+          const result = await loadPDF(file, { maxPages: 50, renderScale: 1.5 })
+          for (let i = 0; i < result.pages.length; i++) {
+            const page = result.pages[i]
+            if (page.dataUrl) {
+              setPdfPageDataUrl(i, page.dataUrl)
+            }
+          }
+          setUploadedManuscript({
+            id: crypto.randomUUID(),
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            file,
+            pageCount: result.pageCount,
+            dimensions: { width: result.widthIn * 300, height: result.heightIn * 300 },
+            dataUrl: '',
+          })
+
+          // Detect from kindle PDF
+          const detected = await detectConfigFromPDF(file)
+          detected.bookType = 'kindle'
+          setDetectedConfig(detected)
+          if (detected.pageCount) {
+            updateBookConfig({ pageCount: detected.pageCount })
+          }
+        }
+        // EPUB: just store the reference, no rendering
+        else {
+          setUploadedManuscript({
+            id: crypto.randomUUID(),
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            file,
+            dataUrl: '',
+          })
+        }
+      } catch (err) {
+        setError('Failed to process Kindle file')
+        console.error(err)
+      } finally {
+        setKindleProcessing(false)
+      }
+    },
+    [setUploadedManuscript, setPdfPageDataUrl, setDetectedConfig, updateBookConfig]
+  )
 
   // ---- Remove file handlers ----
   const removeCover = useCallback(() => {
-    setUploadedCover(null);
-    setCoverDataUrl('');
-  }, [setUploadedCover, setCoverDataUrl]);
+    setUploadedCover(null)
+    setCoverDataUrl('')
+  }, [setUploadedCover, setCoverDataUrl])
 
   const removeManuscript = useCallback(() => {
-    setUploadedManuscript(null);
-  }, [setUploadedManuscript]);
+    setUploadedManuscript(null)
+  }, [setUploadedManuscript])
 
   // ---- Book type change ----
-  const handleBookTypeChange = useCallback((type: BookType) => {
-    setBookType(type);
-    updateBookConfig({ bookType: type, binding: type === 'hardcover' ? 'hardcover' : 'paperback' });
-    if (detectedConfig) {
-      setDetectedConfig({ ...detectedConfig, bookType: type });
-    }
-  }, [updateBookConfig, detectedConfig, setDetectedConfig]);
+  const handleBookTypeChange = useCallback(
+    (type: BookType) => {
+      setBookType(type)
+      updateBookConfig({ bookType: type, binding: type === 'hardcover' ? 'hardcover' : 'paperback' })
+      if (detectedConfig) {
+        setDetectedConfig({ ...detectedConfig, bookType: type })
+      }
+    },
+    [updateBookConfig, detectedConfig, setDetectedConfig]
+  )
 
   // ---- Continue handler ----
   const handleContinue = useCallback(() => {
     // Ensure book type is synced
-    updateBookConfig({ bookType, binding: bookType === 'hardcover' ? 'hardcover' : 'paperback' });
-    setPreviewFlowStep('config');
-  }, [bookType, updateBookConfig, setPreviewFlowStep]);
+    updateBookConfig({ bookType, binding: bookType === 'hardcover' ? 'hardcover' : 'paperback' })
+    setPreviewFlowStep('config')
+  }, [bookType, updateBookConfig, setPreviewFlowStep])
 
   // ---- Drop handlers ----
-  const handleCoverDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setCoverDragActive(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleCoverUpload(file);
-  }, [handleCoverUpload]);
+  const handleCoverDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setCoverDragActive(false)
+      const file = e.dataTransfer.files[0]
+      if (file) handleCoverUpload(file)
+    },
+    [handleCoverUpload]
+  )
 
-  const handleManuscriptDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setManuscriptDragActive(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleManuscriptUpload(file);
-  }, [handleManuscriptUpload]);
+  const handleManuscriptDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setManuscriptDragActive(false)
+      const file = e.dataTransfer.files[0]
+      if (file) handleManuscriptUpload(file)
+    },
+    [handleManuscriptUpload]
+  )
 
-  const handleKindleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setKindleDragActive(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleKindleUpload(file);
-  }, [handleKindleUpload]);
+  const handleKindleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setKindleDragActive(false)
+      const file = e.dataTransfer.files[0]
+      if (file) handleKindleUpload(file)
+    },
+    [handleKindleUpload]
+  )
 
   return (
     <div className="ds-page-stage h-full overflow-y-auto">
-      <div className="mx-auto max-w-3xl space-y-8 px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="text-center space-y-3"
-        >
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
-            <Upload className="h-7 w-7 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-            Import Your Book Files
-          </h1>
-          <p className="mx-auto max-w-md text-sm text-muted-foreground">
-            Upload your cover and manuscript files. We&apos;ll auto-detect trim size, page count, and other settings.
-          </p>
-        </motion.div>
-
-        {/* Book Type Selector */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <label className="mb-3 block text-xs uppercase tracking-wider text-muted-foreground">
-            Book Type
-          </label>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <BookTypeCard
-              active={bookType === 'paperback'}
-              onClick={() => handleBookTypeChange('paperback')}
-              icon={<BookOpen className="w-6 h-6" />}
-              label="Paperback"
-              description="Soft cover binding"
-            />
-            <BookTypeCard
-              active={bookType === 'hardcover'}
-              onClick={() => handleBookTypeChange('hardcover')}
-              icon={<BookMarked className="w-6 h-6" />}
-              label="Hardcover"
-              description="Case wrap binding"
-            />
-            <BookTypeCard
-              active={bookType === 'kindle'}
-              onClick={() => handleBookTypeChange('kindle')}
-              icon={<Smartphone className="w-6 h-6" />}
-              label="Kindle"
-              description="E-book preview"
-            />
-          </div>
-        </motion.div>
-
-        {/* Upload Zones */}
-        <AnimatePresence mode="wait">
-          {isPaperOrHard ? (
-            <motion.div
-              key="print"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="space-y-6"
-            >
-              {/* Cover Upload */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Cover File
-                  </label>
-                  <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
-                    Required
-                  </Badge>
-                </div>
-                <FileUploadZone
-                  dragActive={coverDragActive}
-                  onDragOver={(e) => { e.preventDefault(); setCoverDragActive(true); }}
-                  onDragLeave={() => setCoverDragActive(false)}
-                  onDrop={handleCoverDrop}
-                  onClick={() => coverInputRef.current?.click()}
-                  accept=".png,.jpg,.jpeg,.pdf"
-                  processing={coverProcessing}
-                >
-                  {uploadedCover ? (
-                    <UploadedFilePreview
-                      file={uploadedCover}
-                      onRemove={removeCover}
-                      thumbnail={uploadedCover.dataUrl}
-                    />
-                  ) : (
-                    <UploadPrompt
-                      icon={<ImageIcon className="w-8 h-8" />}
-                      title="Upload Cover"
-                      subtitle="Full cover spread PDF, PNG, or JPEG"
-                    />
-                  )}
-                </FileUploadZone>
-                <input
-                  ref={coverInputRef}
-                  type="file"
-                  accept=".png,.jpg,.jpeg,.pdf"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }}
-                  className="hidden"
-                />
-              </div>
-
-              {/* Manuscript Upload */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Interior Manuscript
-                  </label>
-                  <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                    Optional
-                  </Badge>
-                </div>
-                <FileUploadZone
-                  dragActive={manuscriptDragActive}
-                  onDragOver={(e) => { e.preventDefault(); setManuscriptDragActive(true); }}
-                  onDragLeave={() => setManuscriptDragActive(false)}
-                  onDrop={handleManuscriptDrop}
-                  onClick={() => manuscriptInputRef.current?.click()}
-                  accept=".pdf"
-                  processing={manuscriptProcessing}
-                >
-                  {uploadedManuscript ? (
-                    <UploadedFilePreview
-                      file={uploadedManuscript}
-                      onRemove={removeManuscript}
-                      pageCount={uploadedManuscript.pageCount}
-                    />
-                  ) : (
-                    <UploadPrompt
-                      icon={<FileText className="w-8 h-8" />}
-                      title="Upload Manuscript"
-                      subtitle="Interior pages PDF"
-                    />
-                  )}
-                </FileUploadZone>
-                <input
-                  ref={manuscriptInputRef}
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleManuscriptUpload(f); }}
-                  className="hidden"
-                />
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="kindle"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
-              {/* Kindle file upload */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Kindle File
-                  </label>
-                  <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
-                    Required
-                  </Badge>
-                </div>
-                <FileUploadZone
-                  dragActive={kindleDragActive}
-                  onDragOver={(e) => { e.preventDefault(); setKindleDragActive(true); }}
-                  onDragLeave={() => setKindleDragActive(false)}
-                  onDrop={handleKindleDrop}
-                  onClick={() => kindleInputRef.current?.click()}
-                  accept=".pdf,.epub"
-                  processing={kindleProcessing}
-                >
-                  {uploadedManuscript ? (
-                    <UploadedFilePreview
-                      file={uploadedManuscript}
-                      onRemove={removeManuscript}
-                      pageCount={uploadedManuscript.pageCount}
-                    />
-                  ) : (
-                    <UploadPrompt
-                      icon={<Smartphone className="w-8 h-8" />}
-                      title="Upload Kindle File"
-                      subtitle="EPUB or PDF format"
-                    />
-                  )}
-                </FileUploadZone>
-                <input
-                  ref={kindleInputRef}
-                  type="file"
-                  accept=".pdf,.epub"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleKindleUpload(f); }}
-                  className="hidden"
-                />
-              </div>
-
-              {/* Optional Kindle cover */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Cover Image
-                  </label>
-                  <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                    Optional
-                  </Badge>
-                </div>
-                <FileUploadZone
-                  dragActive={coverDragActive}
-                  onDragOver={(e) => { e.preventDefault(); setCoverDragActive(true); }}
-                  onDragLeave={() => setCoverDragActive(false)}
-                  onDrop={handleCoverDrop}
-                  onClick={() => coverInputRef.current?.click()}
-                  accept=".png,.jpg,.jpeg,.pdf"
-                  processing={coverProcessing}
-                >
-                  {uploadedCover ? (
-                    <UploadedFilePreview
-                      file={uploadedCover}
-                      onRemove={removeCover}
-                      thumbnail={uploadedCover.dataUrl}
-                    />
-                  ) : (
-                    <UploadPrompt
-                      icon={<ImageIcon className="w-8 h-8" />}
-                      title="Upload Cover (Optional)"
-                      subtitle="Display cover on Kindle device"
-                    />
-                  )}
-                </FileUploadZone>
-                <input
-                  ref={coverInputRef}
-                  type="file"
-                  accept=".png,.jpg,.jpeg,.pdf"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }}
-                  className="hidden"
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Auto-detection Result */}
-        <AnimatePresence>
-          {detectedConfig && detectedConfig.confidence > 0.3 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="rounded-xl border border-primary/20 bg-primary/10 p-4"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Auto-Detected</span>
-                <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
-                  {Math.round(detectedConfig.confidence * 100)}% confidence
-                </Badge>
-              </div>
-              <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
-                {detectedConfig.trimSize && (
-                  <div>
-                    <span className="text-muted-foreground">Trim Size</span>
-                    <p className="mt-0.5 font-medium text-foreground/80">
-                      {TRIM_SIZES[detectedConfig.trimSize]?.label || detectedConfig.trimSize}
-                    </p>
-                  </div>
-                )}
-                {detectedConfig.pageCount && (
-                  <div>
-                    <span className="text-muted-foreground">Pages</span>
-                    <p className="mt-0.5 font-medium text-foreground/80">{detectedConfig.pageCount}</p>
-                  </div>
-                )}
-                {detectedConfig.bleed && (
-                  <div>
-                    <span className="text-muted-foreground">Bleed</span>
-                    <p className="mt-0.5 font-medium capitalize text-foreground/80">
-                      {detectedConfig.bleed.replace('-', ' ')}
-                    </p>
-                  </div>
-                )}
-                <div>
-                  <span className="text-muted-foreground">Type</span>
-                  <p className="mt-0.5 font-medium capitalize text-foreground/80">{bookType}</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Error */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="ds-status-critical flex items-center gap-3 rounded-xl border p-4"
-            >
-              <AlertCircle className="h-5 w-5 shrink-0 text-danger" />
-              <span className="text-sm">{error}</span>
-              <button onClick={() => setError(null)} className="ml-auto text-muted-foreground hover:text-foreground">
-                <X className="w-4 h-4" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Continue Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex justify-stretch sm:justify-end"
-        >
-          <Button
-            onClick={handleContinue}
-            disabled={!canContinue}
-            className="w-full rounded-xl px-6 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8"
+      <LazyMotion features={domAnimation}>
+        <div className="mx-auto max-w-3xl space-y-8 px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
+          {/* Header */}
+          <m.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-center space-y-3"
           >
-            Continue to Config
-          </Button>
-        </motion.div>
-      </div>
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+              <Upload className="h-7 w-7 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Import Your Book Files</h1>
+            <p className="mx-auto max-w-md text-sm text-muted-foreground">
+              Upload your cover and manuscript files. We&apos;ll auto-detect trim size, page count, and other settings.
+            </p>
+          </m.div>
+
+          {/* Book Type Selector */}
+          <m.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <label className="mb-3 block text-xs uppercase tracking-wider text-muted-foreground">Book Type</label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <BookTypeCard
+                active={bookType === 'paperback'}
+                onClick={() => handleBookTypeChange('paperback')}
+                icon={<BookOpen className="w-6 h-6" />}
+                label="Paperback"
+                description="Soft cover binding"
+              />
+              <BookTypeCard
+                active={bookType === 'hardcover'}
+                onClick={() => handleBookTypeChange('hardcover')}
+                icon={<BookMarked className="w-6 h-6" />}
+                label="Hardcover"
+                description="Case wrap binding"
+              />
+              <BookTypeCard
+                active={bookType === 'kindle'}
+                onClick={() => handleBookTypeChange('kindle')}
+                icon={<Smartphone className="w-6 h-6" />}
+                label="Kindle"
+                description="E-book preview"
+              />
+            </div>
+          </m.div>
+
+          {/* Upload Zones */}
+          <AnimatePresence mode="wait">
+            {isPaperOrHard ? (
+              <m.div
+                key="print"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="space-y-6"
+              >
+                {/* Cover Upload */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label className="text-xs uppercase tracking-wider text-muted-foreground">Cover File</label>
+                    <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
+                      Required
+                    </Badge>
+                  </div>
+                  <FileUploadZone
+                    dragActive={coverDragActive}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setCoverDragActive(true)
+                    }}
+                    onDragLeave={() => setCoverDragActive(false)}
+                    onDrop={handleCoverDrop}
+                    onClick={() => coverInputRef.current?.click()}
+                    accept=".png,.jpg,.jpeg,.pdf"
+                    processing={coverProcessing}
+                  >
+                    {uploadedCover ? (
+                      <UploadedFilePreview
+                        file={uploadedCover}
+                        onRemove={removeCover}
+                        thumbnail={uploadedCover.dataUrl}
+                      />
+                    ) : (
+                      <UploadPrompt
+                        icon={<ImageIcon className="w-8 h-8" />}
+                        title="Upload Cover"
+                        subtitle="Full cover spread PDF, PNG, or JPEG"
+                      />
+                    )}
+                  </FileUploadZone>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.pdf"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) handleCoverUpload(f)
+                    }}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Manuscript Upload */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label className="text-xs uppercase tracking-wider text-muted-foreground">
+                      Interior Manuscript
+                    </label>
+                    <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
+                      Required
+                    </Badge>
+                  </div>
+                  <FileUploadZone
+                    dragActive={manuscriptDragActive}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setManuscriptDragActive(true)
+                    }}
+                    onDragLeave={() => setManuscriptDragActive(false)}
+                    onDrop={handleManuscriptDrop}
+                    onClick={() => manuscriptInputRef.current?.click()}
+                    accept=".pdf"
+                    processing={manuscriptProcessing}
+                  >
+                    {uploadedManuscript ? (
+                      <UploadedFilePreview
+                        file={uploadedManuscript}
+                        onRemove={removeManuscript}
+                        pageCount={uploadedManuscript.pageCount}
+                      />
+                    ) : (
+                      <UploadPrompt
+                        icon={<FileText className="w-8 h-8" />}
+                        title="Upload Manuscript"
+                        subtitle="Interior pages PDF"
+                      />
+                    )}
+                  </FileUploadZone>
+                  <input
+                    ref={manuscriptInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) handleManuscriptUpload(f)
+                    }}
+                    className="hidden"
+                  />
+                </div>
+              </m.div>
+            ) : (
+              <m.div
+                key="kindle"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                {/* Kindle file upload */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label className="text-xs uppercase tracking-wider text-muted-foreground">Kindle File</label>
+                    <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
+                      Required
+                    </Badge>
+                  </div>
+                  <FileUploadZone
+                    dragActive={kindleDragActive}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setKindleDragActive(true)
+                    }}
+                    onDragLeave={() => setKindleDragActive(false)}
+                    onDrop={handleKindleDrop}
+                    onClick={() => kindleInputRef.current?.click()}
+                    accept=".pdf,.epub"
+                    processing={kindleProcessing}
+                  >
+                    {uploadedManuscript ? (
+                      <UploadedFilePreview
+                        file={uploadedManuscript}
+                        onRemove={removeManuscript}
+                        pageCount={uploadedManuscript.pageCount}
+                      />
+                    ) : (
+                      <UploadPrompt
+                        icon={<Smartphone className="w-8 h-8" />}
+                        title="Upload Kindle File"
+                        subtitle="EPUB or PDF format"
+                      />
+                    )}
+                  </FileUploadZone>
+                  <input
+                    ref={kindleInputRef}
+                    type="file"
+                    accept=".pdf,.epub"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) handleKindleUpload(f)
+                    }}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Optional Kindle cover */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label className="text-xs uppercase tracking-wider text-muted-foreground">Cover Image</label>
+                    <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
+                      Required
+                    </Badge>
+                  </div>
+                  <FileUploadZone
+                    dragActive={coverDragActive}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setCoverDragActive(true)
+                    }}
+                    onDragLeave={() => setCoverDragActive(false)}
+                    onDrop={handleCoverDrop}
+                    onClick={() => coverInputRef.current?.click()}
+                    accept=".png,.jpg,.jpeg,.pdf"
+                    processing={coverProcessing}
+                  >
+                    {uploadedCover ? (
+                      <UploadedFilePreview
+                        file={uploadedCover}
+                        onRemove={removeCover}
+                        thumbnail={uploadedCover.dataUrl}
+                      />
+                    ) : (
+                      <UploadPrompt
+                        icon={<ImageIcon className="w-8 h-8" />}
+                        title="Upload Cover"
+                        subtitle="Display cover on Kindle device"
+                      />
+                    )}
+                  </FileUploadZone>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.pdf"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) handleCoverUpload(f)
+                    }}
+                    className="hidden"
+                  />
+                </div>
+              </m.div>
+            )}
+          </AnimatePresence>
+
+          {/* Auto-detection Result */}
+          <AnimatePresence>
+            {detectedConfig && detectedConfig.confidence > 0.3 && (
+              <m.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="rounded-xl border border-primary/20 bg-primary/10 p-4"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">Auto-Detected</span>
+                  <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
+                    {Math.round(detectedConfig.confidence * 100)}% confidence
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                  {detectedConfig.trimSize && (
+                    <div>
+                      <span className="text-muted-foreground">Trim Size</span>
+                      <p className="mt-0.5 font-medium text-foreground/80">
+                        {TRIM_SIZES[detectedConfig.trimSize]?.label || detectedConfig.trimSize}
+                      </p>
+                    </div>
+                  )}
+                  {detectedConfig.pageCount && (
+                    <div>
+                      <span className="text-muted-foreground">Pages</span>
+                      <p className="mt-0.5 font-medium text-foreground/80">{detectedConfig.pageCount}</p>
+                    </div>
+                  )}
+                  {detectedConfig.bleed && (
+                    <div>
+                      <span className="text-muted-foreground">Bleed</span>
+                      <p className="mt-0.5 font-medium capitalize text-foreground/80">
+                        {detectedConfig.bleed.replace('-', ' ')}
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-muted-foreground">Type</span>
+                    <p className="mt-0.5 font-medium capitalize text-foreground/80">{bookType}</p>
+                  </div>
+                </div>
+              </m.div>
+            )}
+          </AnimatePresence>
+
+          {/* Error */}
+          <AnimatePresence>
+            {error && (
+              <m.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="ds-status-critical flex items-center gap-3 rounded-xl border p-4"
+              >
+                <AlertCircle className="h-5 w-5 shrink-0 text-danger" />
+                <span className="text-sm">{error}</span>
+                <button onClick={() => setError(null)} className="ml-auto text-muted-foreground hover:text-foreground">
+                  <X className="w-4 h-4" />
+                </button>
+              </m.div>
+            )}
+          </AnimatePresence>
+
+          {/* Continue Button */}
+          <m.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex justify-stretch sm:justify-end"
+          >
+            <Button
+              onClick={handleContinue}
+              disabled={!canContinue}
+              className="w-full rounded-xl px-6 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8"
+            >
+              Continue to Config
+            </Button>
+          </m.div>
+        </div>
+      </LazyMotion>
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -667,11 +697,11 @@ function BookTypeCard({
   label,
   description,
 }: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  description: string;
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+  description: string
 }) {
   return (
     <button
@@ -682,30 +712,20 @@ function BookTypeCard({
           : 'border-border bg-surface-glass text-muted-foreground hover:border-primary/25 hover:bg-secondary hover:text-foreground'
       }`}
     >
-      {active && (
-        <motion.div
-          layoutId="bookTypeGlow"
-          className="absolute inset-0 rounded-xl bg-primary/5"
-        />
-      )}
-      <div className={`relative z-10 ${active ? 'text-primary' : ''}`}>
-        {icon}
-      </div>
+      {/* CSS transition replaces layoutId shared-layout animation */}
+      <span
+        className={`absolute inset-0 rounded-xl bg-primary/5 transition-opacity duration-200 ${active ? 'opacity-100' : 'opacity-0'}`}
+      />
+      <div className={`relative z-10 ${active ? 'text-primary' : ''}`}>{icon}</div>
       <div className="relative z-10 min-w-0 text-center">
         <p className="text-sm font-medium">{label}</p>
         <p className="break-words text-[10px] opacity-60">{description}</p>
       </div>
-      {active && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute top-2 right-2"
-        >
-          <CheckCircle2 className="h-4 w-4 text-primary" />
-        </motion.div>
-      )}
+      <CheckCircle2
+        className={`absolute right-2 top-2 h-4 w-4 text-primary transition-all duration-200 ${active ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+      />
     </button>
-  );
+  )
 }
 
 function FileUploadZone({
@@ -718,14 +738,14 @@ function FileUploadZone({
   processing,
   children,
 }: {
-  dragActive: boolean;
-  onDragOver: (e: React.DragEvent) => void;
-  onDragLeave: () => void;
-  onDrop: (e: React.DragEvent) => void;
-  onClick: () => void;
-  accept?: string;
-  processing?: boolean;
-  children: React.ReactNode;
+  dragActive: boolean
+  onDragOver: (e: React.DragEvent) => void
+  onDragLeave: () => void
+  onDrop: (e: React.DragEvent) => void
+  onClick: () => void
+  accept?: string
+  processing?: boolean
+  children: React.ReactNode
 }) {
   return (
     <div
@@ -749,18 +769,10 @@ function FileUploadZone({
       )}
       {children}
     </div>
-  );
+  )
 }
 
-function UploadPrompt({
-  icon,
-  title,
-  subtitle,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-}) {
+function UploadPrompt({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
     <div className="space-y-2 py-2">
       <div className="mx-auto flex justify-center text-muted-foreground">{icon}</div>
@@ -768,7 +780,7 @@ function UploadPrompt({
       <p className="text-xs text-muted-foreground">{subtitle}</p>
       <p className="text-[10px] text-muted-foreground/70">Drag & drop or click to browse</p>
     </div>
-  );
+  )
 }
 
 function UploadedFilePreview({
@@ -777,10 +789,10 @@ function UploadedFilePreview({
   thumbnail,
   pageCount,
 }: {
-  file: UploadedFile;
-  onRemove: () => void;
-  thumbnail?: string;
-  pageCount?: number;
+  file: UploadedFile
+  onRemove: () => void
+  thumbnail?: string
+  pageCount?: number
 }) {
   return (
     <div className="flex w-full min-w-0 items-center gap-3 text-left sm:gap-4">
@@ -810,11 +822,14 @@ function UploadedFilePreview({
 
       {/* Remove */}
       <button
-        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+        onClick={(e) => {
+          e.stopPropagation()
+          onRemove()
+        }}
         className="p-1 text-muted-foreground transition-colors hover:text-foreground"
       >
         <X className="w-4 h-4" />
       </button>
     </div>
-  );
+  )
 }

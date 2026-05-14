@@ -263,9 +263,24 @@
 }
 
 /* ─── Theme transition ───────────────────── */
+/* background/border/color on all elements for smooth dark-mode toggle.
+   transform + opacity are excluded from * to avoid fighting framer-motion
+   on animated elements; those are added back only on interactive classes. */
 *,
 *::before,
 *::after {
+  transition:
+    background-color var(--duration-base) var(--ease-premium),
+    border-color var(--duration-base) var(--ease-premium),
+    color var(--duration-fast) ease,
+    box-shadow var(--duration-base) var(--ease-premium);
+}
+
+.ds-card-interactive,
+.ds-control,
+.ds-button-primary,
+.ds-button-secondary,
+a, button, [role="button"] {
   transition:
     background-color var(--duration-base) var(--ease-premium),
     border-color var(--duration-base) var(--ease-premium),
@@ -427,6 +442,126 @@
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
   box-shadow: var(--shadow-elevated);
+}
+
+.blog-article {
+  color: var(--muted-foreground);
+  font-size: 1.035rem;
+  line-height: 1.82;
+}
+
+.blog-article > * + * {
+  margin-top: 1.15rem;
+}
+
+.blog-article h2,
+.blog-article h3 {
+  color: var(--foreground);
+  font-weight: 760;
+  letter-spacing: -0.02em;
+  line-height: 1.18;
+}
+
+.blog-article h2 {
+  margin-top: 3rem;
+  font-size: clamp(1.65rem, 3vw, 2.15rem);
+}
+
+.blog-article h3 {
+  margin-top: 2rem;
+  font-size: 1.25rem;
+}
+
+.blog-article p {
+  max-width: 72ch;
+}
+
+.blog-article strong {
+  color: var(--foreground);
+  font-weight: 760;
+}
+
+.blog-article a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.blog-article a:hover {
+  text-decoration: underline;
+}
+
+.blog-article ul,
+.blog-article ol {
+  display: grid;
+  gap: 0.65rem;
+  padding-left: 1.25rem;
+}
+
+.blog-article ul {
+  list-style: disc;
+}
+
+.blog-article ol {
+  list-style: decimal;
+}
+
+.blog-article li::marker {
+  color: var(--primary);
+}
+
+.blog-article blockquote {
+  border-left: 3px solid var(--primary);
+  border-radius: 0 1rem 1rem 0;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  padding: 1rem 1.25rem;
+  color: var(--foreground);
+}
+
+.blog-article code {
+  border: 1px solid var(--border);
+  border-radius: 0.45rem;
+  background: var(--muted);
+  padding: 0.1rem 0.35rem;
+  color: var(--foreground);
+  font-size: 0.92em;
+}
+
+.blog-article pre {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--foreground) 6%, var(--card));
+  padding: 1rem;
+}
+
+.blog-article pre code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.blog-article table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.blog-article th,
+.blog-article td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.8rem 0.9rem;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.blog-article th {
+  color: var(--foreground);
+  font-weight: 760;
 }
 
 @media (min-width: 1024px) {
@@ -745,11 +880,11 @@
 }
 
 .workflow-visual {
-  height: 9rem;
+  height: 10.5rem;
 }
 
 .workflow-visual-featured {
-  height: 11rem;
+  height: 11.75rem;
   border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
 }
 
@@ -768,19 +903,21 @@
 .workflow-export {
   position: absolute;
   border: 1px solid var(--border);
-  border-radius: 0.55rem;
+  border-radius: 0.7rem;
   background: color-mix(in srgb, var(--card) 90%, transparent);
   color: var(--foreground);
-  font-size: 0.68rem;
+  font-size: clamp(0.6rem, 1.35vw, 0.72rem);
   font-weight: 800;
   line-height: 1;
   box-shadow: var(--shadow-soft);
+  white-space: nowrap;
 }
 
 .workflow-field {
   left: 0;
-  width: 46%;
-  padding: 0.45rem 0.5rem;
+  width: 40%;
+  min-width: 6.7rem;
+  padding: 0.48rem 0.58rem;
 }
 
 .workflow-field-trim {
@@ -788,18 +925,18 @@
 }
 
 .workflow-field-pages {
-  top: 2.05rem;
+  top: 2.2rem;
 }
 
 .workflow-field-paper {
-  top: 4.1rem;
+  top: 4.4rem;
 }
 
 .workflow-calc-arrow {
   position: absolute;
-  left: 49%;
-  top: 2.9rem;
-  width: 14%;
+  left: 48%;
+  top: 3.15rem;
+  width: 12%;
   height: 1px;
   background: linear-gradient(90deg, var(--primary), transparent);
   transform-origin: left center;
@@ -807,44 +944,30 @@
 
 .workflow-result-line {
   right: 0;
-  width: 38%;
-  padding: 0.45rem 0.5rem;
+  width: 34%;
+  min-width: 6.25rem;
+  padding: 0.48rem 0.58rem;
   color: color-mix(in srgb, var(--primary) 86%, var(--foreground));
 }
 
 .workflow-result-line {
-  top: 1.15rem;
+  top: 1.25rem;
 }
 
 .workflow-result-spine {
-  top: 3.25rem;
-}
-
-.workflow-ready {
-  right: 0;
-  bottom: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.42rem 0.52rem;
-  color: var(--success);
+  top: 3.45rem;
 }
 
 .ds-card-interactive:hover .workflow-calc-arrow {
   animation: draw-width 0.95s var(--ease-premium) 1;
 }
 
-.ds-card-interactive:hover .workflow-result-line,
-.ds-card-interactive:hover .workflow-ready {
+.ds-card-interactive:hover .workflow-result-line {
   animation: success-pop 0.42s var(--ease-premium) 1 both;
 }
 
 .ds-card-interactive:hover .workflow-result-spine {
   animation-delay: 0.25s;
-}
-
-.ds-card-interactive:hover .workflow-ready {
-  animation-delay: 0.52s;
 }
 
 .workflow-file {
@@ -941,10 +1064,10 @@
 }
 
 .workflow-book-back {
-  left: 16%;
-  top: 16%;
+  left: 14%;
+  top: 18%;
   width: 42%;
-  height: 68%;
+  height: 58%;
   border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
   border-radius: 0.38rem 0 0 0.38rem;
   background: color-mix(in srgb, var(--card) 90%, transparent);
@@ -952,19 +1075,19 @@
 }
 
 .workflow-book-spine {
-  left: 56%;
-  top: 14%;
+  left: 55%;
+  top: 17%;
   width: 10%;
-  height: 72%;
+  height: 62%;
   border-inline: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
   background: color-mix(in srgb, var(--primary) 24%, transparent);
 }
 
 .workflow-book-front {
-  left: 64%;
-  top: 16%;
+  left: 63%;
+  top: 18%;
   width: 30%;
-  height: 68%;
+  height: 58%;
   border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
   border-radius: 0 0.38rem 0.38rem 0;
   background:
@@ -982,12 +1105,13 @@
 }
 
 .workflow-export {
-  right: 0.2rem;
-  bottom: 0.15rem;
+  right: 0.35rem;
+  top: 0.35rem;
+  bottom: auto;
   display: inline-flex;
   align-items: center;
   gap: 0.34rem;
-  padding: 0.38rem 0.48rem;
+  padding: 0.42rem 0.56rem;
   color: var(--success);
   opacity: 0;
 }
@@ -1007,8 +1131,9 @@
 
 .workflow-status {
   position: absolute;
-  bottom: 0.72rem;
+  bottom: 0.75rem;
   left: 0.85rem;
+  max-width: calc(100% - 1.7rem);
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -1017,9 +1142,45 @@
   background: var(--surface-glass);
   padding: 0.35rem 0.58rem;
   color: var(--foreground);
-  font-size: 0.72rem;
+  font-size: clamp(0.64rem, 1.35vw, 0.72rem);
   font-weight: 750;
   backdrop-filter: blur(12px);
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .workflow-visual {
+    height: 11rem;
+  }
+
+  .workflow-field {
+    min-width: 5.8rem;
+    padding-inline: 0.45rem;
+  }
+
+  .workflow-result-line {
+    min-width: 5.7rem;
+    padding-inline: 0.45rem;
+  }
+
+  .workflow-calc-arrow {
+    left: 44%;
+    width: 10%;
+  }
+
+  .workflow-book-back {
+    left: 12%;
+    width: 40%;
+  }
+
+  .workflow-book-spine {
+    left: 52%;
+  }
+
+  .workflow-book-front {
+    left: 60%;
+    width: 28%;
+  }
 }
 
 .result-demo::before {

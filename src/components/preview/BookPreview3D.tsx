@@ -1,47 +1,62 @@
 'use client';
 
 import { useState, useCallback, useRef, Suspense, useMemo, useEffect } from 'react';
+import type { MutableRefObject, RefObject } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppStore } from '@/store/use-app-store';
 import { BookType, CameraPreset } from '@/types/kdp';
 import { CoverSegments } from '@/engine/cover-parser';
+import { calculateMeasurements, DEFAULT_BOOK_CONFIG } from '@/engine/kdp-constants';
 import PaperbackBook from './books/PaperbackBook';
 import HardcoverBook from './books/HardcoverBook';
 import KindleDevice from './books/KindleDevice';
+
+// Suppress THREE.Clock deprecation warning from Three.js r183+.
+// react-three-fiber still uses THREE.Clock internally and hasn't migrated to THREE.Timer yet.
+// THREE.setConsoleFunction does not exist in standard Three.js — patch console.warn directly.
+if (typeof window !== 'undefined') {
+  const _warn = console.warn.bind(console);
+  console.warn = (...args: Parameters<typeof console.warn>) => {
+    if (typeof args[0] === 'string' && args[0].startsWith('THREE.Clock:')) return;
+    _warn(...args);
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-export type BookState = 'closed' | 'opening' | 'opened' | 'closing' | 'flipping' | 'idle';
+export type BookPose = 'closedFront' | 'closedBack' | 'closedSpine' | 'open';
 export type FlipDirection = 'forward' | 'backward';
 
 export interface Preview3DState {
-  isOpen: boolean;
   currentPage: number;
   isFlipping: boolean;
   flipProgress: number;
   flipDirection: FlipDirection;
+  targetPage: number | null;
   bookType: BookType;
   kindleDevice: 'paperwhite' | 'oasis' | 'tablet' | 'phone';
   darkMode: boolean;
-  bookState: BookState;
+  bookPose: BookPose;
   cameraPreset: CameraPreset;
 }
 
+export interface Preview3DOverlays {
+  bleed: boolean;
+  trim: boolean;
+  safe: boolean;
+}
+
 export interface Preview3DActions {
-  toggleOpen: () => void;
   nextPage: () => void;
   prevPage: () => void;
   goToPage: (page: number) => void;
-  setBookType: (type: BookType) => void;
-  setKindleDevice: (device: 'paperwhite' | 'oasis' | 'tablet' | 'phone') => void;
-  toggleDarkMode: () => void;
-  resetCamera: () => void;
   exportScreenshot: (highRes?: boolean) => void;
   setCameraPreset: (preset: CameraPreset) => void;
+  toggleConfig: () => void;
 }
 
 export interface CoverTextures {
@@ -119,10 +134,10 @@ const globalTextureCache = new TextureCache();
 // ---------------------------------------------------------------------------
 
 const CAMERA_PRESETS: Record<CameraPreset, { position: [number, number, number]; target: [number, number, number] } | null> = {
-  front:        { position: [0, 0.3, 3.5],  target: [0, 0, 0] },
-  back:         { position: [0, 0.3, -3.5], target: [0, 0, 0] },
-  spine:        { position: [-3.5, 0.3, 0], target: [0, 0, 0] },
-  'open-spread': { position: [0, 3.0, 2.5], target: [0, 0, 0] },
+  front:        { position: [0, 0.22, 3.3],  target: [0, 0, 0] },
+  back:         { position: [0, 0.22, -3.3], target: [0, 0, 0] },
+  spine:        { position: [-3.4, 0.2, 0], target: [0, 0, 0] },
+  'open-spread': { position: [0, 2.85, 2.25], target: [0, 0, 0.08] },
   'page-detail': { position: [0, 1.0, 2.0], target: [0, 0, 0.1] },
   free:         null, // User controls freely — no animation
 };
@@ -134,9 +149,11 @@ const CAMERA_PRESETS: Record<CameraPreset, { position: [number, number, number];
 
 function CameraPresetAnimator({
   cameraPreset,
+  controlsRef,
   onAnimDone,
 }: {
   cameraPreset: CameraPreset;
+  controlsRef: RefObject<any>;
   onAnimDone: () => void;
 }) {
   const { camera } = useThree();
@@ -149,7 +166,6 @@ function CameraPresetAnimator({
     progress: number;
   } | null>(null);
   const prevPreset = useRef<CameraPreset>(cameraPreset);
-  const controlsRef = useRef<any>(null);
 
   // When preset changes (and it's not 'free'), start animation
   useEffect(() => {
@@ -161,12 +177,12 @@ function CameraPresetAnimator({
       active: true,
       startPos: camera.position.clone(),
       endPos: new THREE.Vector3(...preset.position),
-      startTarget: new THREE.Vector3(0, 0, 0), // approximate current target
+      startTarget: controlsRef.current?.target.clone() ?? new THREE.Vector3(0, 0, 0),
       endTarget: new THREE.Vector3(...preset.target),
       progress: 0,
     };
     prevPreset.current = cameraPreset;
-  }, [cameraPreset, camera]);
+  }, [cameraPreset, camera, controlsRef]);
 
   useFrame((_, delta) => {
     if (!animRef.current || !animRef.current.active) return;
@@ -180,6 +196,10 @@ function CameraPresetAnimator({
       : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     camera.position.lerpVectors(anim.startPos, anim.endPos, eased);
+    if (controlsRef.current) {
+      controlsRef.current.target.lerpVectors(anim.startTarget, anim.endTarget, eased);
+      controlsRef.current.update();
+    }
 
     if (t >= 1) {
       anim.active = false;
@@ -199,14 +219,17 @@ function SceneContent({
   state,
   coverTextures,
   pageTextures,
-  onFlipComplete,
+  overlays,
 }: {
   state: Preview3DState;
   coverTextures: CoverTextures;
   pageTextures: Map<number, THREE.Texture | null>;
-  onFlipComplete: (newPage: number) => void;
+  overlays: Preview3DOverlays;
 }) {
-  const { bookConfig, measurements } = useAppStore();
+  const storeState = useAppStore();
+  const bookConfig = storeState.bookConfig ?? DEFAULT_BOOK_CONFIG;
+  const measurements = storeState.measurements ?? calculateMeasurements(bookConfig);
+  const controlsRef = useRef<any>(null);
   const scale = 0.3; // inches to scene units
 
   const trimWidth = safeVec(measurements.trimWidthIn * scale, 1.8);
@@ -216,24 +239,25 @@ function SceneContent({
   return (
     <>
       {/* Studio lighting */}
-      <ambientLight intensity={0.4} />
+      <ambientLight intensity={1.2} />
       <directionalLight
-        position={[5, 8, 5]}
-        intensity={1.0}
-        castShadow
+        position={[3, 5, 5]}
+        intensity={1.4}
+        castShadow={false}
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
         shadow-camera-far={20}
         shadow-camera-near={0.1}
         shadow-bias={-0.002}
       />
-      <directionalLight position={[-3, 4, -3]} intensity={0.3} color="#b4c7e7" />
-      <directionalLight position={[0, 2, -5]} intensity={0.15} color="#f0e0c0" />
-      <hemisphereLight args={['#b4c7e7', '#1a1a2e', 0.2]} />
+      <directionalLight position={[-4, 2, 3]} intensity={0.45} color="#ffffff" />
+      <directionalLight position={[0, 3, -4]} intensity={0.25} color="#f8f1e7" />
+      <hemisphereLight args={['#ffffff', '#d6d3cc', 0.8]} />
 
       {/* Camera preset animator — only animates when preset changes */}
       <CameraPresetAnimator
         cameraPreset={state.cameraPreset}
+        controlsRef={controlsRef}
         onAnimDone={() => {}}
       />
 
@@ -253,13 +277,15 @@ function SceneContent({
           spineWidth={spineWidth}
           pageCount={bookConfig.pageCount}
           currentPage={state.currentPage}
-          isOpen={state.isOpen}
+          bookPose={state.bookPose}
           flipProgress={state.flipProgress}
           isFlippingForward={state.flipDirection === 'forward'}
           pageTextures={pageTextures}
           coverTextures={coverTextures}
           coverFinish={bookConfig.coverFinish}
-          onFlipComplete={onFlipComplete}
+          bleedEnabled={bookConfig.bleed === 'bleed'}
+          overlays={overlays}
+          safeInset={safeVec(bookConfig.bleed === 'bleed' ? measurements.safeAreaIn * scale : measurements.safeAreaIn * scale, 0.08)}
         />
       ) : (
         <PaperbackBook
@@ -268,13 +294,15 @@ function SceneContent({
           spineWidth={spineWidth}
           pageCount={bookConfig.pageCount}
           currentPage={state.currentPage}
-          isOpen={state.isOpen}
+          bookPose={state.bookPose}
           flipProgress={state.flipProgress}
           isFlippingForward={state.flipDirection === 'forward'}
           pageTextures={pageTextures}
           coverTextures={coverTextures}
           coverFinish={bookConfig.coverFinish}
-          onFlipComplete={onFlipComplete}
+          bleedEnabled={bookConfig.bleed === 'bleed'}
+          overlays={overlays}
+          safeInset={safeVec(measurements.safeAreaIn * scale, 0.08)}
         />
       )}
 
@@ -283,12 +311,13 @@ function SceneContent({
         position={[0, -trimHeight / 2 - 0.05, 0]}
         opacity={0.4}
         scale={10}
-        blur={2.5}
+        blur={3.5}
         far={4}
       />
 
       {/* Orbit controls — TRUE 360° rotation, no constraints, smooth damping */}
       <OrbitControls
+        ref={controlsRef}
         enableDamping
         dampingFactor={0.12}
         minDistance={1.0}
@@ -326,6 +355,41 @@ function SceneLoader() {
 }
 
 // ---------------------------------------------------------------------------
+// High-res capture — must live inside Canvas to access gl/scene/camera
+// ---------------------------------------------------------------------------
+
+const EXPORT_DPR = 3; // 3× the CSS pixel size → sharp at any viewport
+
+function SceneCapture({
+  captureRef,
+}: {
+  captureRef: MutableRefObject<((filename: string) => void) | null>;
+}) {
+  const { gl, scene, camera, size } = useThree();
+
+  useEffect(() => {
+    captureRef.current = (filename: string) => {
+      const origDPR = gl.getPixelRatio();
+      try {
+        // Upscale buffer for export
+        gl.setPixelRatio(EXPORT_DPR);
+        gl.setSize(size.width, size.height);
+        gl.render(scene, camera);
+        // toDataURL is synchronous — captures pixel data before we restore
+        const dataUrl = gl.domElement.toDataURL('image/png');
+        downloadImage(dataUrl, filename);
+      } finally {
+        // Always restore, even if render throws
+        gl.setPixelRatio(origDPR);
+        gl.setSize(size.width, size.height);
+      }
+    };
+  }, [gl, scene, camera, size, captureRef]);
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Main 3D Preview Component
 // ---------------------------------------------------------------------------
 
@@ -334,8 +398,8 @@ interface BookPreview3DProps {
   coverSegments?: CoverSegments | null;
   state: Preview3DState;
   onStateChange: (updates: Partial<Preview3DState>) => void;
-  onExportRef?: React.MutableRefObject<(() => void) | null>;
-  cameraPreset?: CameraPreset;
+  onExportRef?: MutableRefObject<(() => void) | null>;
+  overlays: Preview3DOverlays;
 }
 
 export default function BookPreview3D({
@@ -344,9 +408,10 @@ export default function BookPreview3D({
   state,
   onStateChange,
   onExportRef,
-  cameraPreset,
+  overlays,
 }: BookPreview3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const internalCaptureRef = useRef<((filename: string) => void) | null>(null);
   const { pdfPageDataUrls, coverDataUrl } = useAppStore();
 
   // ---- Texture state ----
@@ -402,18 +467,18 @@ export default function BookPreview3D({
     return () => { cancelled = true; };
   }, [coverSegments, coverUrl, coverDataUrl]);
 
-  // ---- Stream page textures (dynamic loading with wider range) ----
+  // ---- Stream page textures (current spread + neighbor spreads only) ----
   useEffect(() => {
     let cancelled = false;
 
     async function streamPages() {
       const currentPage = state.currentPage;
-      const range = 8; // Load ±8 pages around current for smoother experience
+      const range = 3;
       const newTextures = new Map(pageTextures);
 
       // Load nearby pages
       const pagesToLoad: number[] = [];
-      for (let i = Math.max(0, currentPage - range); i <= currentPage + range; i++) {
+      for (let i = Math.max(0, currentPage - 1 - range); i <= currentPage - 1 + range; i++) {
         if (pdfPageDataUrls.has(i) && !newTextures.has(i)) {
           pagesToLoad.push(i);
         }
@@ -434,9 +499,9 @@ export default function BookPreview3D({
       }
 
       // Evict distant pages (beyond ±20) — but DON'T dispose textures (cache manages them)
-      const evictionRange = 20;
+      const evictionRange = 8;
       for (const [key] of newTextures) {
-        if (Math.abs(key - currentPage) > evictionRange) {
+        if (Math.abs(key - (currentPage - 1)) > evictionRange) {
           newTextures.delete(key);
         }
       }
@@ -451,15 +516,17 @@ export default function BookPreview3D({
   }, [state.currentPage, pdfPageDataUrls]);
 
   // ---- Page flip animation (requestAnimationFrame-based) ----
-  const onFlipComplete = useCallback((newPage: number) => {
+  const onFlipComplete = useCallback((newPage: number, pose: BookPose = 'open') => {
     isFlippingRef.current = false;
     onStateChange({
       isFlipping: false,
       flipProgress: 0,
       currentPage: newPage,
-      bookState: state.isOpen ? 'opened' : 'closed',
+      targetPage: null,
+      bookPose: pose,
+      cameraPreset: pose === 'closedBack' ? 'back' : 'open-spread',
     });
-  }, [onStateChange, state.isOpen]);
+  }, [onStateChange]);
 
   useEffect(() => {
     if (!state.isFlipping) return;
@@ -484,10 +551,12 @@ export default function BookPreview3D({
       if (rawProgress < 1) {
         flipAnimRef.current.rafId = requestAnimationFrame(animate);
       } else {
-        const pageDelta = state.flipDirection === 'forward' ? 2 : -2;
         const maxPage = useAppStore.getState().bookConfig.pageCount;
-        const newPage = Math.max(0, Math.min(state.currentPage + pageDelta, maxPage));
-        onFlipComplete(newPage);
+        const targetPage = state.targetPage ?? (state.flipDirection === 'forward' ? state.currentPage + 2 : state.currentPage - 2);
+        const newPage = Math.max(1, Math.min(targetPage, maxPage));
+        const lastSpread = maxPage <= 1 ? 1 : maxPage % 2 === 0 ? maxPage : maxPage - 1;
+        const shouldCloseBack = state.flipDirection === 'forward' && state.targetPage === null && state.currentPage >= lastSpread;
+        onFlipComplete(shouldCloseBack ? lastSpread : newPage, shouldCloseBack ? 'closedBack' : 'open');
       }
     };
 
@@ -498,20 +567,24 @@ export default function BookPreview3D({
         cancelAnimationFrame(flipAnimRef.current.rafId);
       }
     };
-  }, [state.isFlipping, onStateChange, state.flipDirection, state.currentPage, onFlipComplete]);
+  }, [state.isFlipping, onStateChange, state.flipDirection, state.currentPage, state.targetPage, onFlipComplete]);
 
-  // ---- Screenshot export ----
-  const handleExport = useCallback((highRes = false) => {
+  // ---- Screenshot export (high-res via SceneCapture, fallback to current frame) ----
+  const handleExport = useCallback(() => {
+    const filename = `kdp-preview-p${state.currentPage}.png`;
+    if (internalCaptureRef.current) {
+      try { internalCaptureRef.current(filename); } catch (err) { console.error('Export failed:', err); }
+      return;
+    }
+    // Fallback: current frame at current DPR
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     try {
-      const dataUrl = canvas.toDataURL('image/png');
-      downloadImage(dataUrl, highRes ? 'kdp-book-preview-hd.png' : 'kdp-book-preview.png');
+      downloadImage(canvas.toDataURL('image/png'), filename);
     } catch (err) {
-      console.error('Export failed:', err);
+      console.error('Export fallback failed:', err);
     }
-  }, []);
+  }, [state.currentPage]);
 
   useEffect(() => {
     if (onExportRef) {
@@ -527,12 +600,14 @@ export default function BookPreview3D({
         preserveDrawingBuffer: true,
         antialias: true,
         alpha: true,
+        outputColorSpace: THREE.SRGBColorSpace,
+        toneMapping: THREE.NoToneMapping,
         powerPreference: 'high-performance',
       }}
       style={{ background: 'transparent' }}
       onCreated={({ gl }) => {
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.1;
+        gl.outputColorSpace = THREE.SRGBColorSpace;
+        gl.toneMapping = THREE.NoToneMapping;
       }}
       dpr={[1, 2]}
       performance={{ min: 0.5 }}
@@ -543,9 +618,10 @@ export default function BookPreview3D({
             state={state}
             coverTextures={coverTextures}
             pageTextures={pageTextures}
-            onFlipComplete={onFlipComplete}
+            overlays={overlays}
           />
         </PerformanceMonitor>
+        <SceneCapture captureRef={internalCaptureRef} />
       </Suspense>
     </Canvas>
   );
@@ -556,8 +632,18 @@ export default function BookPreview3D({
 // ---------------------------------------------------------------------------
 
 function downloadImage(dataUrl: string, filename: string) {
+  // Convert base64 data URL to blob URL — avoids holding a large base64 string in the DOM
+  const [header, b64] = dataUrl.split(',');
+  const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png';
+  const bytes = atob(b64);
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([arr], { type: mime }));
   const link = document.createElement('a');
   link.download = filename;
-  link.href = dataUrl;
+  link.href = url;
+  document.body.appendChild(link);
   link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
