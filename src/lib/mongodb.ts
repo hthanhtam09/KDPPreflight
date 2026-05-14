@@ -31,3 +31,8 @@ export async function getFeatureFeedbackCollection() {
   const db = await getMongoDb();
   return db.collection('feature_feedback');
 }
+
+export async function getPageViewsCollection() {
+  const db = await getMongoDb();
+  return db.collection('page_views');
+}

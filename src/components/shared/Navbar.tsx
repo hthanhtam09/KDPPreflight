@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "framer-motion";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -57,7 +57,7 @@ export default function Navbar() {
         >
           <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
             <Image
-              src="/logo.png"
+              src="/logo-nav.png"
               alt=""
               width={60}
               height={60}
@@ -112,27 +112,29 @@ export default function Navbar() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.nav
-            id="mobile-navigation"
-            aria-label="Main navigation"
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-x-4 top-[calc(100%+0.5rem)] rounded-2xl border border-border bg-surface-glass p-2 shadow-elevated backdrop-blur-2xl md:hidden"
-          >
-            <div className="grid gap-1">
-              <NavLinks
-                isActive={isActive}
-                mobile
-                onNavigate={() => setMobileOpen(false)}
-              />
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      <LazyMotion features={domAnimation}>
+        <AnimatePresence>
+          {mobileOpen && (
+            <m.nav
+              id="mobile-navigation"
+              aria-label="Main navigation"
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-x-4 top-[calc(100%+0.5rem)] rounded-2xl border border-border bg-surface-glass p-2 shadow-elevated backdrop-blur-2xl md:hidden"
+            >
+              <div className="grid gap-1">
+                <NavLinks
+                  isActive={isActive}
+                  mobile
+                  onNavigate={() => setMobileOpen(false)}
+                />
+              </div>
+            </m.nav>
+          )}
+        </AnimatePresence>
+      </LazyMotion>
     </header>
   );
 }

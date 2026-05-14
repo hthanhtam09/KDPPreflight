@@ -8,6 +8,9 @@
     "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
     "start": "NODE_ENV=production node .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
+    "analyze": "ANALYZE=true next build --webpack",
+    "lighthouse": "lhci autorun --collect.url=http://localhost:3002 --collect.startServerCommand=\"pnpm dev\" --collect.startServerReadyPattern=\"Ready\" --collect.startServerReadyTimeout=60000",
+    "perf:audit": "pnpm build && find .next/static/chunks -type f -name '*.js' -print0 | xargs -0 ls -lh | sort -k5 -hr | head -30",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -91,6 +94,8 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
+    "@next/bundle-analyzer": "^16.2.6",
     "@tailwindcss/postcss": "^4",
     "@types/node": "25.7.0",
     "@types/react": "^19",

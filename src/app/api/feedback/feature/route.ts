@@ -40,6 +40,7 @@ export async function POST(request: Request) {
     const collection = await getFeatureFeedbackCollection();
     await collection.insertOne({
       ...feedback,
+      status: 'new',
       userAgent,
       ipHash,
       createdAt,

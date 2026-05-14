@@ -1,7 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/store/use-app-store'
-import { motion } from 'framer-motion'
+import { LazyMotion, domAnimation, m } from 'framer-motion'
 import { Check, ChevronRight, CloudOff, HelpCircle, Loader2, RotateCcw, Save, ShieldCheck, Upload } from 'lucide-react'
 import type React from 'react'
 
@@ -267,9 +267,11 @@ export function SaveStatus({ label }: { label?: string }) {
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.32, ease: 'easeOut' }}>
-      {children}
-    </motion.div>
+    <LazyMotion features={domAnimation}>
+      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.32, ease: 'easeOut' }}>
+        {children}
+      </m.div>
+    </LazyMotion>
   )
 }
 
@@ -278,7 +280,8 @@ export function RestoreSessionNotice() {
   if (!hasRestoredSession) return null
 
   return (
-    <motion.div
+    <LazyMotion features={domAnimation}>
+    <m.div
       className="ds-card-glass mx-auto mb-3 flex max-w-7xl items-center gap-2.5 px-3.5 py-3 text-[13px] text-foreground/80"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -288,6 +291,7 @@ export function RestoreSessionNotice() {
       <button type="button" onClick={() => setHasRestoredSession(false)} className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-primary">
         Dismiss <ChevronRight className="h-3.5 w-3.5" />
       </button>
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   )
 }

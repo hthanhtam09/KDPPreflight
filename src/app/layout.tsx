@@ -1,25 +1,23 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import { ThemeProvider } from 'next-themes';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
-import { FeatureFeedback } from '@/components/feedback/FeatureFeedback';
-import Navbar from '@/components/shared/Navbar';
-import Footer from '@/components/shared/Footer';
 import { SITE_URL, SITE_NAME } from '@/lib/seo';
+import AppChrome from '@/components/system/AppChrome';
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: './fonts/geist-latin.woff2',
   variable: '--font-geist-sans',
-  subsets: ['latin'],
   display: 'swap',
   preload: true,
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: './fonts/geist-mono-latin.woff2',
   variable: '--font-geist-mono',
-  subsets: ['latin'],
   display: 'swap',
   preload: false,
 });
@@ -127,8 +125,6 @@ export default function RootLayout({
     <html lang="en" className="notranslate" translate="no" suppressHydrationWarning>
       <head>
         <meta name="google" content="notranslate" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* llms.txt — AI agent discovery (llmstxt.org standard) */}
         <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
       </head>
@@ -138,16 +134,11 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem={false}
-          disableTransitionOnChange={false}
+          disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col">
-            <Navbar />
-            <main className="min-h-0 flex-1">{children}</main>
-            <Footer />
-          </div>
-          <FeatureFeedback floating />
+          <AppChrome>{children}</AppChrome>
           <Toaster />
         </ThemeProvider>
         <Analytics />

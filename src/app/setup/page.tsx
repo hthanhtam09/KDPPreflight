@@ -1,5 +1,3 @@
-'use client';
-
 import SetupFeature from '@/components/setup/SetupFeature';
 import { AppShell, FeatureFAQ, RestoreSessionNotice, WorkspacePanel } from '@/components/workspace/ProductWorkspace';
 

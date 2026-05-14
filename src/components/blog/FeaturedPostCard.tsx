@@ -1,16 +1,16 @@
 import Link from 'next/link';
 import { ArrowRight, CalendarDays, Clock } from 'lucide-react';
 import { formatBlogDate, type BlogPost } from '@/lib/blog';
-import { FeaturedGuideVisual, type FeaturedGuideVisualProps } from './FeaturedGuideVisual';
+import { BlogPostVisual, getBlogVisualCategory } from './BlogPostVisual';
 
 export function FeaturedPostCard({ post }: { post: BlogPost }) {
-  const visualType = getVisualType(post);
+  const visualCategory = getBlogVisualCategory(post.category, post.slug);
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-elevated">
       <Link href={`/blog/${post.slug}`} className="grid min-h-[360px] lg:grid-cols-[1.08fr_0.92fr]">
         <div className="relative min-h-[260px] overflow-hidden border-b border-border bg-muted/30 lg:border-b-0 lg:border-r">
-          <FeaturedGuideVisual type={visualType} />
+          <BlogPostVisual category={visualCategory} title={post.title} variant="featured" />
         </div>
 
         <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
@@ -41,12 +41,4 @@ export function FeaturedPostCard({ post }: { post: BlogPost }) {
       </Link>
     </article>
   );
-}
-
-function getVisualType(post: BlogPost): FeaturedGuideVisualProps['type'] {
-  if (post.category === 'Bleed') return 'bleed';
-  if (post.category === 'Trim Size' || post.slug.includes('cover-size')) return 'trim';
-  if (post.category === 'Spine') return 'spine';
-  if (post.category === 'Safe Area') return 'safe-area';
-  return 'validator';
 }

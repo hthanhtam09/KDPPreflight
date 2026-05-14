@@ -1,5 +1,3 @@
-'use client';
-
 import PreviewFeature from '@/components/preview/PreviewFeature';
 import { AppShell } from '@/components/workspace/ProductWorkspace';
 

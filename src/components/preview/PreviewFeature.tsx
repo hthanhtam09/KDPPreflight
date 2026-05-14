@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion';
 import {
   ArrowLeft,
   Loader2,
@@ -228,11 +228,13 @@ export default function PreviewFeature() {
       switch (e.key) {
         case 'ArrowRight':
           e.preventDefault();
-          isKindle ? kindleNextPage() : actions.nextPage();
+          if (isKindle) kindleNextPage();
+          else actions.nextPage();
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          isKindle ? kindlePrevPage() : actions.prevPage();
+          if (isKindle) kindlePrevPage();
+          else actions.prevPage();
           break;
         case 'o':
         case 'O':
@@ -297,9 +299,10 @@ export default function PreviewFeature() {
 
       {/* ─── Step Content ─── */}
       <div className={`flex-1 overflow-hidden ${isInPreviewStep ? 'relative' : ''}`}>
+        <LazyMotion features={domAnimation}>
         <AnimatePresence mode="wait">
           {previewFlowStep === 'import' && (
-            <motion.div
+            <m.div
               key="import"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -308,11 +311,11 @@ export default function PreviewFeature() {
               className="h-full overflow-y-auto"
             >
               <ImportStep />
-            </motion.div>
+            </m.div>
           )}
 
           {previewFlowStep === 'config' && (
-            <motion.div
+            <m.div
               key="config"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -321,11 +324,11 @@ export default function PreviewFeature() {
               className="h-full overflow-y-auto"
             >
               <ConfigStep />
-            </motion.div>
+            </m.div>
           )}
 
           {previewFlowStep === 'generate' && (
-            <motion.div
+            <m.div
               key="generate"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -334,11 +337,11 @@ export default function PreviewFeature() {
               className="h-full"
             >
               <GenerateStep onCoverSegments={setCoverSegments} />
-            </motion.div>
+            </m.div>
           )}
 
           {previewFlowStep === 'preview' && (
-            <motion.div
+            <m.div
               key="preview"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -427,9 +430,10 @@ export default function PreviewFeature() {
                   )}
                 </div>
               )}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
+        </LazyMotion>
       </div>
     </div>
   );

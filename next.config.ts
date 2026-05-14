@@ -1,9 +1,11 @@
 import type { NextConfig } from 'next';
+import bundleAnalyzer from '@next/bundle-analyzer';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: false,
   turbopack: {},
+  poweredByHeader: false,
 
   typescript: {
     ignoreBuildErrors: true,
@@ -11,6 +13,15 @@ const nextConfig: NextConfig = {
 
   // Compress responses for better TTFB
   compress: true,
+
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'framer-motion',
+      'three',
+      '@react-three/drei',
+    ],
+  },
 
   // Optimize images served through next/image
   images: {
@@ -41,6 +52,14 @@ const nextConfig: NextConfig = {
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
+        source: '/:path*.webp',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        source: '/:path*.avif',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
         source: '/:path*.svg',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
@@ -57,4 +76,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+export default withBundleAnalyzer(nextConfig);
