@@ -42,7 +42,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-[var(--z-nav)] border-b backdrop-blur-2xl transition-[background-color,border-color,box-shadow] duration-300 ${
+      className={`sticky inset-x-0 top-0 z-[var(--z-nav)] h-[var(--app-header-height)] border-b backdrop-blur-2xl transition-[background-color,border-color,box-shadow] duration-300 ${
         scrolled
           ? "border-border bg-background/90 shadow-elevated"
           : "border-border/70 bg-background/72 shadow-none"
@@ -54,13 +54,13 @@ export default function Navbar() {
           className="group flex min-w-0 items-center gap-1 rounded-full outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/40"
           aria-label="KDPPreflight home"
         >
-          <div className="relative flex h-[74px] w-[74px] shrink-0 items-center justify-center">
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
             <Image
               src="/logo.png"
               alt=""
-              width={70}
-              height={70}
-              className="h-[70px] w-[70px] object-contain brightness-105 transition group-hover:brightness-125"
+              width={60}
+              height={60}
+              className="h-[60px] w-[60px] object-contain brightness-105 transition group-hover:brightness-125"
               priority
             />
           </div>

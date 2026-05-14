@@ -81,8 +81,14 @@
   --duration-base: 220ms;
   --duration-panel: 320ms;
   --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
-  --nav-height: 4rem;
-  --z-nav: 80;
+  --nav-height: 72px;
+  --app-header-height: var(--nav-height);
+  --app-header-height-mobile: var(--nav-height);
+  --app-current-header-height: var(--nav-height);
+  --checker-toolbar-height: 64px;
+  --checker-toolbar-stack-height: var(--checker-toolbar-height);
+  --checker-status-height: 28px;
+  --z-nav: 50;
   --z-overlay: 60;
   --z-modal: 70;
 
@@ -154,6 +160,12 @@
   --sidebar-accent-foreground: var(--secondary-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --checker-toolbar-stack-height: var(--checker-toolbar-height);
+  }
 }
 
 .dark {
@@ -265,7 +277,7 @@
 
 /* ─── Workspace shell — theme-adaptive checker background ──── */
 .ws-shell {
-  min-height: calc(100vh - 56px);
+  min-height: calc(100vh - var(--app-current-header-height));
   padding: clamp(1rem, 3vw, 1.5rem);
   background:
     radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 28%),
@@ -275,6 +287,40 @@
     linear-gradient(90deg, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px),
     linear-gradient(0deg, color-mix(in srgb, var(--foreground) 3%, transparent) 1px, transparent 1px);
   background-size: 72px 72px;
+}
+
+.checker-page {
+  height: calc(100vh - var(--app-current-header-height));
+  min-height: 0;
+  overflow: hidden;
+}
+
+.checker-toolbar {
+  height: var(--checker-toolbar-stack-height);
+  min-height: 0;
+  max-height: var(--checker-toolbar-stack-height);
+  overflow: hidden;
+}
+
+.checker-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1 1 auto;
+  height: calc(100vh - var(--app-current-header-height) - var(--checker-toolbar-stack-height) - var(--checker-status-height));
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .checker-workspace {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .checker-workspace {
+    grid-template-columns: 220px minmax(0, 1fr) 420px;
+  }
 }
 
 .dark .ws-shell {
@@ -385,7 +431,7 @@
 
 @media (min-width: 1024px) {
   :root {
-    --nav-height: 4.35rem;
+    --nav-height: 72px;
   }
 }
 

@@ -50,11 +50,6 @@ import {
 } from '@/types/kdp';
 import { computeValidationSummary, analyzePagesForIssues, PDFAnalysisResult } from '@/engine/validator';
 import {
-  getStatusColor,
-  getStatusIcon,
-  getStatusBg,
-} from '@/engine/kdp-constants';
-import {
   saveWorkspace,
   loadWorkspace,
   clearWorkspace,
@@ -91,6 +86,7 @@ type FitMode = 'fit-page' | 'fit-width' | 'fit-height' | 'fit-spread' | 'actual'
 
 // Beginner-friendly filter labels
 type BeginnerFilter = 'all' | 'important' | 'needs-fix' | 'safe';
+type RenderStatus = 'idle' | 'loading' | 'rendering' | 'ready' | 'error';
 
 function allowedOverlaysForBookType(bookType: string): OverlayType[] {
   if (bookType === 'kindle') return [];
@@ -529,6 +525,16 @@ function getWorstSeverity(pages: BookPage[], pageIssues: PageIssueExtended[]): C
   return worst;
 }
 
+function getSpreadPages(currentPage: number, totalPages: number): [number, number | null] {
+  if (totalPages <= 0) return [1, null];
+  if (currentPage <= 1) return [1, null];
+
+  const left = currentPage % 2 === 0 ? currentPage : currentPage - 1;
+  const right = left + 1 <= totalPages ? left + 1 : null;
+
+  return [left, right];
+}
+
 function getIssueCountForPages(pages: BookPage[], pageIssues: PageIssueExtended[]): number {
   let count = 0;
   for (const page of pages) {
@@ -550,8 +556,8 @@ function IssueDot({ severity, size = 'sm' }: { severity: CheckStatus; size?: 'sm
 function SingleThumb({ page, small }: { page: BookPage; small?: boolean }) {
   if (page.isBlank) {
     return (
-      <div className="w-full h-full bg-foreground/80 flex items-center justify-center">
-        <span className={`text-gray-300 font-medium ${small ? 'text-[4px]' : 'text-[7px]'}`}>
+      <div className="w-full h-full bg-background flex items-center justify-center">
+        <span className={`text-muted-foreground font-medium ${small ? 'text-[8px]' : 'text-[10px]'}`}>
           {page.section === 'blank' ? 'Blank' : page.label}
         </span>
       </div>
@@ -560,7 +566,11 @@ function SingleThumb({ page, small }: { page: BookPage; small?: boolean }) {
   if (page.dataUrl) {
     return <img src={page.dataUrl} alt={page.label} className="w-full h-full object-contain" />;
   }
-  return <FileText className={`${small ? 'w-3 h-3' : 'w-4 h-4'} text-foreground/10`} />;
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-background">
+      <FileText className={`${small ? 'w-4 h-4' : 'w-5 h-5'} text-muted-foreground`} />
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -745,10 +755,10 @@ function ThumbnailSidebar({
 
   if (collapsed) {
     return (
-      <div className="w-10 shrink-0 border-r border-foreground/[0.18] dark:border-foreground/[0.06] bg-card flex flex-col items-center pt-2">
+      <div className="z-10 flex h-full w-12 shrink-0 flex-col items-center border-r border-border bg-surface pt-3">
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-lg text-foreground/65 dark:text-foreground/25 hover:text-foreground/80 dark:text-foreground/50 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
+          className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           title="Expand sidebar"
         >
           <PanelLeftOpen className="w-4 h-4" />
@@ -758,13 +768,13 @@ function ThumbnailSidebar({
   }
 
   return (
-    <div className="w-[170px] min-w-[120px] max-w-[190px] shrink-0 border-r border-foreground/[0.18] dark:border-foreground/[0.06] bg-card flex flex-col">
+    <div className="z-10 flex h-full min-h-0 w-[220px] shrink-0 flex-col border-r border-border bg-surface">
       {/* Header */}
-      <div className="shrink-0 px-3 py-2 border-b border-foreground/[0.18] dark:border-foreground/[0.06] flex items-center justify-between">
-        <span className="text-[10px] font-semibold text-foreground/65 dark:text-foreground/25 uppercase tracking-wider">Pages</span>
+      <div className="sticky top-0 z-10 flex h-12 shrink-0 items-center justify-between border-b border-border bg-surface/95 px-4 backdrop-blur-xl">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pages</span>
         <button
           onClick={onToggleCollapse}
-          className="p-1 rounded-md text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 hover:text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
+          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           title="Collapse sidebar"
         >
           <PanelLeftClose className="w-3.5 h-3.5" />
@@ -772,7 +782,7 @@ function ThumbnailSidebar({
       </div>
 
       {/* Scrollable thumbnails */}
-      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-2 space-y-1.5">
+      <div ref={scrollContainerRef} className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {viewMode === 'spread' && spreads.length > 0 ? (
           spreads.map((spread) => {
             const isActive = spread.spreadIndex === currentSpreadIdx;
@@ -787,14 +797,14 @@ function ThumbnailSidebar({
                 key={spread.id}
                 ref={isActive ? activeRef : undefined}
                 onClick={() => spread.leftPageIndex !== null && onPageSelect(spread.leftPageIndex)}
-                className={`w-full rounded-lg overflow-hidden border transition-all duration-200 text-left ${
+                className={`w-full overflow-hidden rounded-md border bg-card text-left transition-all duration-200 ${
                   isActive
-                    ? 'border-success/60 ring-2 ring-success/25 bg-success/[0.03]'
-                    : 'border-foreground/[0.18] dark:border-foreground/[0.06] hover:border-foreground/[0.25] dark:border-foreground/[0.12]'
+                    ? 'border-primary ring-2 ring-primary/15'
+                    : 'border-border hover:border-primary/35 hover:bg-muted/30'
                 }`}
               >
                 {/* Preview image — aspect-ratio aware, no cropping */}
-                <div className="relative bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] flex items-center justify-center p-1" style={{ aspectRatio: spread.isSingle ? '2/3' : '4/3' }}>
+                <div className="relative flex items-center justify-center bg-background p-2" style={{ aspectRatio: spread.isSingle ? '2/3' : '4/3' }}>
                   {spread.isSingle ? (
                     leftPage ? <SingleThumb page={leftPage} /> : null
                   ) : (
@@ -816,9 +826,9 @@ function ThumbnailSidebar({
                 </div>
 
                 {/* Label + issue badge */}
-                <div className="px-2 py-1.5 bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]">
+                <div className="bg-card px-2.5 py-2">
                   <div className="flex items-center justify-between gap-1">
-                    <span className={`text-[9px] font-medium leading-tight truncate ${isActive ? 'text-success' : 'text-foreground/35'}`}>
+                    <span className={`truncate text-[11px] font-semibold leading-tight ${isActive ? 'text-primary' : 'text-foreground/70'}`}>
                       {spread.label}
                     </span>
                     <div className="flex items-center gap-1">
@@ -828,10 +838,10 @@ function ThumbnailSidebar({
                     </div>
                   </div>
                   {issueCount > 0 && (
-                    <span className={`text-[8px] mt-0.5 block font-medium ${
-                      worstIssue === 'fail' ? 'text-danger/50' :
-                      worstIssue === 'risk' ? 'text-warning/50' :
-                      'text-foreground/15'
+                    <span className={`mt-0.5 block text-[10px] font-medium ${
+                      worstIssue === 'fail' ? 'text-danger' :
+                      worstIssue === 'risk' ? 'text-warning' :
+                      'text-muted-foreground'
                     }`}>
                       {issueCount} issue{issueCount !== 1 ? 's' : ''}
                     </span>
@@ -851,14 +861,14 @@ function ThumbnailSidebar({
                 key={page.id}
                 ref={isActive ? activeRef : undefined}
                 onClick={() => onPageSelect(idx)}
-                className={`w-full rounded-lg overflow-hidden border transition-all duration-200 text-left ${
+                className={`w-full overflow-hidden rounded-md border bg-card text-left transition-all duration-200 ${
                   isActive
-                    ? 'border-success/60 ring-2 ring-success/25 bg-success/[0.03]'
-                    : 'border-foreground/[0.18] dark:border-foreground/[0.06] hover:border-foreground/[0.25] dark:border-foreground/[0.12]'
+                    ? 'border-primary ring-2 ring-primary/15'
+                    : 'border-border hover:border-primary/35 hover:bg-muted/30'
                 }`}
               >
                 {/* Preview image — aspect-ratio aware, no cropping */}
-                <div className="relative bg-foreground/[0.16] dark:bg-foreground/[0.08] dark:bg-foreground/[0.03] flex items-center justify-center p-1" style={{ aspectRatio: page.isCoverPage ? '3/2' : '2/3' }}>
+                <div className="relative flex items-center justify-center bg-background p-2" style={{ aspectRatio: page.isCoverPage ? '3/2' : '2/3' }}>
                   <SingleThumb page={page} />
                   {worstIssue && worstIssue !== 'pass' && worstIssue !== 'safe' && (
                     <div className="absolute top-1 right-1">
@@ -868,9 +878,9 @@ function ThumbnailSidebar({
                 </div>
 
                 {/* Label + issue badge */}
-                <div className="px-2 py-1.5 bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02]">
+                <div className="bg-card px-2.5 py-2">
                   <div className="flex items-center justify-between gap-1">
-                    <span className={`text-[9px] font-medium truncate ${isActive ? 'text-success' : 'text-foreground/30'}`}>
+                    <span className={`truncate text-[11px] font-semibold ${isActive ? 'text-primary' : 'text-foreground/70'}`}>
                       {page.section === 'full-cover' ? 'Cover' : page.section === 'blank' ? 'Blank' : page.label}
                     </span>
                     {worstIssue && worstIssue !== 'pass' && worstIssue !== 'safe' && (
@@ -878,10 +888,10 @@ function ThumbnailSidebar({
                     )}
                   </div>
                   {issueCount > 0 && (
-                    <span className={`text-[8px] mt-0.5 block font-medium ${
-                      worstIssue === 'fail' ? 'text-danger/50' :
-                      worstIssue === 'risk' ? 'text-warning/50' :
-                      'text-foreground/15'
+                    <span className={`mt-0.5 block text-[10px] font-medium ${
+                      worstIssue === 'fail' ? 'text-danger' :
+                      worstIssue === 'risk' ? 'text-warning' :
+                      'text-muted-foreground'
                     }`}>
                       {issueCount} issue{issueCount !== 1 ? 's' : ''}
                     </span>
@@ -990,7 +1000,7 @@ function FriendlyIssueCard({
   locationLabel?: string;
   staggerIndex?: number;
 }) {
-  const [showTechnical, setShowTechnical] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const colors = getSeverityColors(issue.severity);
   const friendlyInfo = CATEGORY_FRIENDLY[issue.category] || CATEGORY_FRIENDLY['interior'];
   const kdpRiskInfo = getKdpRiskLabel(issue.kdpRisk);
@@ -1007,7 +1017,7 @@ function FriendlyIssueCard({
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
-      className={`w-full rounded-lg border text-left transition-all duration-150 cursor-pointer ${
+      className={`w-full cursor-pointer rounded-md border bg-card text-left transition-all duration-150 ${
         isSelected
           ? `${colors.bg} ${colors.border} ring-1 ${colors.glow}`
           : isInfo
@@ -1019,103 +1029,79 @@ function FriendlyIssueCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay: staggerIndex * 0.05 }}
     >
-      <div className={isInfo ? 'p-3' : 'p-4'}>
-        {/* TOP ROW: Severity badge + title + affected page */}
+      <div className="p-3">
         <div className="flex items-start gap-2">
-          <span className={`shrink-0 mt-0.5 ${isInfo ? 'text-success/40' : colors.text}`}>
+          <span className={`mt-0.5 shrink-0 ${isInfo ? 'text-success/60' : colors.text}`}>
             {isInfo ? <CheckCircle2 className="w-3.5 h-3.5" /> : getSeverityIcon(issue.severity)}
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isInfo ? 'bg-success/10 text-success/60' : `${colors.bg} ${colors.text}`}`}>
+              <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${isInfo ? 'bg-success/10 text-success/70' : `${colors.bg} ${colors.text}`}`}>
                 {getSeverityLabel(issue.severity)}
               </span>
               {pageLabel && (
-                <span className="text-[11px] text-foreground/65 dark:text-foreground/30 font-medium">
+                <span className="text-[10px] font-medium text-muted-foreground">
                   {pageLabel}
                 </span>
               )}
             </div>
-            <p className={`text-[13px] font-medium leading-relaxed ${isInfo ? 'text-foreground/40' : isSelected ? 'text-foreground/80' : 'text-foreground/60'}`}>
+            <p className={`line-clamp-2 text-[12px] font-semibold leading-snug ${isInfo ? 'text-muted-foreground' : 'text-foreground'}`}>
               {issue.message}
             </p>
           </div>
         </div>
 
-        {/* DUAL-DIMENSION DISPLAY: Spec Accuracy + Real KDP Risk */}
         {(issue.specAccuracy || issue.kdpRisk) && !isInfo && (
-          <div className="mt-2.5 ml-6 flex items-center gap-3">
+          <div className="ml-6 mt-2 flex flex-wrap items-center gap-2">
             {specLabel && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-semibold text-foreground/65 dark:text-foreground/30 uppercase tracking-wider">Spec:</span>
-                <span className={`text-[10px] font-medium ${
+              <span className={`text-[10px] font-medium ${
                   issue.specAccuracy === 'exact' ? 'text-success/60'
                   : issue.specAccuracy === 'slight-variance' ? 'text-warning/60'
                   : 'text-danger/60'
                 }`}>
-                  {issue.specAccuracy === 'exact' ? 'Exact' : issue.specAccuracy === 'slight-variance' ? 'Close' : 'Mismatch'} · {specLabel}
-                </span>
-              </div>
+                {issue.specAccuracy === 'exact' ? 'Exact' : issue.specAccuracy === 'slight-variance' ? 'Close' : 'Mismatch'}
+              </span>
             )}
             {kdpRiskInfo.label && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] font-semibold text-foreground/65 dark:text-foreground/30 uppercase tracking-wider">KDP:</span>
-                <span className={`text-[10px] font-medium ${kdpRiskInfo.color}/70`}>
-                  {kdpRiskInfo.emoji} {kdpRiskInfo.label}
-                </span>
-              </div>
+              <span className={`text-[10px] font-medium ${kdpRiskInfo.color}`}>{kdpRiskInfo.label}</span>
             )}
           </div>
         )}
 
-        {/* Real-world impact explanation */}
-        {issue.realWorldImpact && !isInfo && (
-          <div className="mt-2 ml-6">
-            <p className="text-[12px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 leading-relaxed italic">
-              {issue.realWorldImpact}
-            </p>
-          </div>
-        )}
-
-        {/* MIDDLE SECTION: Problem / Why / Fix — only for non-informational issues */}
-        {!isInfo && (
-          <div className="mt-3 ml-7 space-y-3">
-            <div>
-              <span className="text-[10px] font-semibold text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 uppercase tracking-wider">Problem</span>
-              <p className="text-[13px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 leading-relaxed mt-0.5">
-                {friendlyInfo.problemPrefix}
-              </p>
+        {!isInfo && (issue.actual || issue.expected) && (
+          <div className="ml-6 mt-2 grid grid-cols-2 gap-2 rounded-md bg-muted/45 p-2 text-[10px]">
+            <div className="min-w-0">
+              <span className="block text-muted-foreground">Actual</span>
+              <span className="block truncate font-mono text-foreground">{issue.actual || 'n/a'}</span>
             </div>
-            <div>
-              <span className="text-[10px] font-semibold text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 uppercase tracking-wider">Why it matters</span>
-              <p className="text-[13px] text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 leading-relaxed mt-0.5">
-                {friendlyInfo.whyItMatters}
-              </p>
-            </div>
-            <div>
-              <span className="text-[10px] font-semibold text-success/50 uppercase tracking-wider">Recommended fix</span>
-              <p className="text-[13px] text-success/40 leading-relaxed mt-0.5 whitespace-pre-line">
-                {issue.suggestion || friendlyInfo.fixHint}
-              </p>
+            <div className="min-w-0">
+              <span className="block text-muted-foreground">Expected</span>
+              <span className="block truncate font-mono text-foreground">{issue.expected || 'n/a'}</span>
             </div>
           </div>
         )}
 
-        {/* BOTTOM SECTION: Actual vs Expected comparison table */}
-        {(issue.actual || issue.expected) && !isInfo && (
-          <div className="mt-2.5 ml-6">
-            <div
-              onClick={(e) => { e.stopPropagation(); setShowTechnical(!showTechnical); }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setShowTechnical(!showTechnical); } }}
-              className="flex items-center gap-1 text-[11px] text-foreground/65 dark:text-foreground/25 hover:text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 transition-colors cursor-pointer py-1"
+        <div className="ml-6 mt-3 flex items-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onClick(); }}
+            className="rounded-md bg-primary px-2.5 py-1.5 text-[11px] font-semibold text-primary-foreground"
+          >
+            View issue
+          </button>
+          {!isInfo && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+              className="flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted"
             >
-              <ChevronDown className={`w-2.5 h-2.5 transition-transform ${showTechnical ? 'rotate-180' : ''}`} />
-              Dimensions Comparison
-            </div>
+              Details
+              <ChevronDown className={`h-3 w-3 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+        </div>
+
+        {!isInfo && (
             <AnimatePresence>
-              {showTechnical && (
+              {expanded && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
@@ -1123,65 +1109,25 @@ function FriendlyIssueCard({
                   transition={{ duration: 0.15 }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-1.5 bg-foreground/[0.13] dark:bg-foreground/[0.06] dark:bg-foreground/[0.02] rounded-md overflow-hidden">
-                    {/* Table header */}
-                    <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[9px] font-semibold text-foreground/65 dark:text-foreground/30 uppercase tracking-wider border-b border-foreground/[0.25] dark:border-foreground/[0.12] dark:border-foreground/[0.04] px-2 py-1">
-                      <span>Metric</span>
-                      <span>Actual</span>
-                      <span>Expected</span>
-                      <span className="text-center">✓</span>
+                  <div className="ml-6 mt-3 space-y-2 rounded-md border border-border bg-muted/30 p-3">
+                    <div>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Problem</span>
+                      <p className="mt-0.5 text-xs leading-relaxed text-foreground/80">{friendlyInfo.problemPrefix}</p>
                     </div>
-                    {/* Parse dimensions from actual/expected strings */}
-                    {(() => {
-                      // Try to parse "8.75" × 11.25"" format
-                      const dimRegex = /([\d.]+)"\s*×\s*([\d.]+)"/;
-                      const actMatch = issue.actual?.match(dimRegex);
-                      const expMatch = issue.expected?.match(dimRegex);
-
-                      if (actMatch && expMatch) {
-                        const actW = parseFloat(actMatch[1]);
-                        const actH = parseFloat(actMatch[2]);
-                        const expW = parseFloat(expMatch[1]);
-                        const expH = parseFloat(expMatch[2]);
-                        const wDiff = Math.abs(actW - expW);
-                        const hDiff = Math.abs(actH - expH);
-                        // Use realistic tolerances for the comparison
-                        const wStatus = wDiff <= 0.02 ? 'ok' : wDiff <= 0.125 ? 'warn' : 'bad';
-                        const hStatus = hDiff <= 0.02 ? 'ok' : hDiff <= 0.125 ? 'warn' : 'bad';
-
-                        return (
-                          <>
-                            <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1 border-b border-foreground/[0.22] dark:border-foreground/[0.08] dark:border-foreground/[0.02]">
-                              <span className="text-foreground/65 dark:text-foreground/25">Width</span>
-                              <span className={`font-mono ${wStatus === 'ok' ? 'text-success/50' : wStatus === 'warn' ? 'text-warning/60' : 'text-danger/60'}`}>{actW.toFixed(3)}"</span>
-                              <span className="font-mono text-foreground/65 dark:text-foreground/30">{expW.toFixed(3)}"</span>
-                              <span className="text-center">{wStatus === 'ok' ? 'OK' : wStatus === 'warn' ? 'Check' : 'Fix'}</span>
-                            </div>
-                            <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1">
-                              <span className="text-foreground/65 dark:text-foreground/25">Height</span>
-                              <span className={`font-mono ${hStatus === 'ok' ? 'text-success/50' : hStatus === 'warn' ? 'text-warning/60' : 'text-danger/60'}`}>{actH.toFixed(3)}"</span>
-                              <span className="font-mono text-foreground/65 dark:text-foreground/30">{expH.toFixed(3)}"</span>
-                              <span className="text-center">{hStatus === 'ok' ? 'OK' : hStatus === 'warn' ? 'Check' : 'Fix'}</span>
-                            </div>
-                          </>
-                        );
-                      }
-
-                      // Fallback: just show raw values
-                      return (
-                        <div className="grid grid-cols-[60px_1fr_1fr_28px] gap-0 text-[10px] px-2 py-1">
-                          <span className="text-foreground/65 dark:text-foreground/25">Value</span>
-                          <span className="font-mono text-foreground/85 dark:text-foreground/70 dark:text-foreground/35">{issue.actual}</span>
-                          <span className="font-mono text-foreground/65 dark:text-foreground/30">{issue.expected}</span>
-                          <span></span>
-                        </div>
-                      );
-                    })()}
+                    {issue.realWorldImpact && (
+                      <div>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Impact</span>
+                        <p className="mt-0.5 text-xs leading-relaxed text-foreground/80">{issue.realWorldImpact}</p>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">Fix recommendation</span>
+                      <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-foreground/80">{issue.suggestion || friendlyInfo.fixHint}</p>
+                    </div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
         )}
       </div>
     </motion.div>
@@ -1260,7 +1206,7 @@ function ValidationPanel({
     if (beginnerFilter === 'important') {
       issues = issues.filter(i => i.severity === 'fail' || i.severity === 'risk');
     } else if (beginnerFilter === 'needs-fix') {
-      issues = issues.filter(i => i.severity === 'fail' || i.severity === 'risk' || i.severity === 'warning');
+      issues = issues.filter(i => i.severity === 'warning');
     } else if (beginnerFilter === 'safe') {
       issues = issues.filter(i => i.severity === 'pass' || i.severity === 'safe');
     }
@@ -1396,21 +1342,17 @@ function ValidationPanel({
     return () => clearTimeout(t);
   }, [searchInput, setIssueFilter]);
 
-  const trimLabel = bookConfig.trimSize === 'custom'
-    ? `${bookConfig.customWidth}" × ${bookConfig.customHeight}"`
-    : bookConfig.trimSize.replace('x', '" × ') + '"';
-
   const beginnerFilters: { key: BeginnerFilter; label: string }[] = [
     { key: 'all', label: 'All' },
-    { key: 'important', label: 'Important' },
-    { key: 'needs-fix', label: 'Needs Fix' },
+    { key: 'important', label: 'Critical' },
+    { key: 'needs-fix', label: 'Warning' },
     { key: 'safe', label: 'Safe' },
   ];
 
   return (
-    <div className="flex flex-col h-full bg-card">
+    <div className="flex h-full flex-col bg-surface">
       {/* ---- Section 1: PROMINENT STATUS BANNER ---- */}
-      <div className={`shrink-0 px-4 py-4 border-b ${
+      <div className={`shrink-0 border-b px-4 py-3 ${
         validationSummary.isReady
           ? 'bg-success/[0.06] border-success/20'
           : validationSummary.overallStatus === 'fail'
@@ -1420,8 +1362,8 @@ function ValidationPanel({
           : 'bg-warning/[0.04] border-warning/20'
       }`}>
         {/* Main status indicator — LARGE and CLEAR */}
-        <div className="flex items-center gap-3 mb-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+        <div className="mb-3 flex items-center gap-3">
+          <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${
             validationSummary.isReady
               ? 'bg-success/20'
               : validationSummary.overallStatus === 'fail'
@@ -1435,9 +1377,9 @@ function ValidationPanel({
              : validationSummary.overallStatus === 'risk' ? <AlertTriangle className="w-5 h-5 text-warning" />
              : <AlertCircle className="w-5 h-5 text-warning" />}
           </div>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className={`text-[15px] font-bold ${
+              <span className={`text-sm font-bold ${
                 validationSummary.isReady ? 'text-success'
                 : validationSummary.overallStatus === 'fail' ? 'text-danger'
                 : validationSummary.overallStatus === 'risk' ? 'text-warning'
@@ -1452,51 +1394,20 @@ function ValidationPanel({
                 {isSpreadMode ? '📖 Spread' : '📄 Single'}
               </span>
             </div>
-            <p className="text-[11px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 mt-0.5">
-              {validationSummary.isReady
-                ? 'Your book meets KDP requirements — no blocking issues found.'
-                : validationSummary.overallStatus === 'fail'
-                ? 'Significant issues found that may cause KDP to reject your file.'
-                : validationSummary.overallStatus === 'risk'
-                ? 'Some issues may cause print inconsistencies. Review recommended.'
-                : 'Minor issues found, but KDP will likely accept your file.'}
-            </p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Issues are grouped by KDP upload and print risk.</p>
           </div>
         </div>
 
-        {/* Document summary pills */}
-        <div className="flex items-center gap-1 flex-wrap mb-2">
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/65 dark:text-foreground/25 font-medium">{bookType.charAt(0).toUpperCase() + bookType.slice(1)}</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/65 dark:text-foreground/25 font-medium">{trimLabel}</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/65 dark:text-foreground/25 font-medium">{bookPages.length} pages</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] text-foreground/65 dark:text-foreground/25 font-medium">{measurements.spineWidthIn.toFixed(3)}" spine</span>
-        </div>
-
-        {/* Status pills — severity grouped with realistic KDP labels */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {validationSummary.fail + validationSummary.risk > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-danger/15 text-danger font-bold">
-              {validationSummary.fail + validationSummary.risk} Critical
-            </span>
-          )}
-          {validationSummary.warning > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-warning/15 text-warning font-bold">
-              {validationSummary.warning} Warning
-            </span>
-          )}
-          {validationSummary.safe + validationSummary.pass > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded bg-success/10 text-success/60 font-medium">
-              {validationSummary.safe + validationSummary.pass} OK
-            </span>
-          )}
-          {validationSummary.total === 0 && (
-            <span className="text-[10px] text-success/50">No issues detected</span>
-          )}
+        <div className="grid grid-cols-4 gap-2">
+          <SummaryStat label="Total" value={String(validationSummary.total)} />
+          <SummaryStat label="Critical" value={String(validationSummary.fail + validationSummary.risk)} tone="danger" />
+          <SummaryStat label="Warning" value={String(validationSummary.warning)} tone="warning" />
+          <SummaryStat label="Safe" value={String(validationSummary.safe + validationSummary.pass)} tone="success" />
         </div>
       </div>
 
       {/* ---- Section 2: Beginner-Friendly Filter Bar ---- */}
-      <div className="shrink-0 border-b border-foreground/[0.18] dark:border-foreground/[0.06] px-4 py-2">
+      <div className="shrink-0 border-b border-border px-4 py-3">
         {/* Beginner filter tabs */}
         <div className="flex items-center gap-1 mb-2">
           {beginnerFilters.map(f => (
@@ -1741,6 +1652,21 @@ function ValidationPanel({
 // Sub-component: SummaryItem
 // ---------------------------------------------------------------------------
 
+function SummaryStat({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'danger' | 'warning' | 'success' }) {
+  const color =
+    tone === 'danger' ? 'text-danger' :
+    tone === 'warning' ? 'text-warning' :
+    tone === 'success' ? 'text-success' :
+    'text-foreground';
+
+  return (
+    <div className="rounded-md border border-border bg-background px-2 py-1.5">
+      <span className="block text-[9px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className={`mt-0.5 block text-sm font-bold ${color}`}>{value}</span>
+    </div>
+  );
+}
+
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between">
@@ -1973,6 +1899,61 @@ function ScanProgressOverlay({ status }: { status: ProcessingStatus }) {
   );
 }
 
+function PreviewRenderState({
+  status,
+  slow,
+  error,
+  onRetry,
+  onSinglePage,
+  onResetZoom,
+}: {
+  status: RenderStatus;
+  slow: boolean;
+  error: string | null;
+  onRetry: () => void;
+  onSinglePage: () => void;
+  onResetZoom: () => void;
+}) {
+  const isError = status === 'error';
+  const title = isError
+    ? 'Could not render this page.'
+    : status === 'loading'
+      ? 'Loading PDF...'
+      : 'Rendering page preview...';
+
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/75 backdrop-blur-sm">
+      <div className="w-[min(92%,360px)] rounded-lg border border-border bg-surface p-5 text-center shadow-elevated">
+        {isError ? (
+          <AlertCircle className="mx-auto mb-3 h-8 w-8 text-danger" />
+        ) : (
+          <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary" />
+        )}
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        {slow && !isError && (
+          <p className="mt-2 text-xs text-muted-foreground">Preview is taking longer than expected.</p>
+        )}
+        {error && (
+          <p className="mt-2 break-words rounded-md bg-muted px-2 py-1.5 text-[11px] text-muted-foreground">{error}</p>
+        )}
+        {(slow || isError) && (
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <button onClick={onRetry} className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
+              Retry render
+            </button>
+            <button onClick={onSinglePage} className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted">
+              Single page
+            </button>
+            <button onClick={onResetZoom} className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted">
+              Reset zoom
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Sub-component: ScanSummaryBar — dismissible banner after scan completes
 // ---------------------------------------------------------------------------
@@ -2093,6 +2074,67 @@ function FitDropdown({
   );
 }
 
+function OverlayDropdown({
+  overlays,
+  activeOverlays,
+  onToggle,
+}: {
+  overlays: OverlayType[];
+  activeOverlays: OverlayType[];
+  onToggle: (overlay: OverlayType) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex h-9 items-center gap-2 rounded-md border border-border bg-surface px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+      >
+        <Eye className="h-3.5 w-3.5 text-primary" />
+        <span className="hidden sm:inline">Overlays</span>
+        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">{activeOverlays.length}</span>
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-border bg-popover p-1.5 shadow-elevated">
+          {overlays.length === 0 ? (
+            <div className="px-2 py-2 text-xs text-muted-foreground">No overlays for this format</div>
+          ) : (
+            overlays.map((overlay) => {
+              const cfg = OVERLAY_CONFIG[overlay];
+              const active = activeOverlays.includes(overlay);
+              return (
+                <button
+                  key={overlay}
+                  onClick={() => onToggle(overlay)}
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs text-foreground transition-colors hover:bg-muted"
+                >
+                  <span className="flex items-center gap-2">
+                    {active ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                    {cfg.label}
+                  </span>
+                  {active && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main Component: PreviewStep — PROFESSIONAL PUBLISHING WORKSPACE
 // 3-Panel Layout: Left Sidebar + Center Canvas + Right Validation
@@ -2109,19 +2151,19 @@ export default function PreviewStep() {
     currentPage,
     setCurrentPage,
     activeOverlays,
-    pageIssues,
     setCheckerStep,
     setPreviewViewMode,
     toggleOverlay,
     pdfPageDataUrls,
     setPdfPageDataUrl,
-    clearPdfPageData,
     bookPages,
     setBookPages,
     coverDataUrl,
     setCoverDataUrl,
     previewReady,
     processingStatus,
+    setProcessingStatus,
+    setPreviewReady,
     pageIssuesExtended,
     selectedIssueId,
     setSelectedIssueId,
@@ -2144,6 +2186,10 @@ export default function PreviewStep() {
   const [jumpModalOpen, setJumpModalOpen] = useState(false);
   const [fitMode, setFitMode] = useState<FitMode>('fit-page');
   const [loading, setLoading] = useState(false);
+  const [renderStatus, setRenderStatus] = useState<RenderStatus>('idle');
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const [renderSlow, setRenderSlow] = useState(false);
+  const [renderRetryKey, setRenderRetryKey] = useState(0);
   const [restoreWorkspace, setRestoreWorkspace] = useState<SavedWorkspace | null>(null);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [showSummaryBar, setShowSummaryBar] = useState(false);
@@ -2161,6 +2207,7 @@ export default function PreviewStep() {
 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
+  const renderRunRef = useRef(0);
 
   // Auto-save timer ref
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -2226,6 +2273,21 @@ export default function PreviewStep() {
       s.leftPageIndex === currentPage || s.rightPageIndex === currentPage
     );
   }, [spreads, currentPage]);
+
+  const currentManifestPages = useMemo(() => {
+    if (bookPages.length === 0) return [];
+
+    const currentBookPage = bookPages[currentPage];
+    const totalManuscriptPages = uploadedManuscript?.pageCount || Math.max(0, ...bookPages.map((p) => p.manuscriptIndex ?? 0));
+
+    if (previewViewMode === 'spread' && bookType !== 'kindle' && currentBookPage?.manuscriptIndex) {
+      const [left, right] = getSpreadPages(currentBookPage.manuscriptIndex, totalManuscriptPages);
+      return [left, right].filter((page): page is number => page !== null && page >= 1 && page <= totalManuscriptPages);
+    }
+
+    if (currentBookPage?.manuscriptIndex) return [currentBookPage.manuscriptIndex];
+    return [];
+  }, [bookPages, currentPage, previewViewMode, bookType, uploadedManuscript?.pageCount]);
 
   // -------------------------------------------------------------------------
   // Auto-save system
@@ -2487,45 +2549,88 @@ export default function PreviewStep() {
   }, [uploadedCover, coverDataUrl, setCoverDataUrl]);
 
   // -------------------------------------------------------------------------
-  // Load manuscript pages (fallback)
+  // Render the active manuscript page/spread only. Full-document rendering can
+  // be expensive; the workspace becomes usable as soon as the current view is ready.
   // -------------------------------------------------------------------------
   useEffect(() => {
-    if (pdfPageDataUrls.size > 0 || !uploadedManuscript) return;
+    if (!uploadedManuscript) {
+      setRenderStatus(coverDataUrl ? 'ready' : 'idle');
+      setRenderError(null);
+      return;
+    }
+
+    const missingPages = currentManifestPages.filter((page) => !pdfPageDataUrls.has(page));
+    if (missingPages.length === 0) {
+      setLoading(false);
+      setRenderStatus('ready');
+      setRenderError(null);
+      setRenderSlow(false);
+      if (processingStatus !== 'ready') setProcessingStatus('ready');
+      if (!previewReady) setPreviewReady(true);
+      return;
+    }
+
     let cancelled = false;
+    const runId = ++renderRunRef.current;
+    const slowTimer = window.setTimeout(() => {
+      if (!cancelled && renderRunRef.current === runId) setRenderSlow(true);
+    }, 8000);
 
     (async () => {
       setLoading(true);
+      setRenderStatus(pdfPageDataUrls.size === 0 ? 'loading' : 'rendering');
+      setRenderError(null);
+      setRenderSlow(false);
+      setProcessingStatus('rendering');
 
       try {
-        const result = await loadPDF(uploadedManuscript.file, { maxPages: 50, renderScale: 1.5 });
-        if (cancelled) return;
-
-        for (const page of result.pages) {
-          if (page.dataUrl) {
-            setPdfPageDataUrl(page.index, page.dataUrl);
+        for (const pageIndex of missingPages) {
+          if (cancelled) break;
+          const pageResult = await renderSinglePage(uploadedManuscript.file, pageIndex, 1.35);
+          if (!cancelled && renderRunRef.current === runId) {
+            setPdfPageDataUrl(pageIndex, pageResult.dataUrl);
           }
         }
 
-        if (result.pageCount > 50) {
-          for (let i = 51; i <= Math.min(result.pageCount, 200); i++) {
-            if (cancelled) break;
-            try {
-              const pageResult = await renderSinglePage(uploadedManuscript.file, i, 1.5);
-              setPdfPageDataUrl(i, pageResult.dataUrl);
-            } catch {
-              // Skip
-            }
-          }
+        if (!cancelled && renderRunRef.current === runId) {
+          setRenderStatus('ready');
+          setRenderError(null);
+          setProcessingStatus('ready');
+          setPreviewReady(true);
         }
       } catch (err) {
-        console.error('Failed to load manuscript:', err);
+        const message = err instanceof Error ? err.message : 'Failed to render PDF page.';
+        console.error('Failed to render active manuscript page:', err);
+        if (!cancelled && renderRunRef.current === runId) {
+          setRenderStatus('error');
+          setRenderError(message);
+          setProcessingStatus('error');
+          setPreviewReady(false);
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        window.clearTimeout(slowTimer);
+        if (!cancelled && renderRunRef.current === runId) {
+          setLoading(false);
+        }
       }
     })();
 
-    return () => { cancelled = true; };
-  }, [uploadedManuscript, pdfPageDataUrls.size, clearPdfPageData, setPdfPageDataUrl]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(slowTimer);
+    };
+  }, [
+    uploadedManuscript,
+    coverDataUrl,
+    currentManifestPages,
+    pdfPageDataUrls,
+    renderRetryKey,
+    setPdfPageDataUrl,
+    setProcessingStatus,
+    setPreviewReady,
+    processingStatus,
+    previewReady,
+  ]);
 
   // -------------------------------------------------------------------------
   // Build unified book sequence
@@ -2942,54 +3047,57 @@ export default function PreviewStep() {
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
-  const isProcessingNow = !previewReady && processingStatus !== 'idle' && processingStatus !== 'error';
+  const isProcessingNow = renderStatus === 'loading' || renderStatus === 'rendering' || (loading && renderStatus !== 'ready');
   const isSpreadView = previewViewMode === 'spread' && bookType !== 'kindle';
+  const handleRetryRender = () => setRenderRetryKey((key) => key + 1);
+
+  useEffect(() => {
+    console.log('Preview mounted', {
+      currentPage,
+      spreadMode: previewViewMode,
+      renderStatus,
+      containerSize,
+    });
+  }, [currentPage, previewViewMode, renderStatus, containerSize]);
 
   return (
-    <div className="ds-page-stage fixed inset-0 z-[60] flex flex-col overflow-hidden">
-      {/* ================================================================== */}
-      {/* PRIMARY TOOLBAR (top, ~52px) — Breadcrumb + Mode + Navigation      */}
-      {/* LEFT: Import → Configure → Review breadcrumb                       */}
-      {/* CENTER: 📄 Single View | 📖 Spread View                           */}
-      {/* RIGHT: ◀ Previous | Page X / Y | Next ▶                          */}
-      {/* ================================================================== */}
-      <div className="flex min-h-[52px] shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-surface-glass px-2 py-2 shadow-soft backdrop-blur-xl sm:h-[52px] sm:flex-nowrap sm:px-3 sm:py-0">
-        {/* LEFT: Breadcrumb — Import → Configure → Review */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => setCheckerStep('import')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium text-foreground/65 dark:text-foreground/25 hover:text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-all duration-200"
-            title="Back to Import"
-          >
-            <Upload className="w-3 h-3" />
-            <span className="hidden sm:inline">Import</span>
-          </button>
-          <ChevronRight className="w-3 h-3 text-foreground/80 dark:text-foreground/50 dark:text-foreground/10" />
-          <button
-            onClick={() => setCheckerStep('config')}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-medium text-foreground/65 dark:text-foreground/25 hover:text-foreground/90 dark:text-foreground/75 dark:text-foreground/45 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-all duration-200"
-            title="Back to Configure"
-          >
-            <Settings className="w-3 h-3" />
-            <span className="hidden sm:inline">Configure</span>
-          </button>
-          <ChevronRight className="w-3 h-3 text-success/40" />
-          <span className="flex items-center gap-1 px-2 py-1.5 rounded-md text-[11px] font-semibold text-success bg-success/10 border border-success/20">
-            <BookOpen className="w-3 h-3" />
-            <span className="hidden sm:inline">Review</span>
-          </span>
-        </div>
+    <div className="checker-page relative z-0 flex flex-col overflow-hidden bg-background">
+      <div className="checker-toolbar sticky top-0 z-40 shrink-0 border-b border-border bg-background/95 shadow-soft backdrop-blur-xl">
+        <div className="flex h-full max-h-full items-center justify-between gap-3 overflow-x-auto overflow-y-hidden px-3">
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              onClick={() => setCheckerStep('import')}
+              className="flex h-9 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title="Back to Import"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Import</span>
+            </button>
+            <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
+            <button
+              onClick={() => setCheckerStep('config')}
+              className="flex h-9 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title="Back to Configure"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Configure</span>
+            </button>
+            <ChevronRight className="h-3 w-3 text-primary/60" />
+            <span className="flex h-9 items-center gap-1.5 rounded-md border border-primary/25 bg-primary/10 px-2.5 text-xs font-semibold text-primary">
+              <BookOpen className="h-3.5 w-3.5" />
+              Review
+            </span>
+          </div>
 
-        {/* CENTER: MODE SWITCHER — Most prominent control */}
-        <div className="order-3 flex w-full items-center justify-center gap-3 sm:order-none sm:w-auto">
-          <div className="flex items-center rounded-xl border border-foreground/[0.25] bg-foreground/[0.13] p-1 shadow-lg shadow-black/20 dark:bg-foreground/[0.06] sm:p-1.5">
+          <div className="flex min-w-max items-center gap-3">
+            <div className="flex items-center rounded-md border border-border bg-surface p-0.5">
             <button
               onClick={() => bookType !== 'kindle' && setPreviewViewMode('single')}
               disabled={bookType === 'kindle'}
-              className={`flex min-h-[34px] items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-all duration-250 sm:min-h-[38px] sm:px-5 sm:py-2 sm:text-[14px] ${
+                className={`h-8 rounded px-3 text-xs font-semibold transition-colors ${
                 previewViewMode === 'single'
-                  ? 'bg-success/30 text-success shadow-md shadow-success/10 border border-success/50 ring-1 ring-success/20'
-                  : 'text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 hover:text-foreground/55 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06]'
+                    ? 'bg-primary text-primary-foreground shadow-soft'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
               aria-label="Single Page View"
               aria-pressed={previewViewMode === 'single'}
@@ -2999,12 +3107,12 @@ export default function PreviewStep() {
             <button
               onClick={() => bookType !== 'kindle' && setPreviewViewMode('spread')}
               disabled={bookType === 'kindle'}
-              className={`flex min-h-[34px] items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-all duration-250 sm:min-h-[38px] sm:px-5 sm:py-2 sm:text-[14px] ${
+                className={`h-8 rounded px-3 text-xs font-semibold transition-colors ${
                 previewViewMode === 'spread'
-                  ? 'bg-success/30 text-success shadow-md shadow-success/10 border border-success/50 ring-1 ring-success/20'
+                    ? 'bg-primary text-primary-foreground shadow-soft'
                   : bookType === 'kindle'
-                    ? 'text-foreground/80 dark:text-foreground/50 dark:text-foreground/10 cursor-not-allowed'
-                    : 'text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 hover:text-foreground/55 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06]'
+                    ? 'cursor-not-allowed text-muted-foreground/40'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
               aria-label="Spread View"
               aria-pressed={previewViewMode === 'spread'}
@@ -3012,123 +3120,68 @@ export default function PreviewStep() {
               <span>Spread View</span>
             </button>
           </div>
-
-          {/* Onboarding hint: mode switcher */}
-          <AnimatePresence>
-            {!isHintDismissed('hint-mode-switcher') && bookType !== 'kindle' && (
-              <OnboardingHint id="hint-mode-switcher" onDismiss={handleDismissHint}>
-                Use Spread View to inspect book layout
-              </OnboardingHint>
-            )}
-          </AnimatePresence>
+            <button
+              onClick={() => setJumpModalOpen(true)}
+              className="h-9 min-w-[112px] rounded-md border border-border bg-surface px-3 text-center text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              title="Click to jump to page"
+            >
+              {currentPageInfo.spreadLabel}
+            </button>
         </div>
 
-        {/* RIGHT: ◀ Previous | Page position | Next ▶ */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={goPrev}
-            disabled={currentPage <= 0 && currentSpreadIdx <= 0}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-medium text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 hover:text-foreground/85 dark:text-foreground/70 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] transition-all duration-200 min-h-[36px] disabled:opacity-15 disabled:cursor-not-allowed border border-transparent hover:border-foreground/[0.22] dark:border-foreground/[0.08]"
-            title="Previous (← / A)"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Previous</span>
-          </button>
-
-          <button
-            onClick={() => setJumpModalOpen(true)}
-            className="min-w-[72px] rounded-lg border border-foreground/[0.18] px-2 py-1.5 text-center text-[12px] font-medium text-foreground/80 transition-colors hover:border-foreground/[0.25] hover:bg-foreground/[0.13] hover:text-foreground/90 dark:border-foreground/[0.06] dark:bg-foreground/[0.06] dark:text-foreground/50 dark:hover:border-foreground/[0.12] dark:hover:text-foreground/75 sm:min-w-[110px] sm:px-3"
-            title="Click to jump to page"
-          >
-            {currentPageInfo.spreadLabel}
-          </button>
-
-          <button
-            onClick={goNext}
-            disabled={
-              previewViewMode === 'spread'
-                ? currentSpreadIdx >= spreads.length - 1
-                : currentPage >= bookPages.length - 1
-            }
-            className="flex items-center gap-1 px-3 py-2 rounded-lg text-[12px] font-medium text-foreground/90 dark:text-foreground/75 dark:text-foreground/40 hover:text-foreground/85 dark:text-foreground/70 hover:bg-foreground/[0.13] dark:bg-foreground/[0.06] transition-all duration-200 min-h-[36px] disabled:opacity-15 disabled:cursor-not-allowed border border-transparent hover:border-foreground/[0.22] dark:border-foreground/[0.08]"
-            title="Next (→ / D)"
-          >
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
-
-          {/* Save status */}
-          <SaveStatusIndicator status={saveStatus} />
-        </div>
-      </div>
-
-      {/* ================================================================== */}
-      {/* SECONDARY TOOLBAR — Overlays + Zoom Controls                       */}
-      {/* ================================================================== */}
-      <div className="flex h-9 shrink-0 items-center justify-between gap-3 overflow-x-auto border-b border-foreground/25 bg-background/80 px-3 backdrop-blur-xl dark:border-foreground/10">
-        {/* Left: Overlay toggles */}
-        <div className="flex items-center gap-1">
-          {allowedOverlays.length > 0 && (
-            <div className="flex items-center gap-0.5">
-              {allowedOverlays.map((ov) => {
-                const cfg = OVERLAY_CONFIG[ov];
-                const isActive = activeOverlays.includes(ov);
-                return (
-                  <button
-                    key={ov}
-                    onClick={() => toggleOverlay(ov)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200 ${
-                      isActive
-                        ? `${cfg.bg} ${cfg.color} border ${cfg.border}`
-                        : 'text-foreground/85 dark:text-foreground/60 dark:text-foreground/20 hover:text-foreground/35'
-                    }`}
-                    title={cfg.label}
-                  >
-                    {isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                    <span className="hidden lg:inline">{cfg.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Right: Zoom controls */}
-        <div className="flex items-center gap-0.5">
+          <div className="flex shrink-0 items-center gap-2">
+            <OverlayDropdown overlays={allowedOverlays} activeOverlays={activeOverlays} onToggle={toggleOverlay} />
           <button
             onClick={zoomOut}
-            className="p-1 rounded-md text-foreground/65 dark:text-foreground/30 hover:text-foreground/55 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title="Zoom Out (-)"
           >
-            <Minus className="w-3 h-3" />
+              <Minus className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => setJumpModalOpen(true)}
-            className="px-2 py-0.5 rounded-md text-[10px] text-foreground/85 dark:text-foreground/70 dark:text-foreground/35 hover:text-foreground/55 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors min-w-[44px] text-center font-mono"
-            title="Click to jump to page"
+              className="h-9 min-w-[52px] rounded-md border border-border bg-surface px-2 text-center font-mono text-xs text-foreground transition-colors hover:bg-muted"
+              title="Zoom"
           >
             {zoomPct}%
           </button>
           <button
             onClick={zoomIn}
-            className="p-1 rounded-md text-foreground/65 dark:text-foreground/30 hover:text-foreground/55 hover:bg-foreground/[0.18] dark:bg-foreground/[0.10] dark:bg-foreground/[0.04] transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title="Zoom In (+)"
           >
-            <Plus className="w-3 h-3" />
+              <Plus className="h-3.5 w-3.5" />
           </button>
-
-          <div className="w-px h-4 bg-foreground/[0.13] dark:bg-foreground/[0.06] mx-0.5" />
-
           <FitDropdown fitMode={fitMode} onFitSelect={applyFitMode} />
+            <button
+              onClick={goPrev}
+              disabled={currentPage <= 0 && currentSpreadIdx <= 0}
+              className="flex h-9 items-center gap-1 rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+              title="Previous"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              <span className="hidden xl:inline">Previous</span>
+            </button>
+            <button
+              onClick={goNext}
+              disabled={previewViewMode === 'spread' ? currentSpreadIdx >= spreads.length - 1 : currentPage >= bookPages.length - 1}
+              className="flex h-9 items-center gap-1 rounded-md border border-border bg-surface px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+              title="Next"
+            >
+              <span className="hidden xl:inline">Next</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+            <SaveStatusIndicator status={saveStatus} />
+          </div>
         </div>
       </div>
 
       {/* ================================================================== */}
       {/* MAIN AREA: Left Sidebar (~18%) + Center Canvas (~57%) + Right (~25%) */}
       {/* ================================================================== */}
-      <div className="flex-1 flex min-h-0">
+      <div className="checker-workspace relative z-0 min-h-0">
         {/* LEFT: Thumbnail Sidebar */}
-        <div className="hidden md:contents">
+        <aside className="hidden h-full min-h-0 overflow-hidden md:block">
           <ThumbnailSidebar
             bookPages={bookPages}
             currentIndex={currentPage}
@@ -3140,7 +3193,7 @@ export default function PreviewStep() {
             collapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
-        </div>
+        </aside>
 
         {/* Onboarding hint: sidebar */}
         {!sidebarCollapsed && !isHintDismissed('hint-sidebar') && (
@@ -3154,7 +3207,7 @@ export default function PreviewStep() {
         {/* CENTER: Preview canvas area — dark workspace */}
         <div
           ref={canvasContainerRef}
-          className="ds-page-stage relative flex min-w-0 flex-1 items-center justify-center overflow-hidden"
+          className="relative z-0 flex h-full min-h-0 min-w-0 items-center justify-center overflow-hidden bg-[color-mix(in_srgb,var(--background)_72%,var(--surface))]"
           onDoubleClick={handleDoubleClick}
           style={{ cursor: 'default' }}
         >
@@ -3180,8 +3233,15 @@ export default function PreviewStep() {
             )}
           </AnimatePresence>
 
-          {loading || isProcessingNow ? (
-            <ScanProgressOverlay status={isProcessingNow ? processingStatus : 'rendering'} />
+          {isProcessingNow || renderStatus === 'error' ? (
+            <PreviewRenderState
+              status={renderStatus === 'idle' ? 'rendering' : renderStatus}
+              slow={renderSlow}
+              error={renderError}
+              onRetry={handleRetryRender}
+              onSinglePage={() => setPreviewViewMode('single')}
+              onResetZoom={zoomReset}
+            />
           ) : bookPages.length === 0 ? (
             <div className="flex flex-col items-center gap-3 text-foreground/55 dark:text-foreground/15">
               <BookOpen className="w-12 h-12" />
@@ -3263,7 +3323,7 @@ export default function PreviewStep() {
         </div>
 
         {/* RIGHT: Validation Panel (~25%) */}
-        <div className="hidden min-h-0 w-[25%] min-w-[280px] max-w-[380px] shrink-0 flex-col border-l border-border bg-surface-glass shadow-elevated backdrop-blur-xl lg:flex">
+        <aside className="z-10 hidden h-full min-h-0 w-full min-w-0 shrink-0 flex-col overflow-hidden border-l border-border bg-surface lg:flex">
           <ValidationPanel
             bookType={bookType}
             bookConfig={bookConfig}
@@ -3291,7 +3351,7 @@ export default function PreviewStep() {
               </div>
             )}
           </AnimatePresence>
-        </div>
+        </aside>
       </div>
 
       {/* ================================================================== */}

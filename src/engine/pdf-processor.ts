@@ -12,10 +12,7 @@ async function getPdfjs() {
   
   pdfjsLoading = (async () => {
     const lib = await import('pdfjs-dist');
-    lib.GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.min.mjs',
-      import.meta.url
-    ).toString();
+    lib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
     pdfjsLib = lib;
     return lib;
   })();

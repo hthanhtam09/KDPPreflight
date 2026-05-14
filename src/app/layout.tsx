@@ -95,8 +95,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" className="notranslate" translate="no" suppressHydrationWarning>
+      <head>
+        <meta name="google" content="notranslate" />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} notranslate antialiased`} translate="no">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -105,7 +108,7 @@ export default function RootLayout({
         >
           <div className="flex min-h-screen flex-col">
             <Navbar />
-            <main className="flex-1 pt-[var(--nav-height)]">{children}</main>
+            <main className="min-h-0 flex-1">{children}</main>
           </div>
           <Toaster />
         </ThemeProvider>

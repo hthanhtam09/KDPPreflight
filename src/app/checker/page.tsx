@@ -8,10 +8,8 @@ import { useAppStore } from '@/store/use-app-store';
 export default function CheckerPage() {
   const { checkerStep } = useAppStore();
 
-  // PreviewStep uses `fixed inset-0` to take over the viewport.
-  // AppShell wraps in a framer-motion div (has CSS transform) and WorkspacePanel
-  // applies backdrop-filter — both create stacking contexts that trap fixed children.
-  // Render PreviewStep at the page root to avoid those ancestors entirely.
+  // PreviewStep is an app workspace with its own sticky toolbar and internal
+  // panel scrolling, so render it outside the marketing-style AppShell chrome.
   if (checkerStep === 'preview') {
     return <PreviewStep />;
   }
