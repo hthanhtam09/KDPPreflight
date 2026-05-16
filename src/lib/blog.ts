@@ -1,19 +1,15 @@
-import { blogPosts, blogTools, type BlogCategory, type BlogPost } from './blog-data';
+import { blogPosts, blogTools, type BlogFAQ, type BlogGuideLink, type BlogPost, type BlogToolLink } from './blog-data';
+import {
+  blogCategories,
+  blogCategoryFilters,
+  getBlogCategory,
+  type BlogCategory,
+  type BlogCategoryFilter,
+  type BlogCategorySlug,
+} from './blog-categories';
 
-export type { BlogCategory, BlogFAQ, BlogGuideLink, BlogPost, BlogToolLink } from './blog-data';
-export { blogPosts, blogTools };
-
-export const blogCategories = [
-  'All',
-  'KDP Covers',
-  'Bleed',
-  'Trim Size',
-  'Spine',
-  'Safe Area',
-  'Publishing Errors',
-] as const;
-
-export type BlogCategoryFilter = (typeof blogCategories)[number];
+export type { BlogCategory, BlogCategoryFilter, BlogCategorySlug, BlogFAQ, BlogGuideLink, BlogPost, BlogToolLink };
+export { blogCategories, blogCategoryFilters, blogPosts, blogTools, getBlogCategory };
 
 export type TocItem = {
   id: string;
@@ -23,48 +19,43 @@ export type TocItem = {
 
 export const topicClusters = [
   {
-    title: 'KDP Bleed Guides',
-    description: 'Fix missing bleed, trim-edge artwork, and export settings before KDP review.',
+    title: 'Cover rejection fixes',
+    description: 'Diagnose rejected KDP covers, printable area warnings, barcode conflicts, and wrong PDF dimensions.',
+    category: 'cover-rejections' as BlogCategorySlug,
     links: [
-      { label: 'KDP Bleed Guide', href: '/blog/kdp-bleed-guide' },
-      { label: 'KDP Bleed Checker', href: '/kdp-bleed-checker' },
-      { label: 'Free Cover Checker', href: '/checker' },
+      { label: 'Why Amazon rejected your cover', href: '/blog/why-amazon-rejected-your-kdp-cover' },
+      { label: 'Printable area error fix', href: '/blog/fix-elements-outside-printable-area-kdp' },
+      { label: 'Free cover checker', href: '/tools/kdp-cover-checker' },
     ],
   },
   {
-    title: 'KDP Cover Size Guides',
-    description: 'Calculate full-wrap dimensions for front cover, back cover, spine, and bleed.',
+    title: 'Bleed and edge artwork',
+    description: 'Learn the 0.125 inch bleed rule and fix backgrounds that do not extend past trim.',
+    category: 'bleed-issues' as BlogCategorySlug,
     links: [
-      { label: 'KDP Cover Size Guide', href: '/blog/kdp-cover-size-guide' },
-      { label: 'KDP Trim Size Calculator', href: '/kdp-trim-size-calculator' },
-      { label: 'KDP Cover Size Landing Guide', href: '/kdp-cover-size-guide' },
+      { label: 'KDP bleed explained', href: '/blog/kdp-bleed-explained' },
+      { label: 'Fix bleed issues', href: '/blog/fix-kdp-bleed-issues' },
+      { label: 'KDP bleed checker', href: '/tools/kdp-bleed-checker' },
     ],
   },
   {
-    title: 'KDP Spine Width Guides',
-    description: 'Use final page count and paper type to prevent cover-width rejections.',
+    title: 'Spine width and alignment',
+    description: 'Calculate paperback spine width and prevent shifted or unsafe spine text.',
+    category: 'spine-width' as BlogCategorySlug,
     links: [
-      { label: 'KDP Spine Width Guide', href: '/blog/kdp-spine-width-guide' },
-      { label: 'Spine Width Calculator', href: '/kdp-spine-width-calculator' },
-      { label: 'Paperback Setup Guide', href: '/kdp-paperback-guide' },
+      { label: 'Calculate spine width', href: '/blog/calculate-kdp-spine-width' },
+      { label: 'Fix spine text alignment', href: '/blog/kdp-spine-text-misaligned' },
+      { label: 'Spine calculator', href: '/tools/kdp-spine-width-calculator' },
     ],
   },
   {
-    title: 'KDP Safe Area Guides',
-    description: 'Keep text, logos, barcode space, and spine content away from trim risk zones.',
+    title: 'Design tool exports',
+    description: 'Export print-ready KDP cover PDFs from Canva or Photoshop without cropping bleed.',
+    category: 'canva-photoshop' as BlogCategorySlug,
     links: [
-      { label: 'KDP Safe Area Guide', href: '/blog/kdp-safe-area-guide' },
-      { label: 'Safe Area Landing Guide', href: '/kdp-safe-area-guide' },
-      { label: 'KDP 3D Preview', href: '/preview' },
-    ],
-  },
-  {
-    title: 'KDP Upload Error Fixes',
-    description: 'Troubleshoot vague Amazon KDP PDF, cover, bleed, and previewer errors.',
-    links: [
-      { label: 'KDP Upload Error Fixes', href: '/blog/kdp-upload-error-fixes' },
-      { label: 'KDP Cover Validator', href: '/kdp-cover-validator' },
-      { label: 'KDP Glossary', href: '/kdp-glossary' },
+      { label: 'Canva KDP export', href: '/blog/export-kdp-cover-from-canva' },
+      { label: 'Photoshop KDP setup', href: '/blog/setup-kdp-cover-photoshop' },
+      { label: 'PDF export settings', href: '/blog/best-pdf-export-settings-kdp' },
     ],
   },
 ];
@@ -81,22 +72,24 @@ export function getFeaturedPost(): BlogPost {
   return blogPosts.find((post) => post.featured) ?? blogPosts[0];
 }
 
-export function getPostsByCategory(category: BlogCategory): BlogPost[] {
+export function getPostsByCategory(category: BlogCategorySlug): BlogPost[] {
   return blogPosts.filter((post) => post.category === category);
 }
 
-export function getRelatedPosts(post: BlogPost): BlogPost[] {
+export function getRelatedPosts(post: BlogPost, limit = 3): BlogPost[] {
   const explicit = post.relatedPosts
     .map((slug) => getBlogPost(slug))
     .filter((related): related is BlogPost => Boolean(related));
 
-  if (explicit.length >= 3) return explicit.slice(0, 3);
-
   const sameCategory = blogPosts.filter(
-    (candidate) => candidate.slug !== post.slug && candidate.category === post.category,
+    (candidate) => candidate.slug !== post.slug && candidate.category === post.category && !explicit.includes(candidate),
   );
 
-  return [...explicit, ...sameCategory].slice(0, 3);
+  const otherUseful = blogPosts.filter(
+    (candidate) => candidate.slug !== post.slug && candidate.category !== post.category && !explicit.includes(candidate),
+  );
+
+  return [...explicit, ...sameCategory, ...otherUseful].slice(0, limit);
 }
 
 export function formatBlogDate(date: string): string {

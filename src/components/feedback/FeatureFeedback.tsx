@@ -75,20 +75,20 @@ export function FeatureFeedback({
         onClick={() => setOpen(true)}
         className={
           floating
-            ? 'fixed bottom-5 right-5 z-[calc(var(--z-nav)+5)] inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-elevated transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:bottom-6 sm:right-6'
+            ? 'hidden sm:inline-flex fixed bottom-5 right-5 z-[calc(var(--z-nav)+5)] items-center gap-2 rounded-full border border-primary/20 bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-elevated transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:bottom-6 sm:right-6'
             : compact
             ? 'inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground shadow-soft transition hover:-translate-y-0.5 hover:border-primary/30'
             : 'inline-flex items-center gap-2 rounded-full border border-border bg-surface-glass px-3 py-2 text-xs font-bold text-muted-foreground shadow-soft backdrop-blur-xl transition hover:border-primary/30 hover:text-foreground'
         }
         aria-label="Send product feedback"
       >
-        <MessageSquare className="h-4 w-4" />
-        Send feedback
+        <MessageSquare className="h-5 w-5 sm:h-4 sm:w-4" />
+        <span className={floating ? 'hidden sm:inline' : ''}>Send feedback</span>
       </button>
 
       {open && (
         <div className="fixed inset-0 z-[var(--z-modal)] grid place-items-center bg-background/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="feature-feedback-title">
-          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-5 shadow-elevated">
+          <div className="w-full max-w-lg max-h-[90svh] overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-elevated">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 id="feature-feedback-title" className="text-lg font-bold tracking-[-0.01em] text-foreground">

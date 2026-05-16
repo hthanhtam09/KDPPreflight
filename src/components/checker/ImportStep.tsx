@@ -1,40 +1,38 @@
-'use client';
+'use client'
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { TRIM_SIZES, TrimSizeKey, calculateMeasurements } from '@/engine/kdp-constants'
+import { loadImage, loadPDF, preRenderAllForPreview } from '@/engine/pdf-processor'
+import { analyzePagesForIssues } from '@/engine/validator'
+import { useAppStore } from '@/store/use-app-store'
 import {
-  Upload,
-  FileText,
-  BookOpen,
-  Loader2,
-  CheckCircle2,
-  ChevronRight,
-  Monitor,
-  Book,
-  BookMarked,
-  Ruler,
-  ScanLine,
-  Eye,
-  ShieldCheck,
-  BadgeCheck,
-  Layers,
-  Image as ImageIcon,
-} from 'lucide-react';
-import { useAppStore } from '@/store/use-app-store';
-import {
+  BookPage,
   BookType,
-  UploadedFile,
-  ProcessingStep,
-  PreviewAssetCache,
-  ProcessingStatus,
   PageIssue,
   PageIssueExtended,
+  PreviewAssetCache,
+  ProcessingStep,
   SpreadInfo,
-  BookPage,
-} from '@/types/kdp';
-import { loadPDF, loadImage, preRenderAllForPreview } from '@/engine/pdf-processor';
-import { analyzePagesForIssues, computeValidationSummary } from '@/engine/validator';
-import { TRIM_SIZES, TrimSizeKey, calculateMeasurements } from '@/engine/kdp-constants';
-import { TrustBadge } from '@/components/workspace/ProductWorkspace';
+  UploadedFile,
+} from '@/types/kdp'
+import {
+  BadgeCheck,
+  Book,
+  BookMarked,
+  BookOpen,
+  CheckCircle2,
+  ChevronRight,
+  Eye,
+  FileText,
+  Image as ImageIcon,
+  Layers,
+  Loader2,
+  Monitor,
+  Ruler,
+  ScanLine,
+  ShieldCheck,
+  Upload,
+} from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 // ---------------------------------------------------------------------------
 // Build unified book sequence (Cover → Blank → Interior)
@@ -45,10 +43,10 @@ function buildBookSequence(
   coverDataUrl: string | undefined,
   manuscriptPageCount: number,
   pdfPageDataUrls: Map<number, string>,
-  measurements: { fullCoverWidthIn: number; fullCoverHeightIn: number; trimWidthIn: number; trimHeightIn: number },
+  measurements: { fullCoverWidthIn: number; fullCoverHeightIn: number; trimWidthIn: number; trimHeightIn: number }
 ): BookPage[] {
-  const pages: BookPage[] = [];
-  const isKindle = bookType === 'kindle';
+  const pages: BookPage[] = []
+  const isKindle = bookType === 'kindle'
 
   // PAGE 0: Full Cover Spread (Back Cover + Spine + Front Cover as ONE page)
   if (!isKindle) {
@@ -61,7 +59,7 @@ function buildBookSequence(
       isCoverPage: true,
       widthIn: measurements.fullCoverWidthIn,
       heightIn: measurements.fullCoverHeightIn,
-    });
+    })
   }
 
   // PAGE 1 (or 0 for Kindle): Blank page (offset for proper spread alignment)
@@ -73,7 +71,7 @@ function buildBookSequence(
     isCoverPage: false,
     widthIn: measurements.trimWidthIn,
     heightIn: measurements.trimHeightIn,
-  });
+  })
 
   // Interior manuscript pages
   for (let i = 1; i <= manuscriptPageCount; i++) {
@@ -87,10 +85,10 @@ function buildBookSequence(
       isCoverPage: false,
       widthIn: measurements.trimWidthIn,
       heightIn: measurements.trimHeightIn,
-    });
+    })
   }
 
-  return pages;
+  return pages
 }
 
 // ---------------------------------------------------------------------------
@@ -98,67 +96,57 @@ function buildBookSequence(
 // ---------------------------------------------------------------------------
 
 function computeSpreadsForCache(pages: BookPage[]): SpreadInfo[] {
-  if (pages.length === 0) return [];
-  const spreads: SpreadInfo[] = [];
-  let i = 0;
+  if (pages.length === 0) return []
+  const spreads: SpreadInfo[] = []
+  let i = 0
 
   while (i < pages.length) {
     if (i + 1 < pages.length) {
-      const leftPage = pages[i];
-      const rightPage = pages[i + 1];
-      const leftLabel = leftPage.section === 'blank' ? 'Blank' :
-        leftPage.section === 'full-cover' ? 'Cover' :
-        leftPage.label;
-      const rightLabel = rightPage.section === 'blank' ? 'Blank' :
-        rightPage.section === 'full-cover' ? 'Cover' :
-        rightPage.label;
+      const leftPage = pages[i]
+      const rightPage = pages[i + 1]
+      const leftLabel =
+        leftPage.section === 'blank' ? 'Blank' : leftPage.section === 'full-cover' ? 'Cover' : leftPage.label
+      const rightLabel =
+        rightPage.section === 'blank' ? 'Blank' : rightPage.section === 'full-cover' ? 'Cover' : rightPage.label
 
       spreads.push({
         leftPageIndex: i,
         rightPageIndex: i + 1,
         isSingle: false,
         label: `${leftLabel} + ${rightLabel}`,
-      });
-      i += 2;
+      })
+      i += 2
     } else {
-      const page = pages[i];
-      const label = page.section === 'blank' ? 'Blank' :
-        page.section === 'full-cover' ? 'Cover' :
-        page.label;
+      const page = pages[i]
+      const label = page.section === 'blank' ? 'Blank' : page.section === 'full-cover' ? 'Cover' : page.label
       spreads.push({
         leftPageIndex: i,
         rightPageIndex: null,
         isSingle: true,
         label,
-      });
-      i++;
+      })
+      i++
     }
   }
 
-  return spreads;
+  return spreads
 }
 
 // ---------------------------------------------------------------------------
 // TypeSwitcher – segmented control for Kindle / Paperback / Hardcover
 // ---------------------------------------------------------------------------
 
-function TypeSwitcher({
-  bookType,
-  setBookType,
-}: {
-  bookType: BookType;
-  setBookType: (t: BookType) => void;
-}) {
+function TypeSwitcher({ bookType, setBookType }: { bookType: BookType; setBookType: (t: BookType) => void }) {
   const options: { key: BookType; label: string; icon: React.ElementType }[] = [
     { key: 'kindle', label: 'Kindle', icon: Monitor },
     { key: 'paperback', label: 'Paperback', icon: Book },
     { key: 'hardcover', label: 'Hardcover', icon: BookMarked },
-  ];
+  ]
 
   return (
     <div className="grid w-full grid-cols-3 gap-1 rounded-xl border border-border bg-secondary/70 p-1 shadow-soft sm:inline-grid sm:w-auto">
       {options.map(({ key, label, icon: Icon }) => {
-        const active = bookType === key;
+        const active = bookType === key
         return (
           <button
             key={key}
@@ -173,10 +161,10 @@ function TypeSwitcher({
             <Icon className="w-4 h-4" />
             <span className="truncate">{label}</span>
           </button>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -184,46 +172,39 @@ function TypeSwitcher({
 // ---------------------------------------------------------------------------
 
 interface UploadZoneProps {
-  label: string;
-  accept: string;
-  onFile: (file: File) => void;
-  isProcessing: boolean;
-  uploadedFile?: UploadedFile | null;
-  icon?: React.ElementType;
+  label: string
+  accept: string
+  onFile: (file: File) => void
+  isProcessing: boolean
+  uploadedFile?: UploadedFile | null
+  icon?: React.ElementType
 }
 
-function UploadZone({
-  label,
-  accept,
-  onFile,
-  isProcessing,
-  uploadedFile,
-  icon: ZoneIcon = Upload,
-}: UploadZoneProps) {
-  const [dragActive, setDragActive] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+function UploadZone({ label, accept, onFile, isProcessing, uploadedFile, icon: ZoneIcon = Upload }: UploadZoneProps) {
+  const [dragActive, setDragActive] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault();
-      setDragActive(false);
-      const file = e.dataTransfer.files[0];
-      if (file) onFile(file);
+      e.preventDefault()
+      setDragActive(false)
+      const file = e.dataTransfer.files[0]
+      if (file) onFile(file)
     },
-    [onFile],
-  );
+    [onFile]
+  )
 
   const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
 
   return (
     <div
       onDragOver={(e) => {
-        e.preventDefault();
-        setDragActive(true);
+        e.preventDefault()
+        setDragActive(true)
       }}
       onDragLeave={() => setDragActive(false)}
       onDrop={handleDrop}
@@ -244,8 +225,8 @@ function UploadZone({
         type="file"
         accept={accept}
         onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) onFile(f);
+          const f = e.target.files?.[0]
+          if (f) onFile(f)
         }}
         className="hidden"
       />
@@ -279,9 +260,7 @@ function UploadZone({
             }`}
           >
             <ZoneIcon
-              className={`h-7 w-7 transition-colors duration-300 ${
-                dragActive ? 'text-primary' : 'text-primary/70'
-              }`}
+              className={`h-7 w-7 transition-colors duration-300 ${dragActive ? 'text-primary' : 'text-primary/70'}`}
             />
           </div>
           <p className="text-sm font-semibold text-foreground">{label}</p>
@@ -289,7 +268,7 @@ function UploadZone({
         </>
       )}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -302,7 +281,7 @@ const PROCESSING_STEPS: Omit<ProcessingStep, 'status'>[] = [
   { id: 'pages', label: 'Scanning manuscript pages…' },
   { id: 'fonts', label: 'Checking fonts…' },
   { id: 'preview', label: 'Preparing preview…' },
-];
+]
 
 function ProcessingOverlay({ steps }: { steps: ProcessingStep[] }) {
   return (
@@ -312,17 +291,13 @@ function ProcessingOverlay({ steps }: { steps: ProcessingStep[] }) {
         <span className="text-sm font-medium text-foreground">Processing</span>
       </div>
       {steps.map((step) => {
-        const isActive = step.status === 'active';
-        const isComplete = step.status === 'complete';
+        const isActive = step.status === 'active'
+        const isComplete = step.status === 'complete'
         return (
           <div
             key={step.id}
             className={`flex items-center gap-3 transition-all duration-300 ${
-              isComplete
-                ? 'opacity-60'
-                : isActive
-                  ? 'opacity-100'
-                  : 'opacity-30'
+              isComplete ? 'opacity-60' : isActive ? 'opacity-100' : 'opacity-30'
             }`}
           >
             <div className="w-5 h-5 flex items-center justify-center shrink-0">
@@ -336,20 +311,16 @@ function ProcessingOverlay({ steps }: { steps: ProcessingStep[] }) {
             </div>
             <span
               className={`text-sm transition-colors duration-300 ${
-                isComplete
-                  ? 'text-primary/70 line-through'
-                : isActive
-                    ? 'text-foreground'
-                    : 'text-muted-foreground'
+                isComplete ? 'text-primary/70 line-through' : isActive ? 'text-foreground' : 'text-muted-foreground'
               }`}
             >
               {step.label}
             </span>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -357,32 +328,25 @@ function ProcessingOverlay({ steps }: { steps: ProcessingStep[] }) {
 // ---------------------------------------------------------------------------
 
 interface DetectionInfo {
-  trimSize: string;
-  widthIn: number;
-  heightIn: number;
-  pageCount: number;
-  bleed: string;
-  dpi: number;
-  orientation: 'portrait' | 'landscape';
-  confidence: number;
+  trimSize: string
+  widthIn: number
+  heightIn: number
+  pageCount: number
+  bleed: string
+  dpi: number
+  orientation: 'portrait' | 'landscape'
+  confidence: number
 }
 
-function DetectionResults({
-  info,
-  processingActive,
-}: {
-  info: DetectionInfo;
-  processingActive: boolean;
-}) {
-  const confidencePct = Math.round(info.confidence * 100);
-  const confidenceLabel =
-    info.confidence >= 0.8 ? 'High' : info.confidence >= 0.5 ? 'Medium' : 'Low';
+function DetectionResults({ info, processingActive }: { info: DetectionInfo; processingActive: boolean }) {
+  const confidencePct = Math.round(info.confidence * 100)
+  const confidenceLabel = info.confidence >= 0.8 ? 'High' : info.confidence >= 0.5 ? 'Medium' : 'Low'
   const confidenceColor =
     info.confidence >= 0.8
       ? 'text-primary bg-primary/10 border-primary/20'
       : info.confidence >= 0.5
         ? 'text-warning bg-warning/10 border-warning/20'
-        : 'text-danger bg-danger/10 border-danger/20';
+        : 'text-danger bg-danger/10 border-danger/20'
 
   const details: { icon: React.ElementType; label: string; value: string }[] = [
     { icon: Ruler, label: 'Trim Size', value: info.trimSize },
@@ -394,7 +358,7 @@ function DetectionResults({
       label: 'Orientation',
       value: info.orientation.charAt(0).toUpperCase() + info.orientation.slice(1),
     },
-  ];
+  ]
 
   return (
     <div className="ds-card overflow-hidden">
@@ -404,9 +368,7 @@ function DetectionResults({
           <ShieldCheck className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold text-foreground">Auto-Detected Settings</span>
         </div>
-        <span
-          className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${confidenceColor}`}
-        >
+        <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${confidenceColor}`}>
           <BadgeCheck className="w-3 h-3 inline mr-1 -mt-px" />
           {confidenceLabel} Confidence ({confidencePct}%)
         </span>
@@ -431,34 +393,29 @@ function DetectionResults({
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ---------------------------------------------------------------------------
 // matchTrimSize – find the closest KDP trim size for given dimensions
 // ---------------------------------------------------------------------------
 
-function matchTrimSize(
-  widthIn: number,
-  heightIn: number,
-): { key: TrimSizeKey; confidence: number } {
-  let bestKey: TrimSizeKey = '6x9';
-  let bestDist = Infinity;
+function matchTrimSize(widthIn: number, heightIn: number): { key: TrimSizeKey; confidence: number } {
+  let bestKey: TrimSizeKey = '6x9'
+  let bestDist = Infinity
 
   for (const [key, trim] of Object.entries(TRIM_SIZES)) {
-    if (key === 'custom') continue;
-    const dist = Math.sqrt(
-      Math.pow(trim.widthIn - widthIn, 2) + Math.pow(trim.heightIn - heightIn, 2),
-    );
+    if (key === 'custom') continue
+    const dist = Math.sqrt(Math.pow(trim.widthIn - widthIn, 2) + Math.pow(trim.heightIn - heightIn, 2))
     if (dist < bestDist) {
-      bestDist = dist;
-      bestKey = key as TrimSizeKey;
+      bestDist = dist
+      bestKey = key as TrimSizeKey
     }
   }
 
   // Confidence: 1.0 if exact match, decreasing with distance
-  const confidence = Math.max(0, Math.min(1, 1 - bestDist / 2));
-  return { key: bestKey, confidence };
+  const confidence = Math.max(0, Math.min(1, 1 - bestDist / 2))
+  return { key: bestKey, confidence }
 }
 
 // ---------------------------------------------------------------------------
@@ -491,24 +448,24 @@ export default function ImportStep() {
     processingStatus,
     previewReady,
     bookConfig,
-  } = useAppStore();
+  } = useAppStore()
 
   // Local processing state
-  const [coverProcessing, setCoverProcessing] = useState(false);
-  const [manuscriptProcessing, setManuscriptProcessing] = useState(false);
-  const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>([]);
-  const [detectionInfo, setDetectionInfo] = useState<DetectionInfo | null>(null);
-  const [isStepProcessing, setIsStepProcessing] = useState(false);
-  const stepTimerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [coverProcessing, setCoverProcessing] = useState(false)
+  const [manuscriptProcessing, setManuscriptProcessing] = useState(false)
+  const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>([])
+  const [detectionInfo, setDetectionInfo] = useState<DetectionInfo | null>(null)
+  const [isStepProcessing, setIsStepProcessing] = useState(false)
+  const stepTimerRef = useRef<ReturnType<typeof setTimeout>[]>([])
   // Guard ref to prevent duplicate background processing runs
-  const bgProcessingRef = useRef(false);
+  const bgProcessingRef = useRef(false)
 
   // Clean up timers on unmount
   useEffect(() => {
     return () => {
-      stepTimerRef.current.forEach(clearTimeout);
-    };
-  }, []);
+      stepTimerRef.current.forEach(clearTimeout)
+    }
+  }, [])
 
   // -----------------------------------------------------------------------
   // Build detection info from processing result (must be declared first)
@@ -516,18 +473,16 @@ export default function ImportStep() {
   const buildDetectionInfo = useCallback(
     (
       result: { widthIn: number; heightIn: number; pageCount: number; dpi: number },
-      _fileType: 'cover' | 'manuscript' | 'kindle',
+      _fileType: 'cover' | 'manuscript' | 'kindle'
     ) => {
-      const { key: trimKey, confidence: trimConf } = matchTrimSize(result.widthIn, result.heightIn);
-      const trim = TRIM_SIZES[trimKey];
+      const { key: trimKey, confidence: trimConf } = matchTrimSize(result.widthIn, result.heightIn)
+      const trim = TRIM_SIZES[trimKey]
 
       // Determine bleed confidence (assume no-bleed unless width suggests bleed)
-      const hasBleed =
-        Math.abs(result.widthIn - trim.widthIn - 0.125 * 2) <
-        Math.abs(result.widthIn - trim.widthIn);
-      const bleedConf = hasBleed ? 0.6 : 0.85;
+      const hasBleed = Math.abs(result.widthIn - trim.widthIn - 0.125 * 2) < Math.abs(result.widthIn - trim.widthIn)
+      const bleedConf = hasBleed ? 0.6 : 0.85
 
-      const overallConfidence = Math.min(trimConf, bleedConf, 1);
+      const overallConfidence = Math.min(trimConf, bleedConf, 1)
 
       setDetectionInfo({
         trimSize: trim.label,
@@ -538,10 +493,10 @@ export default function ImportStep() {
         dpi: result.dpi,
         orientation: result.heightIn >= result.widthIn ? 'portrait' : 'landscape',
         confidence: Math.round(overallConfidence * 100) / 100,
-      });
+      })
     },
-    [],
-  );
+    []
+  )
 
   // -----------------------------------------------------------------------
   // Run animated processing steps then process the file
@@ -549,82 +504,82 @@ export default function ImportStep() {
   const runProcessingAnimation = useCallback(
     async (
       file: File,
-      fileType: 'cover' | 'manuscript' | 'kindle',
+      fileType: 'cover' | 'manuscript' | 'kindle'
     ): Promise<{ widthIn: number; heightIn: number; pageCount: number; dpi: number } | null> => {
-      setIsStepProcessing(true);
-      setDetectionInfo(null);
+      setIsStepProcessing(true)
+      setDetectionInfo(null)
 
       // Initialize steps
       const steps: ProcessingStep[] = PROCESSING_STEPS.map((s) => ({
         ...s,
         status: 'pending' as const,
-      }));
-      setProcessingSteps(steps);
-      setProcessing(true, 'Processing file…');
+      }))
+      setProcessingSteps(steps)
+      setProcessing(true, 'Processing file…')
 
       // Advance steps sequentially with delay
       for (let i = 0; i < steps.length; i++) {
         // Mark current as active
-        const updated = [...steps];
-        updated[i] = { ...updated[i], status: 'active' };
-        setProcessingSteps(updated);
+        const updated = [...steps]
+        updated[i] = { ...updated[i], status: 'active' }
+        setProcessingSteps(updated)
 
         // Wait for processing time
         await new Promise<void>((resolve) => {
-          const t = setTimeout(resolve, 400 + Math.random() * 300);
-          stepTimerRef.current.push(t);
-        });
+          const t = setTimeout(resolve, 400 + Math.random() * 300)
+          stepTimerRef.current.push(t)
+        })
 
         // Mark as complete
-        steps[i] = { ...steps[i], status: 'complete' };
-        setProcessingSteps([...steps]);
+        steps[i] = { ...steps[i], status: 'complete' }
+        setProcessingSteps([...steps])
       }
 
       // Actually process the file (parallel with last animation step)
-      let result: { widthIn: number; heightIn: number; pageCount: number; dpi: number } | null = null;
+      let result: { widthIn: number; heightIn: number; pageCount: number; dpi: number } | null = null
 
       try {
         const isImage =
           file.type.startsWith('image/') ||
           file.name.endsWith('.png') ||
           file.name.endsWith('.jpg') ||
-          file.name.endsWith('.jpeg');
+          file.name.endsWith('.jpeg')
 
         if (isImage) {
-          const img = await loadImage(file);
-          const widthIn = img.width / 300;
-          const heightIn = img.height / 300;
-          result = { widthIn, heightIn, pageCount: 1, dpi: 300 };
+          const img = await loadImage(file)
+          const widthIn = img.width / 300
+          const heightIn = img.height / 300
+          result = { widthIn, heightIn, pageCount: 1, dpi: 300 }
         } else {
           // Assume PDF / EPUB treated as PDF for loadPDF
-          const pdf = await loadPDF(file);
+          const pdf = await loadPDF(file)
           result = {
             widthIn: pdf.widthIn,
             heightIn: pdf.heightIn,
             pageCount: pdf.pageCount,
             dpi: 300,
-          };
+          }
         }
       } catch (err) {
-        console.error('File processing error:', err);
+        console.error('File processing error:', err)
       }
 
-      setProcessing(false, '');
-      setIsStepProcessing(false);
-      return result;
+      setProcessing(false, '')
+      setIsStepProcessing(false)
+      return result
     },
-    [setProcessing],
-  );
+    [setProcessing]
+  )
 
   // -----------------------------------------------------------------------
   // Handle cover upload
   // -----------------------------------------------------------------------
   const handleCoverUpload = useCallback(
     async (file: File) => {
-      setCoverProcessing(true);
-      setDetectionInfo(null);
+      setCoverProcessing(true)
+      setDetectionInfo(null)
 
-      const result = await runProcessingAnimation(file, 'cover');
+      const result = await runProcessingAnimation(file, 'cover')
 
       if (result) {
         const uploaded: UploadedFile = {
@@ -635,36 +590,36 @@ export default function ImportStep() {
           file,
           pageCount: result.pageCount > 1 ? result.pageCount : undefined,
           dimensions: { width: result.widthIn * 300, height: result.heightIn * 300 },
-        };
+        }
 
         // Generate thumbnail for image files
         if (file.type.startsWith('image/')) {
           try {
-            const img = await loadImage(file);
-            uploaded.dataUrl = img.dataUrl;
+            const img = await loadImage(file)
+            uploaded.dataUrl = img.dataUrl
           } catch {
             /* ignore */
           }
         }
 
-        setUploadedCover(uploaded);
-        buildDetectionInfo(result, 'cover');
+        setUploadedCover(uploaded)
+        buildDetectionInfo(result, 'cover')
       }
 
-      setCoverProcessing(false);
+      setCoverProcessing(false)
     },
-    [runProcessingAnimation, setUploadedCover, buildDetectionInfo],
-  );
+    [runProcessingAnimation, setUploadedCover, buildDetectionInfo]
+  )
 
   // -----------------------------------------------------------------------
   // Handle manuscript upload
   // -----------------------------------------------------------------------
   const handleManuscriptUpload = useCallback(
     async (file: File) => {
-      setManuscriptProcessing(true);
-      setDetectionInfo(null);
+      setManuscriptProcessing(true)
+      setDetectionInfo(null)
 
-      const result = await runProcessingAnimation(file, 'manuscript');
+      const result = await runProcessingAnimation(file, 'manuscript')
 
       if (result) {
         const uploaded: UploadedFile = {
@@ -675,27 +630,27 @@ export default function ImportStep() {
           file,
           pageCount: result.pageCount,
           dimensions: { width: result.widthIn * 300, height: result.heightIn * 300 },
-        };
+        }
 
-        setUploadedManuscript(uploaded);
-        setTotalPages(result.pageCount);
-        buildDetectionInfo(result, 'manuscript');
+        setUploadedManuscript(uploaded)
+        setTotalPages(result.pageCount)
+        buildDetectionInfo(result, 'manuscript')
       }
 
-      setManuscriptProcessing(false);
+      setManuscriptProcessing(false)
     },
-    [runProcessingAnimation, setUploadedManuscript, setTotalPages, buildDetectionInfo],
-  );
+    [runProcessingAnimation, setUploadedManuscript, setTotalPages, buildDetectionInfo]
+  )
 
   // -----------------------------------------------------------------------
   // Handle Kindle upload (single zone)
   // -----------------------------------------------------------------------
   const handleKindleUpload = useCallback(
     async (file: File) => {
-      setManuscriptProcessing(true);
-      setDetectionInfo(null);
+      setManuscriptProcessing(true)
+      setDetectionInfo(null)
 
-      const result = await runProcessingAnimation(file, 'kindle');
+      const result = await runProcessingAnimation(file, 'kindle')
 
       if (result) {
         const uploaded: UploadedFile = {
@@ -706,17 +661,17 @@ export default function ImportStep() {
           file,
           pageCount: result.pageCount,
           dimensions: { width: result.widthIn * 300, height: result.heightIn * 300 },
-        };
+        }
 
-        setUploadedManuscript(uploaded);
-        setTotalPages(result.pageCount);
-        buildDetectionInfo(result, 'kindle');
+        setUploadedManuscript(uploaded)
+        setTotalPages(result.pageCount)
+        buildDetectionInfo(result, 'kindle')
       }
 
-      setManuscriptProcessing(false);
+      setManuscriptProcessing(false)
     },
-    [runProcessingAnimation, setUploadedManuscript, setTotalPages, buildDetectionInfo],
-  );
+    [runProcessingAnimation, setUploadedManuscript, setTotalPages, buildDetectionInfo]
+  )
 
   // -----------------------------------------------------------------------
   // Background preview processing — pre-render everything for instant preview
@@ -724,40 +679,36 @@ export default function ImportStep() {
   const startBackgroundPreviewProcessing = useCallback(
     async (coverFile: File | null, manuscriptFile: File | null) => {
       // Guard against duplicate runs
-      if (bgProcessingRef.current) return;
-      bgProcessingRef.current = true;
+      if (bgProcessingRef.current) return
+      bgProcessingRef.current = true
 
-      setProcessingStatus('parsing');
+      setProcessingStatus('parsing')
 
       try {
         // Step 1: Pre-render everything
-        const renderResult = await preRenderAllForPreview(
-          coverFile,
-          manuscriptFile,
-          {
-            renderScale: 1.5,
-            onProgress: (status, _progress) => {
-              setProcessingStatus(status === 'complete' ? 'analyzing' : 'rendering');
-            },
+        const renderResult = await preRenderAllForPreview(coverFile, manuscriptFile, {
+          renderScale: 1.5,
+          onProgress: (status, _progress) => {
+            setProcessingStatus(status === 'complete' ? 'analyzing' : 'rendering')
           },
-        );
+        })
 
         // Step 2: Store cover data URL
         if (renderResult.coverDataUrl) {
-          setCoverDataUrl(renderResult.coverDataUrl);
+          setCoverDataUrl(renderResult.coverDataUrl)
         }
 
         // Step 3: Store manuscript page data URLs
         renderResult.pages.forEach((dataUrl, index) => {
-          setPdfPageDataUrl(index, dataUrl);
-        });
+          setPdfPageDataUrl(index, dataUrl)
+        })
 
-        setTotalPages(renderResult.pageCount);
+        setTotalPages(renderResult.pageCount)
 
         // Step 4: Analyze pages for issues
-        setProcessingStatus('analyzing');
+        setProcessingStatus('analyzing')
 
-        const currentMeasurements = measurements || calculateMeasurements(bookConfig);
+        const currentMeasurements = measurements || calculateMeasurements(bookConfig)
 
         const pdfAnalysis = {
           widthIn: renderResult.widthIn,
@@ -771,16 +722,12 @@ export default function ImportStep() {
           pageWidths: Array(renderResult.pageCount).fill(renderResult.widthIn),
           pageHeights: Array(renderResult.pageCount).fill(renderResult.heightIn),
           imageResolutions: [] as { page: number; dpi: number }[],
-        };
+        }
 
-        const pageIssues: PageIssueExtended[] = analyzePagesForIssues(
-          pdfAnalysis,
-          bookConfig,
-          currentMeasurements,
-        );
-        setPageIssues(pageIssues);
-        setPageIssuesExtended(pageIssues);
-        setPdfAnalysis(pdfAnalysis);
+        const pageIssues: PageIssueExtended[] = analyzePagesForIssues(pdfAnalysis, bookConfig, currentMeasurements)
+        setPageIssues(pageIssues)
+        setPageIssuesExtended(pageIssues)
+        setPdfAnalysis(pdfAnalysis)
 
         // Step 5: Build book sequence (Cover → Blank → Interior)
         const bookPagesArr = buildBookSequence(
@@ -793,19 +740,19 @@ export default function ImportStep() {
             fullCoverHeightIn: currentMeasurements.fullCoverHeightIn,
             trimWidthIn: currentMeasurements.trimWidthIn,
             trimHeightIn: currentMeasurements.trimHeightIn,
-          },
-        );
-        setBookPages(bookPagesArr);
+          }
+        )
+        setBookPages(bookPagesArr)
 
         // Step 6: Compute spreads
-        const spreads = computeSpreadsForCache(bookPagesArr);
+        const spreads = computeSpreadsForCache(bookPagesArr)
 
         // Step 7: Build issue map
-        const issueMap = new Map<number, PageIssue[]>();
+        const issueMap = new Map<number, PageIssue[]>()
         for (const issue of pageIssues) {
-          const existing = issueMap.get(issue.page) || [];
-          existing.push(issue);
-          issueMap.set(issue.page, existing);
+          const existing = issueMap.get(issue.page) || []
+          existing.push(issue)
+          issueMap.set(issue.page, existing)
         }
 
         // Step 8: Build preview cache
@@ -830,17 +777,17 @@ export default function ImportStep() {
             createdAt: Date.now(),
           },
           status: 'ready',
-        };
+        }
 
-        setPreviewCache(previewCache);
-        setProcessingStatus('ready');
-        setPreviewReady(true);
+        setPreviewCache(previewCache)
+        setProcessingStatus('ready')
+        setPreviewReady(true)
       } catch (err) {
-        console.error('Background preview processing failed:', err);
-        setProcessingStatus('error');
-        setPreviewReady(false);
+        console.error('Background preview processing failed:', err)
+        setProcessingStatus('error')
+        setPreviewReady(false)
       } finally {
-        bgProcessingRef.current = false;
+        bgProcessingRef.current = false
       }
     },
     [
@@ -855,45 +802,38 @@ export default function ImportStep() {
       setBookPages,
       setPreviewCache,
       setPreviewReady,
-    ],
-  );
+    ]
+  )
 
   // -----------------------------------------------------------------------
   // Auto-trigger background processing when files are uploaded
   // -----------------------------------------------------------------------
   useEffect(() => {
-    const coverFile = uploadedCover?.file ?? null;
-    const manuscriptFile = uploadedManuscript?.file ?? null;
+    const coverFile = uploadedCover?.file ?? null
+    const manuscriptFile = uploadedManuscript?.file ?? null
 
     // Only trigger if we have the minimum required files and preview isn't ready
-    if (previewReady || bgProcessingRef.current) return;
-    if (processingStatus === 'rendering' || processingStatus === 'analyzing' || processingStatus === 'parsing') return;
+    if (previewReady || bgProcessingRef.current) return
+    if (processingStatus === 'rendering' || processingStatus === 'analyzing' || processingStatus === 'parsing') return
 
     if (bookType === 'kindle') {
       if (manuscriptFile) {
-        startBackgroundPreviewProcessing(null, manuscriptFile);
+        startBackgroundPreviewProcessing(null, manuscriptFile)
       }
     } else {
       if (manuscriptFile) {
-        startBackgroundPreviewProcessing(coverFile, manuscriptFile);
+        startBackgroundPreviewProcessing(coverFile, manuscriptFile)
       }
     }
-  }, [
-    uploadedCover,
-    uploadedManuscript,
-    bookType,
-    previewReady,
-    processingStatus,
-    startBackgroundPreviewProcessing,
-  ]);
+  }, [uploadedCover, uploadedManuscript, bookType, previewReady, processingStatus, startBackgroundPreviewProcessing])
 
   const resolvedDetectionInfo = useMemo<DetectionInfo | null>(() => {
-    if (detectionInfo) return detectionInfo;
-    if (!uploadedManuscript) return null;
+    if (detectionInfo) return detectionInfo
+    if (!uploadedManuscript) return null
 
-    const m = measurements;
-    const hasBleed = bookConfig.bleed === 'bleed';
-    const trim = TRIM_SIZES[bookConfig.trimSize as TrimSizeKey];
+    const m = measurements
+    const hasBleed = bookConfig.bleed === 'bleed'
+    const trim = TRIM_SIZES[bookConfig.trimSize as TrimSizeKey]
 
     return {
       trimSize: trim?.label ?? `${m.trimWidthIn}" × ${m.trimHeightIn}"`,
@@ -904,8 +844,8 @@ export default function ImportStep() {
       dpi: 300,
       orientation: m.trimHeightIn >= m.trimWidthIn ? 'portrait' : 'landscape',
       confidence: 0.85,
-    };
-  }, [detectionInfo, uploadedManuscript, measurements, bookConfig]);
+    }
+  }, [detectionInfo, uploadedManuscript, measurements, bookConfig])
 
   // -----------------------------------------------------------------------
   // Continue to Config step – update store with detected values
@@ -913,8 +853,8 @@ export default function ImportStep() {
   const handleContinue = useCallback(() => {
     if (resolvedDetectionInfo) {
       // Fresh upload: use detected values
-      const { key: trimKey } = matchTrimSize(resolvedDetectionInfo.widthIn, resolvedDetectionInfo.heightIn);
-      const hasBleed = resolvedDetectionInfo.bleed.includes('With Bleed');
+      const { key: trimKey } = matchTrimSize(resolvedDetectionInfo.widthIn, resolvedDetectionInfo.heightIn)
+      const hasBleed = resolvedDetectionInfo.bleed.includes('With Bleed')
 
       updateBookConfig({
         trimSize: trimKey,
@@ -922,173 +862,129 @@ export default function ImportStep() {
         pageCount: resolvedDetectionInfo.pageCount,
         bookType,
         binding: bookType === 'hardcover' ? 'hardcover' : 'paperback',
-      });
+      })
     }
     // Even without detectionInfo (e.g. returning to Import),
     // the bookConfig is already set from a previous continue, so just navigate.
-    setCheckerStep('config');
-  }, [resolvedDetectionInfo, bookType, updateBookConfig, setCheckerStep]);
+    setCheckerStep('config')
+  }, [resolvedDetectionInfo, bookType, updateBookConfig, setCheckerStep])
 
   // -----------------------------------------------------------------------
   // Determine what upload zones to show and whether continue is enabled
   // -----------------------------------------------------------------------
-  const showCoverZone = bookType === 'paperback' || bookType === 'hardcover';
-  const showKindleZone = bookType === 'kindle';
-  const showManuscriptZone = bookType === 'paperback' || bookType === 'hardcover';
+  const showCoverZone = bookType === 'paperback' || bookType === 'hardcover'
+  const showKindleZone = bookType === 'kindle'
+  const showManuscriptZone = bookType === 'paperback' || bookType === 'hardcover'
 
   const canContinue = (() => {
     // Only block if the INITIAL file analysis is still running (not background preview)
-    if (isStepProcessing || coverProcessing || manuscriptProcessing) return false;
-    if (bookType === 'kindle') return !!uploadedManuscript;
+    if (isStepProcessing || coverProcessing || manuscriptProcessing) return false
+    if (bookType === 'kindle') return !!uploadedManuscript
     // Paperback / Hardcover – at least manuscript needed
-    return !!uploadedManuscript;
-  })();
+    return !!uploadedManuscript
+  })()
 
   // Continue is allowed even while background processing runs
   // Background preview processing will continue in the store regardless of navigation
 
-  const anyProcessing = coverProcessing || manuscriptProcessing || isStepProcessing;
+  const anyProcessing = coverProcessing || manuscriptProcessing || isStepProcessing
 
   // Is background preview processing still running?
   const bgProcessingActive =
-    processingStatus === 'parsing' ||
-    processingStatus === 'rendering' ||
-    processingStatus === 'analyzing';
+    processingStatus === 'parsing' || processingStatus === 'rendering' || processingStatus === 'analyzing'
 
   // -----------------------------------------------------------------------
   // Render
   // -----------------------------------------------------------------------
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-7">
-      {/* ---- Header ---- */}
-      <div className="mx-auto max-w-2xl space-y-3 text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Import Your Book
-        </h2>
-        <p className="mx-auto max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
-          Upload your files and we&apos;ll auto-detect trim size, page count, bleed settings, and more.
-        </p>
-        <div className="flex justify-center pt-2">
-          <TrustBadge variant="full" />
-        </div>
-      </div>
-
-      {/* ---- Type Switcher ---- */}
-      <div className="flex justify-center">
+    <div className="flex flex-col gap-4">
+      {/* ---- Type switcher ---- */}
+      <div className="flex items-center justify-between gap-4">
         <TypeSwitcher bookType={bookType} setBookType={setBookType} />
       </div>
 
-      {/* ---- Upload Zones ---- */}
-      <div className="ds-card-elevated overflow-hidden p-4 sm:p-5">
-        {/* ---- Upload Zones ---- */}
-        <div
-          className={`grid gap-4 ${
-            showCoverZone && showManuscriptZone
-              ? 'grid-cols-1 lg:grid-cols-2'
-              : 'grid-cols-1'
-          }`}
-        >
-          {/* Kindle single zone */}
-          {showKindleZone && (
-            <UploadZone
-              label="Upload Kindle File (EPUB or PDF)"
-              accept=".epub,.pdf"
-              onFile={handleKindleUpload}
-              isProcessing={manuscriptProcessing}
-              uploadedFile={uploadedManuscript}
-              icon={FileText}
-            />
-          )}
-
-          {/* Cover zone */}
-          {showCoverZone && (
-            <UploadZone
-              label="Upload Cover (PDF, PNG, JPG)"
-              accept=".pdf,.png,.jpg,.jpeg"
-              onFile={handleCoverUpload}
-              isProcessing={coverProcessing}
-              uploadedFile={uploadedCover}
-              icon={ImageIcon}
-            />
-          )}
-
-          {/* Manuscript zone */}
-          {showManuscriptZone && (
-            <UploadZone
-              label="Upload Manuscript (PDF)"
-              accept=".pdf"
-              onFile={handleManuscriptUpload}
-              isProcessing={manuscriptProcessing}
-              uploadedFile={uploadedManuscript}
-              icon={FileText}
-            />
-          )}
-        </div>
-
-        {/* ---- File info hints ---- */}
-        <div className="mt-4 grid gap-2 border-t border-border pt-4 text-xs text-muted-foreground sm:grid-cols-3">
-          {bookType === 'kindle' ? (
-            <>
-              <p>EPUB or PDF up to 650 MB</p>
-              <p>Interior formatting and reflow checks</p>
-              <p>Local browser-only processing</p>
-            </>
-          ) : (
-            <>
-              <p>Cover: PDF, PNG, or JPG up to 650 MB</p>
-              <p>Manuscript: PDF only, minimum 24 pages</p>
-              <p>Auto-detect trim, bleed, and page count</p>
-            </>
-          )}
-        </div>
+      {/* ---- Upload zones ---- */}
+      <div
+        className={`grid gap-4 ${
+          showCoverZone && showManuscriptZone ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-xl'
+        }`}
+      >
+        {showKindleZone && (
+          <UploadZone
+            label="Kindle File (EPUB or PDF)"
+            accept=".epub,.pdf"
+            onFile={handleKindleUpload}
+            isProcessing={manuscriptProcessing}
+            uploadedFile={uploadedManuscript}
+            icon={FileText}
+          />
+        )}
+        {showCoverZone && (
+          <UploadZone
+            label="Cover — PDF, PNG, or JPG"
+            accept=".pdf,.png,.jpg,.jpeg"
+            onFile={handleCoverUpload}
+            isProcessing={coverProcessing}
+            uploadedFile={uploadedCover}
+            icon={ImageIcon}
+          />
+        )}
+        {showManuscriptZone && (
+          <UploadZone
+            label="Manuscript — PDF only"
+            accept=".pdf"
+            onFile={handleManuscriptUpload}
+            isProcessing={manuscriptProcessing}
+            uploadedFile={uploadedManuscript}
+            icon={FileText}
+          />
+        )}
       </div>
 
-      {/* ---- Processing overlay ---- */}
-      {anyProcessing && processingSteps.length > 0 && (
-        <ProcessingOverlay steps={processingSteps} />
-      )}
+      {/* ---- Processing steps ---- */}
+      {anyProcessing && processingSteps.length > 0 && <ProcessingOverlay steps={processingSteps} />}
 
-      {/* ---- Background preview processing indicator ---- */}
-      {bgProcessingActive && !anyProcessing && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card shadow-soft">
-          <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
-          <span className="text-xs text-muted-foreground">
-            {processingStatus === 'parsing' && 'Parsing PDF...'}
-            {processingStatus === 'rendering' && 'Rendering pages for preview...'}
-            {processingStatus === 'analyzing' && 'Analyzing pages for issues...'}
-            {'Preparing preview...'}
-          </span>
+      {/* ---- Status bar + Continue ---- */}
+      <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface-glass px-4 py-3 backdrop-blur-sm">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          {bgProcessingActive && !anyProcessing ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
+              <span className="truncate text-xs text-muted-foreground">
+                {processingStatus === 'parsing'
+                  ? 'Parsing PDF...'
+                  : processingStatus === 'rendering'
+                    ? 'Rendering pages...'
+                    : 'Analyzing issues...'}
+              </span>
+            </>
+          ) : processingStatus === 'ready' && previewReady && !anyProcessing ? (
+            <>
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+              <span className="truncate text-xs text-success">Preview ready — all pages analyzed</span>
+            </>
+          ) : resolvedDetectionInfo && !anyProcessing ? (
+            <span className="truncate text-xs text-muted-foreground">
+              {resolvedDetectionInfo.trimSize} · {resolvedDetectionInfo.pageCount} pages · {resolvedDetectionInfo.bleed}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {bookType === 'kindle'
+                ? 'Upload your Kindle file to continue'
+                : 'Upload cover and manuscript to continue'}
+            </span>
+          )}
         </div>
-      )}
 
-      {/* ---- Preview ready indicator ---- */}
-      {processingStatus === 'ready' && previewReady && !anyProcessing && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/[0.06] border border-primary/20">
-          <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs text-primary">Preview ready — all pages rendered and analyzed</span>
-        </div>
-      )}
-
-      {/* ---- Detection results (no continue button — that's in the sticky footer) ---- */}
-      {resolvedDetectionInfo && !anyProcessing && (
-        <DetectionResults
-          info={resolvedDetectionInfo}
-          processingActive={bgProcessingActive}
-        />
-      )}
-
-      {/* ---- Single Continue button (sticky, always visible when eligible) ---- */}
-      {canContinue && (
-        <div className="sticky bottom-4 z-10 flex justify-stretch sm:justify-end">
-          <button
-            onClick={handleContinue}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-colors duration-200 hover:bg-primary-hover sm:w-auto"
-          >
-            Continue to Configure
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+        <button
+          onClick={handleContinue}
+          disabled={!canContinue}
+          className="flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Continue
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
     </div>
-  );
+  )
 }

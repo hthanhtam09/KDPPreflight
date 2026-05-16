@@ -49,7 +49,7 @@ const quickLinks = [
   { href: '/checker', label: 'Checker' },
   { href: '/preview', label: 'Preview' },
   { href: '/blog', label: 'Blog' },
-  { href: '/kdp-trim-size-calculator', label: 'Trim Size Guide' },
+  { href: '/tools/kdp-trim-size-calculator', label: 'Trim Size Guide' },
 ];
 
 const toneIcons: Record<ErrorStateTone, ReactNode> = {

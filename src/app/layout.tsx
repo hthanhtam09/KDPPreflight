@@ -7,6 +7,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { SITE_URL, SITE_NAME } from '@/lib/seo';
 import AppChrome from '@/components/system/AppChrome';
+import ResponsiveDebug from '@/components/system/ResponsiveDebug';
 
 const geistSans = localFont({
   src: './fonts/geist-latin.woff2',
@@ -143,6 +144,7 @@ export default function RootLayout({
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
+        <ResponsiveDebug />
       </body>
     </html>
   );

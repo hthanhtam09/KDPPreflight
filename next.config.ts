@@ -72,7 +72,16 @@ const nextConfig: NextConfig = {
 
   // Remove sitemap.xml from public — Next.js now generates it via app/sitemap.ts
   async redirects() {
-    return [];
+    return [
+      { source: '/kdp-bleed-checker', destination: '/tools/kdp-bleed-checker', statusCode: 301 },
+      { source: '/kdp-cover-validator', destination: '/tools/kdp-cover-validator', statusCode: 301 },
+      { source: '/kdp-spine-width-calculator', destination: '/tools/kdp-spine-width-calculator', statusCode: 301 },
+      { source: '/kdp-trim-size-calculator', destination: '/tools/kdp-trim-size-calculator', statusCode: 301 },
+      { source: '/kdp-cover-size-guide', destination: '/blog/kdp-cover-dimensions-explained', statusCode: 301 },
+      { source: '/kdp-safe-area-guide', destination: '/blog/kdp-safe-area-guide', statusCode: 301 },
+      { source: '/kdp-paperback-guide', destination: '/blog/beginners-guide-kdp-cover-formatting', statusCode: 301 },
+      { source: '/kdp-glossary', destination: '/glossary', statusCode: 301 },
+    ];
   },
 };
 

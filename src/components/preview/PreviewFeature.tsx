@@ -4,6 +4,8 @@ import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion';
 import {
   ArrowLeft,
+  Check,
+  Circle,
   Loader2,
 } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
@@ -13,10 +15,8 @@ import { calculateMeasurements, DEFAULT_BOOK_CONFIG } from '@/engine/kdp-constan
 import dynamic from 'next/dynamic';
 import PreviewToolbar from './PreviewToolbar';
 import ImportStep from './ImportStep';
-import ConfigStep from './ConfigStep';
-import GenerateStep from './GenerateStep';
+import PreviewWorkspace from './PreviewWorkspace';
 import type { Preview3DOverlays, Preview3DState, Preview3DActions } from './BookPreview3D';
-import { StepProgress } from '@/components/workspace/ProductWorkspace';
 
 // Dynamic imports to avoid SSR issues with Three.js
 const BookPreview3D = dynamic(() => import('./BookPreview3D'), { ssr: false });
@@ -33,9 +33,9 @@ interface StepDef {
 
 const STEPS: StepDef[] = [
   { key: 'import', label: 'Import' },
-  { key: 'config', label: 'Config' },
+  { key: 'config', label: 'Settings' },
   { key: 'generate', label: 'Generate' },
-  { key: 'preview', label: '3D Preview' },
+  { key: 'preview', label: 'Preview' },
 ];
 
 const PREVIEW_ONLY_OVERLAYS: Preview3DOverlays = {
@@ -265,26 +265,15 @@ export default function PreviewFeature() {
     }
   }, [canGoToStep, setPreviewFlowStep]);
 
-  // Get step index
   const isInPreviewStep = previewFlowStep === 'preview';
+  const isInWorkspace = previewFlowStep === 'config' || previewFlowStep === 'generate';
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-transparent text-foreground">
-      {/* ─── Step Indicator ─── */}
-      {!isInPreviewStep && (
-        <div className="flex items-center justify-between gap-3 overflow-x-auto border-b border-border bg-surface-glass px-3 py-3 backdrop-blur-xl sm:px-4">
-          <StepProgress
-            steps={STEPS.map((step) => ({ key: step.key, label: step.label }))}
-            current={previewFlowStep}
-            onStepClick={(step) => handleStepClick(step.key as PreviewFlowStep)}
-          />
-        </div>
-      )}
-
-      {/* ─── Step Content ─── */}
-      <div className={`flex-1 overflow-hidden ${isInPreviewStep ? 'relative' : ''}`}>
-        <LazyMotion features={domAnimation}>
+      <LazyMotion features={domAnimation}>
         <AnimatePresence mode="wait">
+
+          {/* ─── Import: panel layout ─── */}
           {previewFlowStep === 'import' && (
             <m.div
               key="import"
@@ -292,125 +281,180 @@ export default function PreviewFeature() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.25 }}
-              className="h-full overflow-y-auto"
+              className="flex-1 min-h-0 overflow-y-auto px-4 pb-6"
             >
-              <ImportStep />
+              <section className="mx-auto max-w-7xl">
+                <CompactPreviewStepper
+                  steps={STEPS}
+                  current={previewFlowStep}
+                  onStepClick={handleStepClick}
+                />
+                <div className="mt-4 rounded-panel ws-panel p-5 sm:p-6">
+                  <ImportStep />
+                </div>
+              </section>
             </m.div>
           )}
 
-          {previewFlowStep === 'config' && (
+          {/* ─── Config / Generate: split workspace ─── */}
+          {isInWorkspace && (
             <m.div
-              key="config"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.25 }}
-              className="h-full overflow-y-auto"
+              key="workspace"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex-1 min-h-0 overflow-y-auto px-4 pb-6"
             >
-              <ConfigStep />
+              <div className="mx-auto w-full max-w-7xl">
+                <CompactPreviewStepper
+                  steps={STEPS}
+                  current={previewFlowStep}
+                  onStepClick={handleStepClick}
+                />
+              </div>
+              <div className="mx-auto mt-4 w-full max-w-7xl">
+                <PreviewWorkspace onCoverSegments={setCoverSegments} />
+              </div>
             </m.div>
           )}
 
-          {previewFlowStep === 'generate' && (
-            <m.div
-              key="generate"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.25 }}
-              className="h-full"
-            >
-              <GenerateStep onCoverSegments={setCoverSegments} />
-            </m.div>
-          )}
-
-          {previewFlowStep === 'preview' && (
+          {/* ─── 3D Preview: full-height canvas ─── */}
+          {isInPreviewStep && (
             <m.div
               key="preview"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.3 }}
-              className="h-full relative"
+              className="flex-1 relative overflow-hidden"
             >
-              {effectivePreviewState.bookType === 'kindle' ? (
-                /* ── Kindle flat e-reader preview ── */
-                <KindlePreview
-                  currentPage={effectivePreviewState.currentPage}
-                  totalPages={safeBookConfig.pageCount}
-                  onPrev={kindlePrevPage}
-                  onNext={kindleNextPage}
-                  onGoToPage={kindleGoToPage}
-                  onBack={() => setPreviewFlowStep('config')}
-                  measurements={{
-                    pageCount: safeBookConfig.pageCount,
-                    bookType: safeBookConfig.bookType,
-                    coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
-                    pageSource: `${safeBookConfig.pageCount} rendered pages`,
-                  }}
-                />
-              ) : (
-                /* ── Physical book 3D preview ── */
-                <div className="h-full ds-page-stage">
-                  <BookPreview3D
-                    coverUrl={coverUrl}
-                    coverSegments={coverSegments}
-                    state={effectivePreviewState}
-                    onStateChange={handleStateChange}
-                    onExportRef={exportRef}
-                    overlays={PREVIEW_ONLY_OVERLAYS}
-                  />
-
-                  <PreviewToolbar
-                    state={effectivePreviewState}
-                    actions={actions}
+                {effectivePreviewState.bookType === 'kindle' ? (
+                  <KindlePreview
+                    currentPage={effectivePreviewState.currentPage}
                     totalPages={safeBookConfig.pageCount}
-                    isConfigOpen={isConfigOpen}
-                    onCloseConfig={() => setIsConfigOpen(false)}
+                    onPrev={kindlePrevPage}
+                    onNext={kindleNextPage}
+                    onGoToPage={kindleGoToPage}
+                    onBack={() => setPreviewFlowStep('config')}
                     measurements={{
-                      trimWidth: safeMeasurements.trimWidthIn.toFixed(2),
-                      trimHeight: safeMeasurements.trimHeightIn.toFixed(2),
-                      spine: safeMeasurements.spineWidthIn.toFixed(3),
                       pageCount: safeBookConfig.pageCount,
                       bookType: safeBookConfig.bookType,
                       coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
                       pageSource: `${safeBookConfig.pageCount} rendered pages`,
-                      paperType: safeBookConfig.paper,
                     }}
                   />
-
-                  <button
-                    onClick={() => setPreviewFlowStep('config')}
-                    className="ds-focus ds-control absolute left-3 top-3 z-20 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:left-4"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Config
-                  </button>
-
-                  {isProcessing && (
-                    <div className="absolute inset-0 z-30 flex items-center justify-center bg-overlay backdrop-blur-sm">
-                      <div className="ds-card-glass flex items-center gap-3 px-6 py-4">
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                        <span className="text-sm text-foreground/80">{processingMessage || 'Processing...'}</span>
+                ) : (
+                  <div className="h-full ds-page-stage">
+                    <BookPreview3D
+                      coverUrl={coverUrl}
+                      coverSegments={coverSegments}
+                      state={effectivePreviewState}
+                      onStateChange={handleStateChange}
+                      onExportRef={exportRef}
+                      overlays={PREVIEW_ONLY_OVERLAYS}
+                    />
+                    <PreviewToolbar
+                      state={effectivePreviewState}
+                      actions={actions}
+                      totalPages={safeBookConfig.pageCount}
+                      isConfigOpen={isConfigOpen}
+                      onCloseConfig={() => setIsConfigOpen(false)}
+                      measurements={{
+                        trimWidth: safeMeasurements.trimWidthIn.toFixed(2),
+                        trimHeight: safeMeasurements.trimHeightIn.toFixed(2),
+                        spine: safeMeasurements.spineWidthIn.toFixed(3),
+                        pageCount: safeBookConfig.pageCount,
+                        bookType: safeBookConfig.bookType,
+                        coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
+                        pageSource: `${safeBookConfig.pageCount} rendered pages`,
+                        paperType: safeBookConfig.paper,
+                      }}
+                    />
+                    <button
+                      onClick={() => setPreviewFlowStep('config')}
+                      className="ds-focus ds-control absolute left-3 top-3 z-20 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:left-4"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      Config
+                    </button>
+                    {isProcessing && (
+                      <div className="absolute inset-0 z-30 flex items-center justify-center bg-overlay backdrop-blur-sm">
+                        <div className="ds-card-glass flex items-center gap-3 px-6 py-4">
+                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          <span className="text-sm text-foreground/80">{processingMessage || 'Processing...'}</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
-
-                  {generationProgress.phase !== 'idle' && generationProgress.phase !== 'complete' && (
-                    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-                      <div className="ds-card-glass flex items-center gap-3 rounded-xl px-4 py-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                        <span className="text-xs text-muted-foreground">{generationProgress.phaseLabel} — {generationProgress.progress}%</span>
+                    )}
+                    {generationProgress.phase !== 'idle' && generationProgress.phase !== 'complete' && (
+                      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+                        <div className="ds-card-glass flex items-center gap-3 rounded-xl px-4 py-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          <span className="text-xs text-muted-foreground">{generationProgress.phaseLabel} — {generationProgress.progress}%</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
             </m.div>
           )}
+
         </AnimatePresence>
-        </LazyMotion>
-      </div>
+      </LazyMotion>
+
     </div>
+  );
+}
+
+function CompactPreviewStepper({
+  steps,
+  current,
+  onStepClick,
+}: {
+  steps: StepDef[];
+  current: PreviewFlowStep;
+  onStepClick: (step: PreviewFlowStep) => void;
+}) {
+  const currentIndex = steps.findIndex((step) => step.key === current);
+
+  return (
+    <nav className="mx-auto w-full max-w-5xl overflow-x-auto py-2" aria-label="Preview workflow progress">
+      <ol className="flex min-w-max items-center justify-center gap-2 sm:min-w-0">
+        {steps.map((step, index) => {
+          const active = step.key === current;
+          const complete = index < currentIndex;
+
+          return (
+            <li key={step.key} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onStepClick(step.key)}
+                className={`ds-focus inline-flex h-9 items-center gap-2 rounded-full border px-3 text-xs font-semibold transition-colors ${
+                  active
+                    ? 'border-primary/35 bg-primary/10 text-foreground shadow-soft'
+                    : complete
+                      ? 'border-success/20 bg-success/8 text-success'
+                      : 'border-border bg-surface/70 text-muted-foreground'
+                }`}
+              >
+                <span
+                  className={`grid size-5 place-items-center rounded-full text-[10px] ${
+                    active
+                      ? 'bg-primary text-primary-foreground'
+                      : complete
+                        ? 'bg-success text-success-foreground'
+                        : 'bg-secondary text-muted-foreground'
+                  }`}
+                >
+                  {complete ? <Check className="h-3 w-3" /> : active ? <Circle className="h-2.5 w-2.5 fill-current" /> : index + 1}
+                </span>
+                {step.label}
+              </button>
+              {index < steps.length - 1 && <span className="h-px w-4 bg-border" aria-hidden="true" />}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }

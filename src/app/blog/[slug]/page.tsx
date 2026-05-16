@@ -4,18 +4,22 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, ExternalLink } from 'lucide-react';
+import { ArticleChecklist } from '@/components/blog/ArticleChecklist';
 import { ArticleCallout } from '@/components/blog/ArticleCallout';
+import { ArticleDiagram } from '@/components/blog/ArticleDiagram';
 import { ArticleFAQ } from '@/components/blog/ArticleFAQ';
 import { BlogCTA } from '@/components/blog/BlogCTA';
+import { BlogPostVisual } from '@/components/blog/BlogPostVisual';
 import { RelatedArticles } from '@/components/blog/RelatedArticles';
 import { TableOfContents } from '@/components/blog/TableOfContents';
+import { FeatureFeedback } from '@/components/feedback/FeatureFeedback';
 import { HelpfulFeedback } from '@/components/feedback/HelpfulFeedback';
 import { JsonLd } from '@/components/seo/JsonLd';
 import {
-  blogTools,
   formatBlogDate,
   getAllBlogSlugs,
   getBlogPost,
+  getBlogCategory,
   getRelatedPosts,
   getTableOfContents,
   slugifyHeading,
@@ -53,7 +57,8 @@ export default async function BlogPostPage({ params }: Props) {
 
   const toc = getTableOfContents(post.content);
   const relatedPosts = getRelatedPosts(post);
-  const relatedTools = post.relatedTools.map((key) => blogTools[key]).filter(Boolean);
+  const relatedTools = post.relatedTools;
+  const category = getBlogCategory(post.category);
 
   return (
     <>
@@ -80,6 +85,7 @@ export default async function BlogPostPage({ params }: Props) {
           breadcrumbSchema([
             { name: 'Home', url: SITE_URL },
             { name: 'Blog', url: `${SITE_URL}/blog` },
+            { name: category.label, url: `${SITE_URL}/blog/category/${category.slug}` },
             { name: post.title, url: `${SITE_URL}/blog/${slug}` },
           ]),
           ...(post.faqs.length ? [faqSchema(post.faqs)] : []),
@@ -94,6 +100,8 @@ export default async function BlogPostPage({ params }: Props) {
                 <li><Link href="/" className="hover:text-primary">Home</Link></li>
                 <li aria-hidden="true">/</li>
                 <li><Link href="/blog" className="hover:text-primary">Blog</Link></li>
+                <li aria-hidden="true">/</li>
+                <li><Link href={`/blog/category/${category.slug}`} className="hover:text-primary">{category.label}</Link></li>
                 <li aria-hidden="true">/</li>
                 <li aria-current="page" className="max-w-[18rem] truncate font-semibold text-foreground">{post.title}</li>
               </ol>
@@ -110,7 +118,7 @@ export default async function BlogPostPage({ params }: Props) {
             <div className="max-w-4xl">
               <div className="mb-5 flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
-                  {post.category}
+                  {category.label}
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
@@ -132,11 +140,15 @@ export default async function BlogPostPage({ params }: Props) {
                 </span>
               </div>
             </div>
+
+            <div className="mt-10 max-w-5xl">
+              <BlogPostVisual postSlug={post.slug} category={category} variant="article" />
+            </div>
           </div>
         </header>
 
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[240px_minmax(0,760px)_260px] lg:items-start lg:py-14">
-          <aside className="order-3 space-y-8 lg:order-1">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[240px_minmax(0,760px)_260px] lg:py-14">
+          <aside className="order-3 space-y-8 self-start lg:order-1">
             <RelatedArticles posts={relatedPosts} />
             {post.relatedGuides.length > 0 && (
               <section aria-labelledby="related-guides-heading">
@@ -159,14 +171,24 @@ export default async function BlogPostPage({ params }: Props) {
             )}
           </aside>
 
-          <article className="order-2 min-w-0">
+          <article id="blog-article-content" className="order-2 min-w-0 self-start">
             <ArticleCallout variant="tip" title="Quick answer">
-              {post.summary[0]} Use the linked KDP calculators and checker to verify the final exported PDF before upload.
+              {post.shortAnswer}
             </ArticleCallout>
+
+            {post.diagrams.slice(0, 2).map((diagram) => (
+              <ArticleDiagram key={diagram} type={diagram} />
+            ))}
 
             <div className="blog-article">
               <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
             </div>
+
+            {post.diagrams.slice(2).map((diagram) => (
+              <ArticleDiagram key={diagram} type={diagram} />
+            ))}
+
+            <ArticleChecklist items={post.checklist} />
 
             <section className="mt-12 rounded-2xl border border-border bg-card p-5 shadow-soft" aria-labelledby="summary-heading">
               <h2 id="summary-heading" className="text-2xl font-bold tracking-[-0.02em] text-foreground">
@@ -207,10 +229,11 @@ export default async function BlogPostPage({ params }: Props) {
               </section>
 
               <HelpfulFeedback pageSlug={post.slug} pageTitle={post.title} />
+              <FeatureFeedback context={post.title} compact />
             </footer>
           </article>
 
-          <aside className="order-1 lg:order-3">
+          <aside className="order-1 self-start lg:order-3">
             <TableOfContents items={toc} />
           </aside>
         </div>

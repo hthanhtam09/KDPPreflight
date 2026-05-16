@@ -14,10 +14,10 @@ import {
   ScanLine,
   SearchCheck,
   ShieldCheck,
-  TriangleAlert,
 } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import KdpIssuesSection from '@/components/home/KdpIssuesSection'
 import HeroMockup from './HeroMockup'
 
 const fadeUp = {
@@ -40,53 +40,6 @@ const marqueeItems = [
   'BARCODE AREA OVERLAP',
   'GUTTER TOO NARROW',
   'FONT NOT EMBEDDED',
-]
-
-const uploadIssues = [
-  {
-    num: '01',
-    badge: 'Bleed warning',
-    status: 'Rejected',
-    title: 'White edge after upload preview',
-    body: 'Your 8.5 x 11 interior was exported without the extra 0.125" bleed, so artwork stops at the trim line.',
-    metric: 'Actual 8.5" x 11"',
-    expected: 'Expected 8.625" x 11.25"',
-    kind: 'bleed',
-    hoverLabel: 'Missing 0.125" bleed',
-  },
-  {
-    num: '02',
-    badge: 'Trim mismatch',
-    status: 'Check file',
-    title: 'Cover PDF does not match the selected trim',
-    body: 'The cover looks correct in Canva, but the final PDF is 0.08" too narrow for the spine and bleed.',
-    metric: 'Cover width off',
-    expected: 'Spine + bleed missing',
-    kind: 'trim',
-    hoverLabel: '0.08" too narrow',
-  },
-  {
-    num: '03',
-    badge: 'Spine risk',
-    status: 'Fix before upload',
-    title: 'Page count changed after your cover was designed',
-    body: 'A 300-page white-paper paperback needs about 0.676" of spine. Small page count changes move the cover wrap.',
-    metric: 'White paper',
-    expected: '0.002252" per page',
-    kind: 'spine',
-    hoverLabel: '300 pages = 0.676" spine',
-  },
-  {
-    num: '04',
-    badge: 'Safe area',
-    status: 'Pass after fix',
-    title: 'Barcode and back-cover text sit too close to trim',
-    body: 'Important cover content is inside the cut-risk area instead of staying within KDP safe margins.',
-    metric: 'Text inside risk zone',
-    expected: 'Keep 0.25" safe area',
-    kind: 'safe',
-    hoverLabel: 'Moved inside safe area',
-  },
 ]
 
 const steps = [
@@ -243,62 +196,6 @@ function SectionHeader({
       </h2>
       <p className="ds-body mx-auto mt-5 max-w-2xl text-base">{body}</p>
     </m.div>
-  )
-}
-
-function IssueCard({ issue, index }: { issue: (typeof uploadIssues)[number]; index: number }) {
-  const isSuccess = issue.status.includes('Pass')
-
-  return (
-    <m.article
-      {...fadeUp}
-      transition={{ ...fadeUp.transition, delay: index * 0.06 }}
-      className="ds-card ds-card-interactive issue-card group relative min-h-[292px] overflow-hidden p-5"
-    >
-      <div className="relative z-10 flex items-start justify-between gap-4">
-        <div>
-          <span className="text-[11px] font-bold tracking-[0.16em] text-primary/60">{issue.num}</span>
-          <h3 className="mt-4 text-xl font-semibold leading-tight tracking-[-0.02em] text-foreground">{issue.title}</h3>
-        </div>
-        <span className={isSuccess ? 'ds-status-success issue-badge' : 'ds-status-warning issue-badge'}>
-          {issue.status}
-        </span>
-      </div>
-
-      <div className={`issue-preview issue-preview-${issue.kind}`} aria-hidden="true">
-        <span className="issue-scan-line" />
-        <span className="issue-page">
-          <span className="issue-artwork" />
-          <span className="issue-white-edge" />
-          <span className="issue-expected-outline" />
-          <span className="issue-actual-outline" />
-          <span className="issue-spine" />
-          <span className="issue-safe" />
-          <span className="issue-risk-zone" />
-          <span className="issue-barcode" />
-          <span className="issue-text-line issue-text-one" />
-          <span className="issue-text-line issue-text-two" />
-          <span className="issue-selected-edge" />
-        </span>
-        <span className="issue-hover-label">{issue.hoverLabel}</span>
-      </div>
-
-      <p className="relative z-10 mt-5 text-sm leading-6 text-muted-foreground">{issue.body}</p>
-      <div className="relative z-10 mt-5 grid gap-2 sm:grid-cols-2">
-        <div className="rounded-lg border border-border bg-secondary/30 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Actual</p>
-          <p className="mt-1 text-sm font-semibold text-foreground/90">{issue.metric}</p>
-        </div>
-        <div className="rounded-lg border border-primary/20 bg-primary/8 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary/75">Expected</p>
-          <p className="mt-1 text-sm font-semibold text-foreground/90">{issue.expected}</p>
-        </div>
-      </div>
-      <div className="relative z-10 mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-        <TriangleAlert className="h-3 w-3 text-warning" />
-        {issue.badge}
-      </div>
-    </m.article>
   )
 }
 
@@ -468,10 +365,10 @@ export default function LandingPage() {
 
         <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 lg:pb-16 lg:pt-16">
           <div className="grid items-center gap-10 lg:grid-cols-[0.88fr_1.22fr] lg:gap-10">
-            <div>
+            <div className="min-w-0">
               <m.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.46 }}>
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                  <BookOpen className="h-3 w-3" />
+                <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-[20px] sm:rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5 sm:px-3.5 text-center text-[9.5px] sm:text-[11px] font-semibold uppercase tracking-wider sm:tracking-[0.18em] text-primary">
+                  <BookOpen className="h-3 w-3 shrink-0" />
                   Free KDP Preflight Tool for Amazon Creators
                 </span>
               </m.div>
@@ -552,7 +449,7 @@ export default function LandingPage() {
               </m.div>
             </div>
 
-            <div className="relative lg:-mr-10 xl:-mr-16">
+            <div className="relative lg:-mr-10 xl:-mr-16 min-w-0">
               <HeroMockup />
             </div>
           </div>
@@ -574,22 +471,9 @@ export default function LandingPage() {
       </section>
 
       <div>
-        <section className="ds-section px-4 py-24 sm:px-6">
-          <div className="mx-auto max-w-6xl">
-            <SectionHeader
-              label="Real upload mistakes"
-              title="Real KDP upload mistakes creators run into."
-              body="The file can look finished in Canva, Preview, Acrobat, Affinity, or Illustrator and still fail because the final PDF does not match what KDP measures."
-            />
-            <div className="grid gap-4 md:grid-cols-2">
-              {uploadIssues.map((issue, i) => (
-                <IssueCard key={issue.title} issue={issue} index={i} />
-              ))}
-            </div>
-          </div>
-        </section>
+        <KdpIssuesSection />
 
-        <section className="ds-section px-4 py-24 sm:px-6">
+        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
           <div className="mx-auto max-w-6xl">
             <SectionHeader
               label="The workflow"
@@ -640,7 +524,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="ds-section px-4 py-24 sm:px-6">
+        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
           <div className="mx-auto max-w-6xl">
             <SectionHeader
               label="A real KDP bleed checker result"
@@ -651,7 +535,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="ds-section px-4 py-24 sm:px-6">
+        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
           <m.div
             {...fadeUp}
             className="ds-card-elevated mx-auto grid max-w-6xl gap-10 overflow-hidden p-[clamp(28px,5vw,48px)] lg:grid-cols-[0.95fr_1.05fr] lg:items-center"
@@ -679,7 +563,7 @@ export default function LandingPage() {
           </m.div>
         </section>
 
-        <section className="ds-section px-4 py-24 sm:px-6" aria-labelledby="guide-heading">
+        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6" aria-labelledby="guide-heading">
           <div className="mx-auto max-w-6xl">
             <SectionHeader
               id="guide-heading"
@@ -706,7 +590,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="ds-section px-4 py-24 sm:px-6" aria-labelledby="faq-heading">
+        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6" aria-labelledby="faq-heading">
           <div className="mx-auto max-w-5xl">
             <SectionHeader
               id="faq-heading"
@@ -730,7 +614,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="px-4 pb-28 pt-8 sm:px-6">
+        <section className="px-4 py-12 sm:pb-20 sm:pt-16 lg:pb-28 lg:pt-8 sm:px-6">
           <m.div {...fadeUp} className="final-cta mx-auto max-w-4xl overflow-hidden rounded-[var(--radius-panel)] p-8 text-center sm:p-12">
             <SectionLabel>Before the next upload</SectionLabel>
             <h2 className="ds-heading mx-auto max-w-3xl text-balance text-4xl sm:text-6xl">

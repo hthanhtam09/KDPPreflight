@@ -33,7 +33,7 @@ const faqGroups: FaqGroup[] = [
       {
         q: 'What is KDP bleed?',
         a: 'KDP bleed is the 0.125" (3mm) strip of artwork or background color that extends beyond the finished trim edge of a printed book. During production, the book block is cut to the trim size — the bleed strip is removed. Without bleed, any shift in the physical cut leaves a visible white edge where background color or artwork should reach the page border.',
-        links: [{ label: 'KDP Bleed Checker Guide', href: '/kdp-bleed-checker' }],
+        links: [{ label: 'KDP Bleed Checker Guide', href: '/tools/kdp-bleed-checker' }],
       },
       {
         q: 'How much bleed does Amazon KDP require?',
@@ -42,7 +42,7 @@ const faqGroups: FaqGroup[] = [
       {
         q: 'How do I fix a KDP bleed error?',
         a: 'The fix is always in the PDF export settings. Enable bleed in the export dialog (Affinity Publisher: File → Export → More → Include Bleed; InDesign: Marks and Bleed tab → Use Document Bleed Settings; Illustrator: Save as PDF → Marks and Bleeds → Use Document Bleed Settings). After fixing the export, verify the PDF dimensions include the 0.125" bleed area on each affected edge.',
-        links: [{ label: 'Step-by-step bleed fix guide', href: '/blog/how-to-fix-kdp-bleed-issues' }],
+        links: [{ label: 'Step-by-step bleed fix guide', href: '/blog/fix-kdp-bleed-issues' }],
       },
       {
         q: 'Does every KDP manuscript page need bleed?',
@@ -69,7 +69,7 @@ const faqGroups: FaqGroup[] = [
       {
         q: 'What is a KDP trim mismatch?',
         a: 'A trim mismatch occurs when the dimensions of the uploaded PDF do not equal the trim size selected in the KDP book setup. Even a difference of 0.01" triggers a rejection. Common causes: the design canvas was set to a different size than KDP, bleed was exported when KDP expects no-bleed, or the PDF export included crop marks that extended the page dimensions.',
-        links: [{ label: 'KDP Trim Size Calculator', href: '/kdp-trim-size-calculator' }],
+        links: [{ label: 'KDP Trim Size Calculator', href: '/tools/kdp-trim-size-calculator' }],
       },
       {
         q: 'Can I change the KDP trim size after uploading files?',
@@ -88,7 +88,7 @@ const faqGroups: FaqGroup[] = [
       {
         q: 'How is KDP spine width calculated?',
         a: 'KDP spine width = page count × paper thickness constant. White paper: page_count × 0.002252 inches. Cream paper: page_count × 0.0025 inches. Color interior: page_count × 0.002347 inches. For a 300-page white-paper book: 300 × 0.002252 = 0.6756" (approximately 0.676").',
-        links: [{ label: 'KDP Spine Width Calculator', href: '/kdp-spine-width-calculator' }],
+        links: [{ label: 'KDP Spine Width Calculator', href: '/tools/kdp-spine-width-calculator' }],
       },
       {
         q: 'Why does the spine width change when I add pages?',
@@ -116,19 +116,19 @@ const faqGroups: FaqGroup[] = [
         q: 'What size should a KDP paperback cover be?',
         a: 'The KDP paperback cover PDF must be the full wrap size: (trim_width × 2) + spine_width + 0.25" wide, and trim_height + 0.25" tall. For a 6×9" book with 300 white-paper pages: (6 + 6 + 0.676 + 0.25) × (9 + 0.25) = 12.926"×9.25". This changes with every page count change.',
         links: [
-          { label: 'KDP Cover Size Guide', href: '/kdp-cover-size-guide' },
-          { label: 'KDP Cover Validator', href: '/kdp-cover-validator' },
+          { label: 'KDP Cover Size Guide', href: '/blog/kdp-cover-dimensions-explained' },
+          { label: 'KDP Cover Validator', href: '/tools/kdp-cover-validator' },
         ],
       },
       {
         q: 'Why does Amazon KDP reject my cover PDF?',
         a: 'The eight most common causes: (1) uploaded only the front cover instead of the full wrap, (2) wrong total cover width due to incorrect spine calculation, (3) missing or insufficient bleed, (4) image resolution below 300 DPI, (5) spine width mismatch with current page count, (6) content in the barcode zone on the back cover, (7) fonts not embedded, (8) content too close to the trim edge.',
-        links: [{ label: 'Full rejection cause guide', href: '/blog/why-amazon-rejects-your-cover' }],
+        links: [{ label: 'Full rejection cause guide', href: '/blog/why-amazon-rejected-your-kdp-cover' }],
       },
       {
         q: 'How do I validate a KDP full cover wrap before uploading?',
         a: 'Calculate the expected cover dimensions using the current page count, paper type, and trim size. Export the cover as PDF with bleed enabled. Upload to the KDP cover checker — it reads the actual PDF dimensions and compares total width (implies spine correctness), height, bleed on all sides, and safe area compliance.',
-        links: [{ label: 'KDP Cover Validator', href: '/checker' }],
+        links: [{ label: 'KDP Cover Validator', href: '/tools/kdp-cover-checker' }],
       },
       {
         q: 'What image resolution does KDP require for covers?',
@@ -147,7 +147,7 @@ const faqGroups: FaqGroup[] = [
       {
         q: 'What is the KDP safe area?',
         a: 'The KDP safe area is the region ≥0.25" inside the trim edge on all sides of a cover or manuscript page. All critical content — title, author name, barcodes, logos, body text, page numbers — must stay within the safe area. Content between the safe area and the trim edge is in the risk zone where production cut variation can partially remove it.',
-        links: [{ label: 'KDP Safe Area Guide', href: '/kdp-safe-area-guide' }],
+        links: [{ label: 'KDP Safe Area Guide', href: '/blog/kdp-safe-area-guide' }],
       },
       {
         q: 'What are the KDP manuscript margin requirements?',
@@ -179,12 +179,12 @@ const faqGroups: FaqGroup[] = [
       {
         q: 'What is the best KDP cover checker tool?',
         a: 'KDPPreflight is a free browser-based KDP cover checker that validates full cover wrap dimensions, bleed, spine width, safe area, and image resolution. It shows actual versus expected measurements with the specific export setting to adjust — not just a pass/fail result.',
-        links: [{ label: 'Open the KDP cover checker', href: '/checker' }],
+        links: [{ label: 'Open the KDP cover checker', href: '/tools/kdp-cover-checker' }],
       },
       {
         q: 'How do I check if my KDP cover has the correct bleed?',
         a: 'Upload the cover PDF to the KDP cover checker. The tool reads the PDF MediaBox and TrimBox dimensions and compares the actual bleed on each edge to the required 0.125". It reports whether bleed is present, how much bleed was detected, and how far off the dimensions are from the expected bleed-inclusive size.',
-        links: [{ label: 'Open the KDP cover checker', href: '/checker' }],
+        links: [{ label: 'Open the KDP cover checker', href: '/tools/kdp-cover-checker' }],
       },
       {
         q: 'Can KDPPreflight check Canva, Affinity Publisher, and Illustrator exports?',

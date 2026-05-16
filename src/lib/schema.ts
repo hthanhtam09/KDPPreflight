@@ -296,8 +296,8 @@ export function definedTermSchema(
     '@type': 'DefinedTerm',
     name: term,
     description: definition,
-    inDefinedTermSet: inDefinedTermSet ?? `${SITE_URL}/kdp-glossary`,
-    url: `${SITE_URL}/kdp-glossary#${term.toLowerCase().replace(/\s+/g, '-')}`,
+    inDefinedTermSet: inDefinedTermSet ?? `${SITE_URL}/glossary`,
+    url: `${SITE_URL}/glossary/${term.toLowerCase().replace(/\s+/g, '-')}`,
   };
 }
 
@@ -310,16 +310,16 @@ export function definedTermSetSchema(
   return {
     '@context': 'https://schema.org',
     '@type': 'DefinedTermSet',
-    '@id': `${SITE_URL}/kdp-glossary#term-set`,
+    '@id': `${SITE_URL}/glossary#term-set`,
     name: 'KDP Formatting Glossary',
     description:
       'Authoritative definitions of Amazon KDP formatting terms: bleed, trim size, spine width, safe area, full wrap, gutter, and more.',
-    url: `${SITE_URL}/kdp-glossary`,
+    url: `${SITE_URL}/glossary`,
     hasDefinedTerm: terms.map(({ term, definition }) => ({
       '@type': 'DefinedTerm',
       name: term,
       description: definition,
-      url: `${SITE_URL}/kdp-glossary#${term.toLowerCase().replace(/\s+/g, '-')}`,
+      url: `${SITE_URL}/glossary/${term.toLowerCase().replace(/\s+/g, '-')}`,
     })),
   };
 }

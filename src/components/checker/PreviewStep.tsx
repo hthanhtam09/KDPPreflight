@@ -18,8 +18,6 @@ import {
   BookOpen,
   Monitor,
   Box,
-  Minus,
-  Plus,
   Search,
   Filter,
   Ruler,
@@ -2505,45 +2503,6 @@ export default function PreviewStep() {
   }, []);
 
   // -------------------------------------------------------------------------
-  // Smooth zoom/pan animation loop
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    const animate = () => {
-      let dirty = false;
-
-      const zDiff = targetZoomRef.current - currentZoomRef.current;
-      if (Math.abs(zDiff) > 0.0005) {
-        currentZoomRef.current += zDiff * ZOOM_DAMPING;
-        dirty = true;
-      } else if (zDiff !== 0) {
-        currentZoomRef.current = targetZoomRef.current;
-        dirty = true;
-      }
-
-      const pxDiff = targetPanRef.current.x - currentPanRef.current.x;
-      const pyDiff = targetPanRef.current.y - currentPanRef.current.y;
-      if (Math.abs(pxDiff) > 0.2 || Math.abs(pyDiff) > 0.2) {
-        currentPanRef.current.x += pxDiff * PAN_DAMPING;
-        currentPanRef.current.y += pyDiff * PAN_DAMPING;
-        dirty = true;
-      } else if (pxDiff !== 0 || pyDiff !== 0) {
-        currentPanRef.current.x = targetPanRef.current.x;
-        currentPanRef.current.y = targetPanRef.current.y;
-        dirty = true;
-      }
-
-      if (dirty) {
-        setDisplayZoom(currentZoomRef.current);
-        setDisplayPan({ x: currentPanRef.current.x, y: currentPanRef.current.y });
-      }
-
-      rafRef.current = requestAnimationFrame(animate);
-    };
-    rafRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
-
-  // -------------------------------------------------------------------------
   // Calculate fit zoom values
   // -------------------------------------------------------------------------
   const fitZoomValues = useMemo(() => {
@@ -2595,6 +2554,22 @@ export default function PreviewStep() {
   }, [bookPages, currentPage, previewViewMode, bookType, measurements, containerSize, currentSpreadIdx, spreads]);
 
   // -------------------------------------------------------------------------
+  // Snap zoom directly to fit — no animation, no RAF, always fit to frame
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    if (containerSize.w <= 0 || containerSize.h <= 0) return;
+    const z = previewViewMode === 'spread' && bookType !== 'kindle'
+      ? Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, fitZoomValues.spread))
+      : Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, fitZoomValues.page));
+    currentZoomRef.current = z;
+    targetZoomRef.current = z;
+    setDisplayZoom(z);
+    currentPanRef.current = { x: 0, y: 0 };
+    targetPanRef.current = { x: 0, y: 0 };
+    setDisplayPan({ x: 0, y: 0 });
+  }, [fitZoomValues, previewViewMode, bookType, containerSize.w, containerSize.h]);
+
+  // -------------------------------------------------------------------------
   // Apply fit mode
   // -------------------------------------------------------------------------
   const applyFitMode = useCallback((mode: FitMode) => {
@@ -2620,15 +2595,7 @@ export default function PreviewStep() {
     }
   }, [fitZoomValues]);
 
-  // Auto-fit when pages change or view mode changes
-  useEffect(() => {
-    if (fitMode === 'custom') return;
-    if (previewViewMode === 'spread' && bookType !== 'kindle') {
-      applyFitMode('fit-spread');
-    } else {
-      applyFitMode('fit-page');
-    }
-  }, [fitZoomValues, fitMode, applyFitMode, previewViewMode, bookType]);
+  // Auto-fit handled by the snap-zoom effect above.
 
   // -------------------------------------------------------------------------
   // Load cover data URL (fallback)
@@ -2831,28 +2798,6 @@ export default function PreviewStep() {
           e.preventDefault();
           navigateTo(bookPages.length - 1);
           break;
-        case '+':
-        case '=':
-          e.preventDefault();
-          targetZoomRef.current = Math.min(ZOOM_MAX, targetZoomRef.current + ZOOM_STEP);
-          setFitMode('custom');
-          break;
-        case '-':
-        case '_':
-          e.preventDefault();
-          targetZoomRef.current = Math.max(ZOOM_MIN, targetZoomRef.current - ZOOM_STEP);
-          setFitMode('custom');
-          break;
-        case '0':
-          e.preventDefault();
-          applyFitMode('fit-page');
-          break;
-        case '1':
-          if (!e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            applyFitMode('actual');
-          }
-          break;
         case 'g':
         case 'G':
           e.preventDefault();
@@ -2871,148 +2816,24 @@ export default function PreviewStep() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [goNext, goPrev, navigateTo, bookPages.length, jumpModalOpen, applyFitMode, activeOverlays, bookType, setSelectedIssueId]);
 
-  // -------------------------------------------------------------------------
-  // Zoom: mouse wheel — zoom toward cursor position
-  // -------------------------------------------------------------------------
+  // Wheel: block page scroll inside the canvas area, no zoom.
   useEffect(() => {
     const el = canvasContainerRef.current;
     if (!el) return;
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-
-      const delta = -e.deltaY * ZOOM_WHEEL_SENSITIVITY;
-      const oldZoom = targetZoomRef.current;
-      const newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, oldZoom * (1 + delta)));
-
-      const rect = el.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-
-      const pageX = (mouseX - centerX - targetPanRef.current.x) / oldZoom;
-      const pageY = (mouseY - centerY - targetPanRef.current.y) / oldZoom;
-
-      targetPanRef.current.x = mouseX - centerX - pageX * newZoom;
-      targetPanRef.current.y = mouseY - centerY - pageY * newZoom;
-
-      targetZoomRef.current = newZoom;
-      setFitMode('custom');
-    };
+    const handleWheel = (e: WheelEvent) => { e.preventDefault(); };
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
   }, []);
 
-  // -------------------------------------------------------------------------
-  // Zoom: toolbar buttons
-  // -------------------------------------------------------------------------
-  const zoomIn = useCallback(() => {
-    targetZoomRef.current = Math.min(ZOOM_MAX, targetZoomRef.current + ZOOM_STEP);
-    setFitMode('custom');
-  }, []);
+  // Zoom toolbar — disabled, always fit to frame.
+  const zoomIn = useCallback(() => {}, []);
+  const zoomOut = useCallback(() => {}, []);
+  const zoomReset = useCallback(() => {}, []);
 
-  const zoomOut = useCallback(() => {
-    targetZoomRef.current = Math.max(ZOOM_MIN, targetZoomRef.current - ZOOM_STEP);
-    setFitMode('custom');
-  }, []);
+  // Double-click disabled — always fit to frame.
+  const handleDoubleClick = useCallback(() => {}, []);
 
-  const zoomReset = useCallback(() => {
-    targetPanRef.current = { x: 0, y: 0 };
-    if (previewViewMode === 'spread' && bookType !== 'kindle') {
-      applyFitMode('fit-spread');
-    } else {
-      applyFitMode('fit-page');
-    }
-  }, [applyFitMode, previewViewMode, bookType]);
-
-  // Double-click zoom toggle
-  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
-    if (fitMode === 'actual' || currentZoomRef.current >= 0.95) {
-      if (previewViewMode === 'spread' && bookType !== 'kindle') {
-        applyFitMode('fit-spread');
-      } else {
-        applyFitMode('fit-page');
-      }
-    } else {
-      const el = canvasContainerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-
-      const oldZoom = currentZoomRef.current;
-      const newZoom = Math.min(ZOOM_MAX, oldZoom * 2);
-
-      const pageX = (mouseX - centerX - targetPanRef.current.x) / oldZoom;
-      const pageY = (mouseY - centerY - targetPanRef.current.y) / oldZoom;
-
-      targetPanRef.current.x = mouseX - centerX - pageX * newZoom;
-      targetPanRef.current.y = mouseY - centerY - pageY * newZoom;
-      targetZoomRef.current = newZoom;
-      setFitMode('custom');
-    }
-  }, [fitMode, applyFitMode, previewViewMode, bookType]);
-
-  // -------------------------------------------------------------------------
-  // Pan: mouse drag when zoomed
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    const el = canvasContainerRef.current;
-    if (!el) return;
-
-    const fitZoom = fitZoomValues.page;
-    const canPan = () => currentZoomRef.current > fitZoom + 0.05;
-
-    const handleMouseDown = (e: MouseEvent) => {
-      if (e.button !== 0) return;
-      if (!canPan()) return;
-      isPanningRef.current = true;
-      panStartRef.current = {
-        x: e.clientX,
-        y: e.clientY,
-        panX: targetPanRef.current.x,
-        panY: targetPanRef.current.y,
-      };
-      el.style.cursor = 'grabbing';
-      e.preventDefault();
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isPanningRef.current) {
-        if (canPan()) {
-          el.style.cursor = 'grab';
-        } else {
-          el.style.cursor = 'default';
-        }
-        return;
-      }
-      const dx = e.clientX - panStartRef.current.x;
-      const dy = e.clientY - panStartRef.current.y;
-      targetPanRef.current = {
-        x: panStartRef.current.panX + dx,
-        y: panStartRef.current.panY + dy,
-      };
-    };
-
-    const handleMouseUp = () => {
-      if (isPanningRef.current) {
-        isPanningRef.current = false;
-        el.style.cursor = canPan() ? 'grab' : 'default';
-      }
-    };
-
-    el.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      el.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [fitZoomValues]);
+  // Pan disabled — always fit to frame, cursor stays default.
 
   // -------------------------------------------------------------------------
   // Compute current page display info
@@ -3241,28 +3062,6 @@ export default function PreviewStep() {
 
           <div className="flex shrink-0 items-center gap-2">
             <OverlayDropdown overlays={allowedOverlays} activeOverlays={activeOverlays} onToggle={toggleOverlay} />
-          <button
-            onClick={zoomOut}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title="Zoom Out (-)"
-          >
-              <Minus className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => setJumpModalOpen(true)}
-              className="h-9 min-w-[52px] rounded-md border border-border bg-surface px-2 text-center font-mono text-xs text-foreground transition-colors hover:bg-muted"
-              title="Zoom"
-          >
-            {zoomPct}%
-          </button>
-          <button
-            onClick={zoomIn}
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title="Zoom In (+)"
-          >
-              <Plus className="h-3.5 w-3.5" />
-          </button>
-          <FitDropdown fitMode={fitMode} onFitSelect={applyFitMode} />
             <button
               onClick={goPrev}
               disabled={currentPage <= 0 && currentSpreadIdx <= 0}
@@ -3317,7 +3116,7 @@ export default function PreviewStep() {
         {/* CENTER: Preview canvas area — dark workspace */}
         <div
           ref={canvasContainerRef}
-          className="relative z-0 flex h-full min-h-0 min-w-0 items-center justify-center overflow-hidden bg-[color-mix(in_srgb,var(--background)_72%,var(--surface))]"
+          className="relative z-0 flex h-[55vh] md:h-full min-h-[360px] md:min-h-0 min-w-0 flex-shrink-0 md:flex-shrink items-center justify-center overflow-hidden bg-[color-mix(in_srgb,var(--background)_72%,var(--surface))]"
           onDoubleClick={handleDoubleClick}
           style={{ cursor: 'default' }}
         >
@@ -3433,7 +3232,7 @@ export default function PreviewStep() {
         </div>
 
         {/* RIGHT: Validation Panel (~25%) */}
-        <aside className="z-10 hidden h-full min-h-0 w-full min-w-0 shrink-0 flex-col overflow-hidden border-l border-border bg-surface lg:flex">
+        <aside className="z-10 flex h-auto md:h-full min-h-0 w-full min-w-0 shrink-0 flex-col overflow-hidden border-t md:border-t-0 md:border-l border-border bg-surface">
           <ValidationPanel
             bookType={bookType}
             bookConfig={bookConfig}

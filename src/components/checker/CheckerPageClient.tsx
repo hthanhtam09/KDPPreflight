@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import CheckerFeature from '@/components/checker/CheckerFeature';
 import PreviewStep from '@/components/checker/PreviewStep';
-import { AppShell, FeatureFAQ, RestoreSessionNotice, WorkspacePanel } from '@/components/workspace/ProductWorkspace';
+import { AppShell, FeatureFAQ, RestoreSessionNotice } from '@/components/workspace/ProductWorkspace';
 import { useAppStore } from '@/store/use-app-store';
 
 export default function CheckerPageClient() {
@@ -26,9 +26,9 @@ export default function CheckerPageClient() {
       description="Inspect manuscripts and covers for KDP upload risks: page size, bleed, trim, spine, margins, and cover fit."
     >
       <RestoreSessionNotice />
-      <WorkspacePanel>
+      <section className="mx-auto max-w-7xl rounded-panel p-5 sm:p-6 ws-panel">
         <CheckerFeature />
-      </WorkspacePanel>
+      </section>
       <FeatureFAQ
         title="KDP checker FAQ"
         items={[

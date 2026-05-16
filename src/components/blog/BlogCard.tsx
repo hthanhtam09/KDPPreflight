@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { ArrowRight, Clock } from 'lucide-react';
-import { formatBlogDate, type BlogPost } from '@/lib/blog';
-import { BlogPostVisual, getBlogVisualCategory } from './BlogPostVisual';
+import { formatBlogDate, getBlogCategory, type BlogPost } from '@/lib/blog';
+import { BlogPostVisual } from './BlogPostVisual';
 
 export function BlogCard({ post }: { post: BlogPost }) {
-  const visualCategory = getBlogVisualCategory(post.category, post.slug);
+  const category = getBlogCategory(post.category);
 
   return (
     <article className="group h-full">
@@ -13,10 +13,10 @@ export function BlogCard({ post }: { post: BlogPost }) {
         className="ds-card ds-card-interactive flex h-full flex-col overflow-hidden rounded-2xl border-border bg-card"
       >
         <div className="relative h-40 overflow-hidden border-b border-border bg-muted/35">
-          <BlogPostVisual category={visualCategory} title={post.title} />
+          <BlogPostVisual postSlug={post.slug} category={category} />
           <div className="absolute inset-x-5 top-5 flex items-center justify-between gap-3">
             <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-              {post.category}
+              {category.label}
             </span>
             <span className="rounded-full border border-border bg-background/75 px-3 py-1 text-[11px] font-semibold text-muted-foreground backdrop-blur">
               {post.readingTime}

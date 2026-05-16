@@ -22,7 +22,7 @@ export function BlogCTA({
             </p>
           </div>
           <Link
-            href="/checker"
+            href="/tools/kdp-cover-checker"
             className="inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft transition hover:-translate-y-0.5"
           >
             <FileCheck2 className="h-4 w-4" />

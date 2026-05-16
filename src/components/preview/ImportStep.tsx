@@ -1,22 +1,19 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { BLEED_SIZE_IN, TRIM_SIZES } from '@/engine/kdp-constants'
 import { loadImage, loadPDF } from '@/engine/pdf-processor'
 import { useAppStore } from '@/store/use-app-store'
 import { BookType, DetectedConfig, TrimSizeKey, UploadedFile } from '@/types/kdp'
-import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import {
   AlertCircle,
+  Book,
   BookMarked,
-  BookOpen,
   CheckCircle2,
+  ChevronRight,
   FileText,
-  ImageIcon,
+  Image as ImageIcon,
   Loader2,
-  Smartphone,
-  Sparkles,
+  Monitor,
   Upload,
   X,
 } from 'lucide-react'
@@ -92,15 +89,8 @@ export default function ImportStep() {
   const [bookType, setBookType] = useState<BookType>(detectedConfig?.bookType || bookConfig.bookType || 'paperback')
   const [coverProcessing, setCoverProcessing] = useState(false)
   const [manuscriptProcessing, setManuscriptProcessing] = useState(false)
-  const [coverDragActive, setCoverDragActive] = useState(false)
-  const [manuscriptDragActive, setManuscriptDragActive] = useState(false)
-  const [kindleDragActive, setKindleDragActive] = useState(false)
   const [kindleProcessing, setKindleProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const coverInputRef = useRef<HTMLInputElement>(null)
-  const manuscriptInputRef = useRef<HTMLInputElement>(null)
-  const kindleInputRef = useRef<HTMLInputElement>(null)
 
   const isPaperOrHard = bookType === 'paperback' || bookType === 'hardcover'
   const canContinue = isPaperOrHard ? !!uploadedCover && !!uploadedManuscript : !!uploadedManuscript && !!uploadedCover
@@ -309,379 +299,100 @@ export default function ImportStep() {
     setPreviewFlowStep('config')
   }, [bookType, updateBookConfig, setPreviewFlowStep])
 
-  // ---- Drop handlers ----
-  const handleCoverDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setCoverDragActive(false)
-      const file = e.dataTransfer.files[0]
-      if (file) handleCoverUpload(file)
-    },
-    [handleCoverUpload]
-  )
-
-  const handleManuscriptDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setManuscriptDragActive(false)
-      const file = e.dataTransfer.files[0]
-      if (file) handleManuscriptUpload(file)
-    },
-    [handleManuscriptUpload]
-  )
-
-  const handleKindleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setKindleDragActive(false)
-      const file = e.dataTransfer.files[0]
-      if (file) handleKindleUpload(file)
-    },
-    [handleKindleUpload]
-  )
+  const anyProcessing = coverProcessing || manuscriptProcessing || kindleProcessing
 
   return (
-    <div className="ds-page-stage h-full overflow-y-auto">
-      <LazyMotion features={domAnimation}>
-        <div className="mx-auto max-w-3xl space-y-8 px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
-          {/* Header */}
-          <m.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-center space-y-3"
-          >
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
-              <Upload className="h-7 w-7 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Import Your Book Files</h1>
-            <p className="mx-auto max-w-md text-sm text-muted-foreground">
-              Upload your cover and manuscript files. We&apos;ll auto-detect trim size, page count, and other settings.
-            </p>
-          </m.div>
+    <div className="flex flex-col gap-4">
+      {/* ---- Type switcher + trust badge ---- */}
+      <div className="flex items-center justify-between gap-4">
+        <TypeSwitcher bookType={bookType} setBookType={handleBookTypeChange} />
+      </div>
 
-          {/* Book Type Selector */}
-          <m.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            <label className="mb-3 block text-xs uppercase tracking-wider text-muted-foreground">Book Type</label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <BookTypeCard
-                active={bookType === 'paperback'}
-                onClick={() => handleBookTypeChange('paperback')}
-                icon={<BookOpen className="w-6 h-6" />}
-                label="Paperback"
-                description="Soft cover binding"
-              />
-              <BookTypeCard
-                active={bookType === 'hardcover'}
-                onClick={() => handleBookTypeChange('hardcover')}
-                icon={<BookMarked className="w-6 h-6" />}
-                label="Hardcover"
-                description="Case wrap binding"
-              />
-              <BookTypeCard
-                active={bookType === 'kindle'}
-                onClick={() => handleBookTypeChange('kindle')}
-                icon={<Smartphone className="w-6 h-6" />}
-                label="Kindle"
-                description="E-book preview"
-              />
-            </div>
-          </m.div>
+      {/* ---- Upload zones ---- */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {!isPaperOrHard && (
+          <>
+            <UploadZone
+              label="Kindle File (EPUB or PDF)"
+              accept=".epub,.pdf"
+              onFile={handleKindleUpload}
+              isProcessing={kindleProcessing}
+              uploadedFile={uploadedManuscript}
+              icon={FileText}
+            />
+            <UploadZone
+              label="Cover — PNG, JPG, or PDF"
+              accept=".png,.jpg,.jpeg,.pdf"
+              onFile={handleCoverUpload}
+              isProcessing={coverProcessing}
+              uploadedFile={uploadedCover}
+              icon={ImageIcon}
+            />
+          </>
+        )}
+        {isPaperOrHard && (
+          <>
+            <UploadZone
+              label="Cover — PDF, PNG, or JPG"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onFile={handleCoverUpload}
+              isProcessing={coverProcessing}
+              uploadedFile={uploadedCover}
+              icon={ImageIcon}
+            />
+            <UploadZone
+              label="Manuscript — PDF only"
+              accept=".pdf"
+              onFile={handleManuscriptUpload}
+              isProcessing={manuscriptProcessing}
+              uploadedFile={uploadedManuscript}
+              icon={FileText}
+            />
+          </>
+        )}
+      </div>
 
-          {/* Upload Zones */}
-          <AnimatePresence mode="wait">
-            {isPaperOrHard ? (
-              <m.div
-                key="print"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="space-y-6"
-              >
-                {/* Cover Upload */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <label className="text-xs uppercase tracking-wider text-muted-foreground">Cover File</label>
-                    <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
-                      Required
-                    </Badge>
-                  </div>
-                  <FileUploadZone
-                    dragActive={coverDragActive}
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      setCoverDragActive(true)
-                    }}
-                    onDragLeave={() => setCoverDragActive(false)}
-                    onDrop={handleCoverDrop}
-                    onClick={() => coverInputRef.current?.click()}
-                    accept=".png,.jpg,.jpeg,.pdf"
-                    processing={coverProcessing}
-                  >
-                    {uploadedCover ? (
-                      <UploadedFilePreview
-                        file={uploadedCover}
-                        onRemove={removeCover}
-                        thumbnail={uploadedCover.dataUrl}
-                      />
-                    ) : (
-                      <UploadPrompt
-                        icon={<ImageIcon className="w-8 h-8" />}
-                        title="Upload Cover"
-                        subtitle="Full cover spread PDF, PNG, or JPEG"
-                      />
-                    )}
-                  </FileUploadZone>
-                  <input
-                    ref={coverInputRef}
-                    type="file"
-                    accept=".png,.jpg,.jpeg,.pdf"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) handleCoverUpload(f)
-                    }}
-                    className="hidden"
-                  />
-                </div>
-
-                {/* Manuscript Upload */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <label className="text-xs uppercase tracking-wider text-muted-foreground">
-                      Interior Manuscript
-                    </label>
-                    <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
-                      Required
-                    </Badge>
-                  </div>
-                  <FileUploadZone
-                    dragActive={manuscriptDragActive}
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      setManuscriptDragActive(true)
-                    }}
-                    onDragLeave={() => setManuscriptDragActive(false)}
-                    onDrop={handleManuscriptDrop}
-                    onClick={() => manuscriptInputRef.current?.click()}
-                    accept=".pdf"
-                    processing={manuscriptProcessing}
-                  >
-                    {uploadedManuscript ? (
-                      <UploadedFilePreview
-                        file={uploadedManuscript}
-                        onRemove={removeManuscript}
-                        pageCount={uploadedManuscript.pageCount}
-                      />
-                    ) : (
-                      <UploadPrompt
-                        icon={<FileText className="w-8 h-8" />}
-                        title="Upload Manuscript"
-                        subtitle="Interior pages PDF"
-                      />
-                    )}
-                  </FileUploadZone>
-                  <input
-                    ref={manuscriptInputRef}
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) handleManuscriptUpload(f)
-                    }}
-                    className="hidden"
-                  />
-                </div>
-              </m.div>
-            ) : (
-              <m.div
-                key="kindle"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
-              >
-                {/* Kindle file upload */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <label className="text-xs uppercase tracking-wider text-muted-foreground">Kindle File</label>
-                    <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
-                      Required
-                    </Badge>
-                  </div>
-                  <FileUploadZone
-                    dragActive={kindleDragActive}
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      setKindleDragActive(true)
-                    }}
-                    onDragLeave={() => setKindleDragActive(false)}
-                    onDrop={handleKindleDrop}
-                    onClick={() => kindleInputRef.current?.click()}
-                    accept=".pdf,.epub"
-                    processing={kindleProcessing}
-                  >
-                    {uploadedManuscript ? (
-                      <UploadedFilePreview
-                        file={uploadedManuscript}
-                        onRemove={removeManuscript}
-                        pageCount={uploadedManuscript.pageCount}
-                      />
-                    ) : (
-                      <UploadPrompt
-                        icon={<Smartphone className="w-8 h-8" />}
-                        title="Upload Kindle File"
-                        subtitle="EPUB or PDF format"
-                      />
-                    )}
-                  </FileUploadZone>
-                  <input
-                    ref={kindleInputRef}
-                    type="file"
-                    accept=".pdf,.epub"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) handleKindleUpload(f)
-                    }}
-                    className="hidden"
-                  />
-                </div>
-
-                {/* Optional Kindle cover */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <label className="text-xs uppercase tracking-wider text-muted-foreground">Cover Image</label>
-                    <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
-                      Required
-                    </Badge>
-                  </div>
-                  <FileUploadZone
-                    dragActive={coverDragActive}
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      setCoverDragActive(true)
-                    }}
-                    onDragLeave={() => setCoverDragActive(false)}
-                    onDrop={handleCoverDrop}
-                    onClick={() => coverInputRef.current?.click()}
-                    accept=".png,.jpg,.jpeg,.pdf"
-                    processing={coverProcessing}
-                  >
-                    {uploadedCover ? (
-                      <UploadedFilePreview
-                        file={uploadedCover}
-                        onRemove={removeCover}
-                        thumbnail={uploadedCover.dataUrl}
-                      />
-                    ) : (
-                      <UploadPrompt
-                        icon={<ImageIcon className="w-8 h-8" />}
-                        title="Upload Cover"
-                        subtitle="Display cover on Kindle device"
-                      />
-                    )}
-                  </FileUploadZone>
-                  <input
-                    ref={coverInputRef}
-                    type="file"
-                    accept=".png,.jpg,.jpeg,.pdf"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) handleCoverUpload(f)
-                    }}
-                    className="hidden"
-                  />
-                </div>
-              </m.div>
-            )}
-          </AnimatePresence>
-
-          {/* Auto-detection Result */}
-          <AnimatePresence>
-            {detectedConfig && detectedConfig.confidence > 0.3 && (
-              <m.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="rounded-xl border border-primary/20 bg-primary/10 p-4"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">Auto-Detected</span>
-                  <Badge variant="outline" className="border-primary/30 text-[10px] text-primary">
-                    {Math.round(detectedConfig.confidence * 100)}% confidence
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
-                  {detectedConfig.trimSize && (
-                    <div>
-                      <span className="text-muted-foreground">Trim Size</span>
-                      <p className="mt-0.5 font-medium text-foreground/80">
-                        {TRIM_SIZES[detectedConfig.trimSize]?.label || detectedConfig.trimSize}
-                      </p>
-                    </div>
-                  )}
-                  {detectedConfig.pageCount && (
-                    <div>
-                      <span className="text-muted-foreground">Pages</span>
-                      <p className="mt-0.5 font-medium text-foreground/80">{detectedConfig.pageCount}</p>
-                    </div>
-                  )}
-                  {detectedConfig.bleed && (
-                    <div>
-                      <span className="text-muted-foreground">Bleed</span>
-                      <p className="mt-0.5 font-medium capitalize text-foreground/80">
-                        {detectedConfig.bleed.replace('-', ' ')}
-                      </p>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-muted-foreground">Type</span>
-                    <p className="mt-0.5 font-medium capitalize text-foreground/80">{bookType}</p>
-                  </div>
-                </div>
-              </m.div>
-            )}
-          </AnimatePresence>
-
-          {/* Error */}
-          <AnimatePresence>
-            {error && (
-              <m.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="ds-status-critical flex items-center gap-3 rounded-xl border p-4"
-              >
-                <AlertCircle className="h-5 w-5 shrink-0 text-danger" />
-                <span className="text-sm">{error}</span>
-                <button onClick={() => setError(null)} className="ml-auto text-muted-foreground hover:text-foreground">
-                  <X className="w-4 h-4" />
-                </button>
-              </m.div>
-            )}
-          </AnimatePresence>
-
-          {/* Continue Button */}
-          <m.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex justify-stretch sm:justify-end"
-          >
-            <Button
-              onClick={handleContinue}
-              disabled={!canContinue}
-              className="w-full rounded-xl px-6 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:px-8"
-            >
-              Continue to Config
-            </Button>
-          </m.div>
+      {/* ---- Error ---- */}
+      {error && (
+        <div className="ds-status-critical flex items-center gap-3 rounded-xl border px-4 py-3">
+          <AlertCircle className="h-4 w-4 shrink-0 text-danger" />
+          <span className="text-sm">{error}</span>
+          <button onClick={() => setError(null)} className="ml-auto text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      </LazyMotion>
+      )}
+
+      {/* ---- Status bar + Continue ---- */}
+      <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface-glass px-4 py-3 backdrop-blur-sm">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          {anyProcessing ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
+              <span className="truncate text-xs text-muted-foreground">Processing file…</span>
+            </>
+          ) : detectedConfig && detectedConfig.confidence > 0.3 ? (
+            <span className="truncate text-xs text-muted-foreground">
+              {detectedConfig.trimSize ? TRIM_SIZES[detectedConfig.trimSize]?.label : '—'}
+              {detectedConfig.pageCount ? ` · ${detectedConfig.pageCount} pages` : ''}
+              {detectedConfig.bleed ? ` · ${detectedConfig.bleed.replace('-', ' ')}` : ''}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {isPaperOrHard ? 'Upload cover and manuscript to continue' : 'Upload your Kindle file to continue'}
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={handleContinue}
+          disabled={!canContinue}
+          className="flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Continue
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   )
 }
@@ -690,146 +401,133 @@ export default function ImportStep() {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function BookTypeCard({
-  active,
-  onClick,
-  icon,
-  label,
-  description,
-}: {
-  active: boolean
-  onClick: () => void
-  icon: React.ReactNode
-  label: string
-  description: string
-}) {
+function TypeSwitcher({ bookType, setBookType }: { bookType: BookType; setBookType: (t: BookType) => void }) {
+  const options: { key: BookType; label: string; icon: React.ElementType }[] = [
+    { key: 'kindle', label: 'Kindle', icon: Monitor },
+    { key: 'paperback', label: 'Paperback', icon: Book },
+    { key: 'hardcover', label: 'Hardcover', icon: BookMarked },
+  ]
+
   return (
-    <button
-      onClick={onClick}
-      className={`relative flex min-w-0 flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
-        active
-          ? 'border-primary/40 bg-primary/10 text-foreground shadow-soft'
-          : 'border-border bg-surface-glass text-muted-foreground hover:border-primary/25 hover:bg-secondary hover:text-foreground'
-      }`}
-    >
-      {/* CSS transition replaces layoutId shared-layout animation */}
-      <span
-        className={`absolute inset-0 rounded-xl bg-primary/5 transition-opacity duration-200 ${active ? 'opacity-100' : 'opacity-0'}`}
-      />
-      <div className={`relative z-10 ${active ? 'text-primary' : ''}`}>{icon}</div>
-      <div className="relative z-10 min-w-0 text-center">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="break-words text-[10px] opacity-60">{description}</p>
-      </div>
-      <CheckCircle2
-        className={`absolute right-2 top-2 h-4 w-4 text-primary transition-all duration-200 ${active ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
-      />
-    </button>
+    <div className="grid w-full grid-cols-3 gap-1 rounded-xl border border-border bg-secondary/70 p-1 shadow-soft sm:inline-grid sm:w-auto">
+      {options.map(({ key, label, icon: Icon }) => {
+        const active = bookType === key
+        return (
+          <button
+            key={key}
+            onClick={() => setBookType(key)}
+            className={`ds-focus flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
+              active
+                ? 'bg-primary text-primary-foreground shadow-soft'
+                : 'text-muted-foreground hover:bg-surface-elevated hover:text-foreground'
+            }`}
+            type="button"
+          >
+            <Icon className="w-4 h-4" />
+            <span className="truncate">{label}</span>
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
-function FileUploadZone({
-  dragActive,
-  onDragOver,
-  onDragLeave,
-  onDrop,
-  onClick,
-  accept,
-  processing,
-  children,
-}: {
-  dragActive: boolean
-  onDragOver: (e: React.DragEvent) => void
-  onDragLeave: () => void
-  onDrop: (e: React.DragEvent) => void
-  onClick: () => void
-  accept?: string
-  processing?: boolean
-  children: React.ReactNode
-}) {
+interface UploadZoneProps {
+  label: string
+  accept: string
+  onFile: (file: File) => void
+  isProcessing: boolean
+  uploadedFile?: UploadedFile | null
+  icon?: React.ElementType
+}
+
+function UploadZone({ label, accept, onFile, isProcessing, uploadedFile, icon: ZoneIcon = Upload }: UploadZoneProps) {
+  const [dragActive, setDragActive] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setDragActive(false)
+      const file = e.dataTransfer.files[0]
+      if (file) onFile(file)
+    },
+    [onFile]
+  )
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
   return (
     <div
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-      onClick={onClick}
-      className={`relative flex min-h-[140px] cursor-pointer items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition-all sm:p-6 ${
-        dragActive
-          ? 'border-primary/50 bg-primary/10'
-          : 'border-border bg-surface-glass hover:border-primary/25 hover:bg-secondary/60'
+      onDragOver={(e) => {
+        e.preventDefault()
+        setDragActive(true)
+      }}
+      onDragLeave={() => setDragActive(false)}
+      onDrop={handleDrop}
+      onClick={() => !isProcessing && inputRef.current?.click()}
+      className={`relative flex min-h-44 cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border p-5 text-center shadow-soft transition-all duration-300 sm:min-h-48 sm:p-8 ${
+        isProcessing
+          ? 'cursor-wait border-primary/25 bg-primary/4'
+          : dragActive
+            ? 'scale-[1.01] border-primary/45 bg-primary/8 shadow-card'
+            : uploadedFile
+              ? 'border-primary/25 bg-primary/4'
+              : 'border-border bg-card hover:border-primary/35 hover:bg-surface-elevated'
       }`}
     >
-      {processing && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-overlay backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            <span className="text-sm text-foreground/80">Processing...</span>
-          </div>
-        </div>
-      )}
-      {children}
-    </div>
-  )
-}
-
-function UploadPrompt({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
-  return (
-    <div className="space-y-2 py-2">
-      <div className="mx-auto flex justify-center text-muted-foreground">{icon}</div>
-      <p className="text-sm font-medium text-foreground/75">{title}</p>
-      <p className="text-xs text-muted-foreground">{subtitle}</p>
-      <p className="text-[10px] text-muted-foreground/70">Drag & drop or click to browse</p>
-    </div>
-  )
-}
-
-function UploadedFilePreview({
-  file,
-  onRemove,
-  thumbnail,
-  pageCount,
-}: {
-  file: UploadedFile
-  onRemove: () => void
-  thumbnail?: string
-  pageCount?: number
-}) {
-  return (
-    <div className="flex w-full min-w-0 items-center gap-3 text-left sm:gap-4">
-      {/* Thumbnail */}
-      {thumbnail ? (
-        <div className="h-20 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-secondary">
-          <img src={thumbnail} alt="Preview" className="w-full h-full object-cover" />
-        </div>
-      ) : (
-        <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary">
-          <FileText className="h-6 w-6 text-muted-foreground" />
-        </div>
-      )}
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
-          <p className="truncate text-sm font-medium text-foreground/80">{file.name}</p>
-        </div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span>{(file.size / 1024 / 1024).toFixed(1)} MB</span>
-          {pageCount && <span>{pageCount} pages</span>}
-          <span className="uppercase">{file.type.split('/').pop()}</span>
-        </div>
-      </div>
-
-      {/* Remove */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onRemove()
+      <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          if (f) onFile(f)
         }}
-        className="p-1 text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <X className="w-4 h-4" />
-      </button>
+        className="hidden"
+      />
+
+      {isProcessing ? (
+        <>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+          <p className="text-sm font-medium text-foreground">Analyzing file…</p>
+        </>
+      ) : uploadedFile ? (
+        <>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <CheckCircle2 className="h-6 w-6 text-primary" />
+          </div>
+          <div className="min-w-0 max-w-full">
+            <p className="truncate text-sm font-semibold text-primary">{uploadedFile.name}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {formatSize(uploadedFile.size)}
+              {uploadedFile.pageCount ? ` · ${uploadedFile.pageCount} pages` : ''}
+            </p>
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-muted-foreground">Click or drop to replace</p>
+        </>
+      ) : (
+        <>
+          <div
+            className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300 ${
+              dragActive ? 'bg-primary/10' : 'bg-secondary'
+            }`}
+          >
+            <ZoneIcon
+              className={`h-7 w-7 transition-colors duration-300 ${dragActive ? 'text-primary' : 'text-primary/70'}`}
+            />
+          </div>
+          <p className="text-sm font-semibold text-foreground">{label}</p>
+          <p className="text-xs text-muted-foreground">Drop file here or click to browse</p>
+        </>
+      )}
     </div>
   )
 }

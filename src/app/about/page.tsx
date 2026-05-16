@@ -34,7 +34,7 @@ const capabilities = [
     summary: 'Validates the full cover wrap PDF against your book specs.',
     detail:
       'Reads the exported cover PDF dimensions and compares total width (back + spine + front + bleed), height (trim + bleed), implied spine width, and safe area compliance. Flags any dimension that does not match the expected value for your page count, paper type, and trim size.',
-    href: '/checker',
+    href: '/tools/kdp-cover-checker',
   },
   {
     id: 'bleed-checker',
@@ -43,7 +43,7 @@ const capabilities = [
     summary: 'Detects missing or insufficient 0.125" bleed in cover and manuscript PDFs.',
     detail:
       'Compares the PDF MediaBox and TrimBox dimensions to the expected bleed-inclusive size. Reports the actual dimensions, the expected bleed size, and the exact amount by which bleed is missing or incorrect — for both cover PDFs and individual manuscript pages.',
-    href: '/kdp-bleed-checker',
+    href: '/tools/kdp-bleed-checker',
   },
   {
     id: 'trim-validator',
@@ -52,7 +52,7 @@ const capabilities = [
     summary: 'Confirms the PDF matches the trim size selected in the KDP project.',
     detail:
       'Measures the actual PDF dimensions and compares them to the target trim size with and without bleed. A mismatch of even 0.01" is flagged with the actual and expected values, so the correct export setting can be identified.',
-    href: '/kdp-trim-size-calculator',
+    href: '/tools/kdp-trim-size-calculator',
   },
   {
     id: 'spine-calculator',
@@ -61,7 +61,7 @@ const capabilities = [
     summary: 'Computes spine width from page count × paper-type constant.',
     detail:
       'Applies the official KDP formula: white paper = page_count × 0.002252", cream paper = page_count × 0.0025", color interior = page_count × 0.002347". The result is used to compute the required total cover wrap width and verify the uploaded cover against the current manuscript page count.',
-    href: '/kdp-spine-width-calculator',
+    href: '/tools/kdp-spine-width-calculator',
   },
   {
     id: 'safe-area',
@@ -70,7 +70,7 @@ const capabilities = [
     summary: 'Identifies content placed in the trim-risk zone.',
     detail:
       'The safe area is the region ≥0.25" inside the trim edge on all sides. The checker flags content that falls between the safe area boundary and the trim line — the zone where production cut variation can remove or damage printed content.',
-    href: '/kdp-safe-area-guide',
+    href: '/blog/kdp-safe-area-guide',
   },
   {
     id: 'preview',

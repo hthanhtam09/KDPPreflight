@@ -414,6 +414,23 @@ export default function BookPreview3D({
   const internalCaptureRef = useRef<((filename: string) => void) | null>(null);
   const { pdfPageDataUrls, coverDataUrl } = useAppStore();
 
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // ---- Observe container size ----
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      setContainerSize({
+        width: entries[0].contentRect.width,
+        height: entries[0].contentRect.height,
+      });
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // ---- Texture state ----
   const [coverTextures, setCoverTextures] = useState<CoverTextures>({
     front: null,
@@ -593,37 +610,48 @@ export default function BookPreview3D({
   }, [handleExport, onExportRef]);
 
   return (
-    <Canvas
-      ref={canvasRef}
-      camera={{ position: [2, 1.5, 3], fov: 40 }}
-      gl={{
-        preserveDrawingBuffer: true,
-        antialias: true,
-        alpha: true,
-        outputColorSpace: THREE.SRGBColorSpace,
-        toneMapping: THREE.NoToneMapping,
-        powerPreference: 'high-performance',
-      }}
-      style={{ background: 'transparent' }}
-      onCreated={({ gl }) => {
-        gl.outputColorSpace = THREE.SRGBColorSpace;
-        gl.toneMapping = THREE.NoToneMapping;
-      }}
-      dpr={[1, 2]}
-      performance={{ min: 0.5 }}
-    >
-      <Suspense fallback={<SceneLoader />}>
-        <PerformanceMonitor>
-          <SceneContent
-            state={state}
-            coverTextures={coverTextures}
-            pageTextures={pageTextures}
-            overlays={overlays}
-          />
-        </PerformanceMonitor>
-        <SceneCapture captureRef={internalCaptureRef} />
-      </Suspense>
-    </Canvas>
+    <div ref={wrapperRef} className="h-full w-full relative min-h-0 min-w-0">
+      {containerSize.width > 0 && containerSize.height > 0 && (
+        <Canvas
+          ref={canvasRef}
+          camera={{ position: [2, 1.5, 3], fov: 40 }}
+          gl={{
+            preserveDrawingBuffer: true,
+            antialias: true,
+            alpha: true,
+            outputColorSpace: THREE.SRGBColorSpace,
+            toneMapping: THREE.NoToneMapping,
+            powerPreference: 'high-performance',
+          }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: containerSize.width,
+            height: containerSize.height,
+            background: 'transparent'
+          }}
+          onCreated={({ gl }) => {
+            gl.outputColorSpace = THREE.SRGBColorSpace;
+            gl.toneMapping = THREE.NoToneMapping;
+          }}
+          dpr={[1, 2]}
+          performance={{ min: 0.5 }}
+        >
+          <Suspense fallback={<SceneLoader />}>
+            <PerformanceMonitor>
+              <SceneContent
+                state={state}
+                coverTextures={coverTextures}
+                pageTextures={pageTextures}
+                overlays={overlays}
+              />
+            </PerformanceMonitor>
+            <SceneCapture captureRef={internalCaptureRef} />
+          </Suspense>
+        </Canvas>
+      )}
+    </div>
   );
 }
 

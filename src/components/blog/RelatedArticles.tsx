@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import type { BlogPost } from '@/lib/blog';
+import { getBlogCategory, type BlogPost } from '@/lib/blog';
 
 export function RelatedArticles({ posts }: { posts: BlogPost[] }) {
   if (!posts.length) return null;
@@ -17,7 +17,7 @@ export function RelatedArticles({ posts }: { posts: BlogPost[] }) {
             href={`/blog/${post.slug}`}
             className="group rounded-2xl border border-border bg-card p-4 shadow-soft transition hover:-translate-y-0.5 hover:border-primary/30"
           >
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{post.category}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{getBlogCategory(post.category).label}</p>
             <h3 className="mt-2 text-sm font-bold leading-5 text-foreground transition group-hover:text-primary">
               {post.title}
             </h3>

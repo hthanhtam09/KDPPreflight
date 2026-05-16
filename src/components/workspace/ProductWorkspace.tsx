@@ -10,7 +10,8 @@ type Step = {
   label: string
 }
 
-const pillBase = 'inline-flex min-h-[34px] items-center gap-2 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold leading-snug shadow-soft'
+const pillBase =
+  'inline-flex min-h-[34px] items-center gap-2 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold leading-snug shadow-soft'
 
 export function AppShell({
   children,
@@ -31,11 +32,21 @@ export function AppShell({
 }) {
   return (
     <PageTransition>
-      <div className={studio
-        ? 'ws-shell flex h-[calc(100svh-var(--nav-height))] min-h-[560px] flex-col overflow-hidden pb-0 lg:min-h-[720px]'
-        : 'ws-shell'
-      }>
-        <FeatureHeader eyebrow={eyebrow} title={title} description={description} status={status} action={action} studio={studio} />
+      <div
+        className={
+          studio
+            ? 'ws-shell flex h-[calc(100svh-var(--nav-height))] min-h-[560px] flex-col overflow-hidden pb-0 lg:min-h-[720px]'
+            : 'ws-shell'
+        }
+      >
+        <FeatureHeader
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
+          status={status}
+          action={action}
+          studio={studio}
+        />
         {children}
       </div>
     </PageTransition>
@@ -106,7 +117,9 @@ export function StepProgress({
             }`}
             disabled={!onStepClick}
           >
-            <span className={`grid size-6 place-items-center rounded-full text-[11px] font-extrabold ${active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}>
+            <span
+              className={`grid size-6 place-items-center rounded-full text-[11px] font-extrabold ${active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}
+            >
               {complete ? <Check className="h-3.5 w-3.5" /> : index + 1}
             </span>
             <strong className="truncate text-xs font-bold">{step.label}</strong>
@@ -121,7 +134,15 @@ export function WorkspacePanel({ children, className = '' }: { children: React.R
   return <section className={`mx-auto max-w-7xl rounded-panel p-3 ws-panel sm:p-4 ${className}`}>{children}</section>
 }
 
-export function UploadDropzone({ title, description, children }: { title: string; description: string; children?: React.ReactNode }) {
+export function UploadDropzone({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description: string
+  children?: React.ReactNode
+}) {
   return (
     <div className="ds-card-glass p-6 text-center">
       <Upload className="mx-auto h-5 w-5 text-primary/80" />
@@ -146,9 +167,19 @@ export function SpecCard({ label, value, note }: { label: string; value: string;
   )
 }
 
-export function IssueCard({ severity = 'warning', title, children }: { severity?: 'critical' | 'warning' | 'ok'; title: string; children: React.ReactNode }) {
+export function IssueCard({
+  severity = 'warning',
+  title,
+  children,
+}: {
+  severity?: 'critical' | 'warning' | 'ok'
+  title: string
+  children: React.ReactNode
+}) {
   return (
-    <article className={`ds-card p-4 ${severity === 'critical' ? 'ds-status-critical' : severity === 'warning' ? 'ds-status-warning' : 'ds-status-success'}`}>
+    <article
+      className={`ds-card p-4 ${severity === 'critical' ? 'ds-status-critical' : severity === 'warning' ? 'ds-status-warning' : 'ds-status-success'}`}
+    >
       <p className="text-xs uppercase tracking-[0.18em] opacity-75">{severity}</p>
       <h3 className="mt-2 text-base font-semibold text-foreground">{title}</h3>
       {children}
@@ -164,7 +195,11 @@ export function ThumbnailRail({ children }: { children: React.ReactNode }) {
   return <aside className="ds-card overflow-hidden">{children}</aside>
 }
 
-export function ToolbarButton({ children, active = false, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
+export function ToolbarButton({
+  children,
+  active = false,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
   return (
     <button
       {...props}
@@ -175,7 +210,15 @@ export function ToolbarButton({ children, active = false, ...props }: React.Butt
   )
 }
 
-export function SegmentedControl({ options, value, onChange }: { options: { value: string; label: string }[]; value: string; onChange: (value: string) => void }) {
+export function SegmentedControl({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (value: string) => void
+}) {
   return (
     <div className="inline-flex rounded-2xl border border-border bg-secondary/70 p-1 shadow-soft">
       {options.map((option) => (
@@ -229,10 +272,18 @@ export function EmptyState({ title, description }: { title: string; description:
   )
 }
 
-export function FeatureFAQ({ title = 'Common publishing questions', items }: { title?: string; items: { question: string; answer: string }[] }) {
+export function FeatureFAQ({
+  title = 'Common publishing questions',
+  items,
+}: {
+  title?: string
+  items: { question: string; answer: string }[]
+}) {
   return (
     <section className="ds-card-elevated mx-auto mt-5 max-w-7xl p-5" aria-labelledby="feature-faq-title">
-      <h2 id="feature-faq-title" className="mb-4 text-lg font-bold tracking-[-0.02em] text-foreground/90">{title}</h2>
+      <h2 id="feature-faq-title" className="mb-4 text-lg font-bold tracking-[-0.02em] text-foreground/90">
+        {title}
+      </h2>
       <div className="grid gap-3 md:grid-cols-3">
         {items.map((item) => (
           <article key={item.question} className="ds-card p-4">
@@ -268,7 +319,12 @@ export function SaveStatus({ label }: { label?: string }) {
 export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
     <LazyMotion features={domAnimation}>
-      <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.32, ease: 'easeOut' }}>
+      <m.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.32, ease: 'easeOut' }}
+      >
         {children}
       </m.div>
     </LazyMotion>
@@ -281,17 +337,21 @@ export function RestoreSessionNotice() {
 
   return (
     <LazyMotion features={domAnimation}>
-    <m.div
-      className="ds-card-glass mx-auto mb-3 flex max-w-7xl items-center gap-2.5 px-3.5 py-3 text-[13px] text-foreground/80"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <RotateCcw className="h-4 w-4" />
-      <span>Restore session available from this browser.</span>
-      <button type="button" onClick={() => setHasRestoredSession(false)} className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-primary">
-        Dismiss <ChevronRight className="h-3.5 w-3.5" />
-      </button>
-    </m.div>
+      <m.div
+        className="ds-card-glass mx-auto mb-3 flex max-w-7xl items-center gap-2.5 px-3.5 py-3 text-[13px] text-foreground/80"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <RotateCcw className="h-4 w-4" />
+        <span>Restore session available from this browser.</span>
+        <button
+          type="button"
+          onClick={() => setHasRestoredSession(false)}
+          className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-primary"
+        >
+          Dismiss <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </m.div>
     </LazyMotion>
   )
 }

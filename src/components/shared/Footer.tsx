@@ -2,41 +2,40 @@ import Link from 'next/link';
 import { BookOpen, ExternalLink } from 'lucide-react';
 
 const toolLinks = [
-  { href: '/setup', label: 'KDP Book Setup Calculator' },
-  { href: '/checker', label: 'KDP Cover & Manuscript Checker' },
-  { href: '/preview', label: 'KDP 3D Book Preview' },
+  { href: '/tools/kdp-cover-checker', label: 'KDP Cover Checker' },
+  { href: '/tools/kdp-bleed-checker', label: 'KDP Bleed Checker' },
+  { href: '/tools/kdp-spine-width-calculator', label: 'Spine Width Calculator' },
+  { href: '/tools/kdp-trim-size-calculator', label: 'Trim Size Calculator' },
 ];
 
 const guideLinks = [
-  { href: '/kdp-bleed-checker', label: 'KDP Bleed Checker' },
-  { href: '/kdp-trim-size-calculator', label: 'KDP Trim Size Calculator' },
-  { href: '/kdp-spine-width-calculator', label: 'KDP Spine Width Calculator' },
-  { href: '/kdp-cover-validator', label: 'KDP Cover Validator' },
-  { href: '/kdp-cover-size-guide', label: 'KDP Cover Size Guide' },
-  { href: '/kdp-safe-area-guide', label: 'KDP Safe Area Guide' },
-  { href: '/kdp-paperback-guide', label: 'KDP Paperback Guide' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/blog/kdp-cover-dimensions-explained', label: 'KDP Cover Dimensions' },
+  { href: '/blog/kdp-safe-area-guide', label: 'KDP Safe Area Guide' },
+  { href: '/blog/beginners-guide-kdp-cover-formatting', label: 'KDP Cover Formatting Guide' },
 ];
 
 const resourceLinks = [
-  { href: '/about', label: 'About KDPPreflight' },
-  { href: '/faq', label: 'KDP FAQ' },
-  { href: '/kdp-glossary', label: 'KDP Glossary' },
   { href: '/blog', label: 'Blog' },
+  { href: '/glossary', label: 'Glossary' },
+  { href: '/blog/category/cover-rejections', label: 'KDP Cover Guides' },
+  { href: '/faq', label: 'KDP FAQ' },
+  { href: '/about', label: 'About KDPPreflight' },
 ];
 
 const blogLinks = [
-  { href: '/blog/how-to-fix-kdp-bleed-issues', label: 'How to Fix KDP Bleed Issues' },
-  { href: '/blog/best-kdp-cover-dimensions', label: 'Best KDP Cover Dimensions' },
-  { href: '/blog/why-amazon-rejects-your-cover', label: 'Why Amazon Rejects Your Cover' },
-  { href: '/blog/kdp-safe-area-explained', label: 'KDP Safe Area Explained' },
-  { href: '/blog/kdp-spine-width-guide', label: 'KDP Spine Width Guide' },
+  { href: '/blog/why-amazon-rejected-your-kdp-cover', label: 'Why Amazon Rejected Your KDP Cover' },
+  { href: '/blog/fix-elements-outside-printable-area-kdp', label: 'Fix Printable Area Errors' },
+  { href: '/blog/kdp-bleed-explained', label: 'KDP Bleed Explained' },
+  { href: '/blog/calculate-kdp-spine-width', label: 'Calculate KDP Spine Width' },
+  { href: '/blog/beginners-guide-kdp-cover-formatting', label: 'Beginner KDP Cover Formatting' },
 ];
 
 export default function Footer() {
   return (
     <footer className="border-t border-border bg-background/80" aria-label="Site footer">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
 
           {/* Brand + entity description */}
           <div className="sm:col-span-2 lg:col-span-1">

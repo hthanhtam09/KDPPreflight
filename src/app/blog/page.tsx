@@ -6,14 +6,14 @@ import { BlogHero } from '@/components/blog/BlogHero';
 import { BlogIndexExperience } from '@/components/blog/BlogIndexExperience';
 import { FeaturedPostCard } from '@/components/blog/FeaturedPostCard';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { blogPosts, getFeaturedPost, topicClusters } from '@/lib/blog';
+import { blogCategories, blogPosts, getFeaturedPost, topicClusters } from '@/lib/blog';
 import { generatePageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, itemListSchema, SITE_URL } from '@/lib/schema';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'KDP Preflight Blog | Amazon KDP Cover, Bleed, Trim & Spine Guides',
   description:
-    'Premium KDP knowledge hub with practical guides for Amazon KDP cover issues, bleed errors, trim size problems, spine width mistakes, safe area checks, and upload fixes.',
+    'Fix KDP cover problems before Amazon rejects your upload with practical guides for bleed, printable area errors, spine width, safe area, Canva, Photoshop, and PDF export settings.',
   path: '/blog',
   keywords: [
     'KDP Preflight Blog',
@@ -73,6 +73,45 @@ export default function BlogIndexPage() {
 
         <BlogIndexExperience posts={gridPosts} />
 
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6" aria-labelledby="category-clusters-heading">
+          <div className="mb-8 max-w-3xl">
+            <p className="ds-eyebrow">Problem filters</p>
+            <h2 id="category-clusters-heading" className="mt-3 text-3xl font-bold tracking-[-0.025em] text-foreground">
+              KDP problem categories
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Each category is organized around a real KDP author problem, not a generic publishing topic.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {blogCategories.map((category) => {
+              const Icon = category.icon;
+              const count = blogPosts.filter((post) => post.category === category.slug).length;
+
+              return (
+                <Link
+                  key={category.slug}
+                  href={`/blog/category/${category.slug}`}
+                  className="group rounded-2xl border border-border bg-card p-5 shadow-card transition hover:-translate-y-0.5 hover:border-primary/30"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="grid size-10 place-items-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h3 className="font-bold text-foreground group-hover:text-primary">{category.label}</h3>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{category.description}</p>
+                      <span className="mt-3 inline-flex text-xs font-bold uppercase tracking-[0.14em] text-primary">
+                        {count ? `${count} guide${count === 1 ? '' : 's'}` : 'Coming next'}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6" aria-labelledby="topic-clusters-heading">
           <div className="mb-8 max-w-3xl">
             <p className="ds-eyebrow">SEO topic clusters</p>
@@ -83,7 +122,7 @@ export default function BlogIndexPage() {
               Follow focused paths from guide to calculator to checker so every KDP publishing problem has a clear next step.
             </p>
           </div>
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {topicClusters.map((cluster) => (
               <article key={cluster.title} className="rounded-2xl border border-border bg-card p-5 shadow-card">
                 <h3 className="text-base font-bold text-foreground">{cluster.title}</h3>

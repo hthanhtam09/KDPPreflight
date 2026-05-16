@@ -318,17 +318,20 @@ a, button, [role="button"] {
 }
 
 .checker-workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
-  height: calc(100vh - var(--app-current-header-height) - var(--checker-toolbar-stack-height) - var(--checker-status-height));
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: calc(100vh - var(--app-current-header-height) - var(--checker-toolbar-stack-height) - var(--checker-status-height));
 }
 
 @media (min-width: 768px) {
   .checker-workspace {
+    display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
+    overflow: hidden;
   }
 }
 
