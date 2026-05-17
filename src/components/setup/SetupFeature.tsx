@@ -19,18 +19,7 @@ import type {
   ReadingDirection,
   TrimSizeKey,
 } from '@/types/kdp'
-import {
-  AlertTriangle,
-  BookOpen,
-  Box,
-  CheckCircle2,
-  Clipboard,
-  Download,
-  FileText,
-  Info,
-  Monitor,
-  Ruler,
-} from 'lucide-react'
+import { AlertTriangle, BookOpen, Box, CheckCircle2, Clipboard, FileText, Info, Monitor, Ruler } from 'lucide-react'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 
 const PAPERBACK_TRIMS: TrimSizeKey[] = [
@@ -84,12 +73,15 @@ function downloadTemplate(widthIn: number, heightIn: number) {
 export default function SetupFeature() {
   const { bookType, setBookType, bookConfig, updateBookConfig, measurements } = useAppStore()
   const [copied, setCopied] = useState<string | null>(null)
+  const [pageCountInput, setPageCountInput] = useState(() => String(bookConfig.pageCount))
+  const [isEditingPageCount, setIsEditingPageCount] = useState(false)
 
   const isKindle = bookType === 'kindle'
   const isHardcover = bookType === 'hardcover'
   const trimKeys = isHardcover ? HARDCOVER_TRIMS : PAPERBACK_TRIMS
   const maxPages = isHardcover ? MAX_PAGE_COUNT_HARDCOVER : MAX_PAGE_COUNT_PAPERBACK
   const pageWarning = !isKindle && (bookConfig.pageCount < 80 || measurements.spineWidthIn < 0.15)
+  const displayedPageCount = isEditingPageCount ? pageCountInput : String(bookConfig.pageCount)
 
   const specs = useMemo(() => {
     const manuscript = isKindle
@@ -158,6 +150,42 @@ export default function SetupFeature() {
     setCopied(key)
     window.setTimeout(() => setCopied(null), 1200)
   }
+
+  const commitPageCount = useCallback(
+    (value: string) => {
+      const raw = Number.parseInt(value, 10)
+      const safeRaw = Number.isFinite(raw) ? raw : MIN_PAGE_COUNT
+      const even = safeRaw % 2 === 0 ? safeRaw : safeRaw + 1
+      const pageCount = Math.max(MIN_PAGE_COUNT, Math.min(maxPages, even))
+
+      setPageCountInput(String(pageCount))
+      setIsEditingPageCount(false)
+      updateBookConfig({ pageCount })
+    },
+    [maxPages, updateBookConfig]
+  )
+
+  const handlePageCountInput = useCallback(
+    (value: string) => {
+      const digits = value.replace(/\D/g, '')
+      setIsEditingPageCount(true)
+      setPageCountInput(digits)
+
+      if (!digits) return
+
+      const raw = Number.parseInt(digits, 10)
+      if (!Number.isFinite(raw) || raw < MIN_PAGE_COUNT) return
+
+      if (raw > maxPages) {
+        setPageCountInput(String(maxPages))
+        updateBookConfig({ pageCount: maxPages })
+        return
+      }
+
+      updateBookConfig({ pageCount: raw })
+    },
+    [maxPages, updateBookConfig]
+  )
 
   return (
     <div className="space-y-8 text-foreground">
@@ -249,17 +277,23 @@ export default function SetupFeature() {
               {/* Step 4: Page Count */}
               <StepCard step={4} label="Page count" help="Must be even. Spine width updates as you change this.">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   min={MIN_PAGE_COUNT}
                   max={maxPages}
                   step={2}
-                  value={bookConfig.pageCount}
-                  onChange={(e) => {
-                    const raw = Number(e.target.value)
-                    const even = raw % 2 === 0 ? raw : raw + 1
-                    updateBookConfig({
-                      pageCount: Math.max(MIN_PAGE_COUNT, Math.min(maxPages, even || MIN_PAGE_COUNT)),
-                    })
+                  value={displayedPageCount}
+                  onFocus={() => {
+                    setIsEditingPageCount(true)
+                    setPageCountInput(String(bookConfig.pageCount))
+                  }}
+                  onChange={(e) => handlePageCountInput(e.target.value)}
+                  onBlur={(e) => commitPageCount(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur()
+                    }
                   }}
                   className="ds-control ds-focus min-h-11 w-full rounded-lg px-3 text-sm"
                 />
@@ -424,21 +458,12 @@ export default function SetupFeature() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Ready to design?</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Download a blank cover template or check your finished files for KDP compliance.
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">Check your finished files for KDP compliance.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => downloadTemplate(measurements.fullCoverWidthIn, measurements.fullCoverHeightIn)}
-              className="ds-button-primary ds-focus inline-flex min-h-9 items-center gap-2 rounded-lg px-4 text-sm font-semibold"
-            >
-              <Download className="h-4 w-4" />
-              Download template
-            </button>
             <a
               href="/checker"
-              className="ds-focus ds-control inline-flex min-h-9 items-center gap-2 rounded-lg px-4 text-sm font-semibold"
+              className="ds-button-primary ds-focus inline-flex min-h-9 items-center gap-2 rounded-lg px-4 text-sm font-semibold"
             >
               <FileText className="h-4 w-4" />
               Format Checker
