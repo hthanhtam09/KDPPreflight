@@ -20,7 +20,6 @@ import {
   DEFAULT_BOOK_CONFIG,
   TRIM_SIZES,
   formatInches,
-  MAX_PAGE_COUNT_HARDCOVER,
   MAX_PAGE_COUNT_PAPERBACK,
   MIN_PAGE_COUNT,
 } from '@/engine/kdp-constants';
@@ -60,11 +59,19 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [copiedValue, setCopiedValue] = useState<string | null>(null);
+  const [pageCountInput, setPageCountInput] = useState(() => String(bookConfig.pageCount));
+  const [isEditingPageCount, setIsEditingPageCount] = useState(false);
 
   const isKindle = bookType === 'kindle';
   const isHardcover = bookType === 'hardcover';
   const trimKeys = isHardcover ? HARDCOVER_TRIMS : PAPERBACK_TRIMS;
-  const maxPages = isHardcover ? MAX_PAGE_COUNT_HARDCOVER : MAX_PAGE_COUNT_PAPERBACK;
+  const maxPages = MAX_PAGE_COUNT_PAPERBACK;
+  const pageCountDraft = Number.parseInt(pageCountInput, 10);
+  const pageCountRangeError =
+    isEditingPageCount &&
+    pageCountInput.length > 0 &&
+    Number.isFinite(pageCountDraft) &&
+    (pageCountDraft < MIN_PAGE_COUNT || pageCountDraft > maxPages);
 
   const isDetected = useCallback(
     (field: keyof DetectedConfig): boolean => {
@@ -103,7 +110,38 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
   const handleReset = useCallback(() => {
     updateBookConfig(DEFAULT_BOOK_CONFIG);
     setBookType(DEFAULT_BOOK_CONFIG.bookType);
+    setPageCountInput(String(DEFAULT_BOOK_CONFIG.pageCount));
+    setIsEditingPageCount(false);
   }, [updateBookConfig, setBookType]);
+
+  const commitPageCount = useCallback(
+    (value: string) => {
+      const raw = Number.parseInt(value, 10);
+      const safeRaw = Number.isFinite(raw) ? raw : bookConfig.pageCount;
+      const even = safeRaw % 2 === 0 ? safeRaw : safeRaw + 1;
+      const pageCount = Math.max(MIN_PAGE_COUNT, Math.min(maxPages, even));
+
+      setPageCountInput(String(pageCount));
+      setIsEditingPageCount(false);
+      updateBookConfig({ pageCount });
+    },
+    [bookConfig.pageCount, maxPages, updateBookConfig],
+  );
+
+  const handlePageCountInput = useCallback((value: string) => {
+    setIsEditingPageCount(true);
+    setPageCountInput(value.replace(/\D/g, ''));
+  }, []);
+
+  const adjustPageCount = useCallback(
+    (delta: number) => {
+      const pageCount = Math.max(MIN_PAGE_COUNT, Math.min(maxPages, bookConfig.pageCount + delta));
+      setIsEditingPageCount(false);
+      setPageCountInput(String(pageCount));
+      updateBookConfig({ pageCount });
+    },
+    [bookConfig.pageCount, maxPages, updateBookConfig],
+  );
 
   const handleCopy = useCallback(async (value: string) => {
     try {
@@ -233,29 +271,45 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
               <FieldLabel label="Page count" detected={isDetected('pageCount')} />
               <div className="mt-1.5 flex items-center gap-2">
                 <button
-                  onClick={() => updateBookConfig({ pageCount: Math.max(MIN_PAGE_COUNT, bookConfig.pageCount - 2) })}
+                  onClick={() => adjustPageCount(-2)}
                   className="ds-focus grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border bg-surface text-base text-muted-foreground transition-colors hover:border-primary/20 hover:text-foreground"
                   aria-label="Decrease"
                 >−</button>
                 <input
-                  type="number" min={MIN_PAGE_COUNT} max={maxPages} step={2}
-                  value={bookConfig.pageCount}
-                  onChange={(e) => {
-                    const raw = Number(e.target.value);
-                    const even = raw % 2 === 0 ? raw : raw + 1;
-                    updateBookConfig({ pageCount: Math.max(MIN_PAGE_COUNT, Math.min(maxPages, even || MIN_PAGE_COUNT)) });
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  min={MIN_PAGE_COUNT}
+                  max={maxPages}
+                  step={2}
+                  value={isEditingPageCount ? pageCountInput : String(bookConfig.pageCount)}
+                  onFocus={() => {
+                    setIsEditingPageCount(true);
+                    setPageCountInput(String(bookConfig.pageCount));
                   }}
-                  className="ds-control ds-focus min-h-11 w-full rounded-xl px-3 text-center text-base font-semibold"
+                  onChange={(e) => handlePageCountInput(e.target.value)}
+                  onBlur={(e) => commitPageCount(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  aria-invalid={pageCountRangeError}
+                  aria-describedby="preview-page-count-help"
+                  className={`ds-control ds-focus min-h-11 w-full rounded-xl px-3 text-center text-base font-semibold ${
+                    pageCountRangeError ? 'border-danger/60 text-danger' : ''
+                  }`}
                 />
                 <button
-                  onClick={() => updateBookConfig({ pageCount: Math.min(maxPages, bookConfig.pageCount + 2) })}
+                  onClick={() => adjustPageCount(2)}
                   className="ds-focus grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border bg-surface text-base text-muted-foreground transition-colors hover:border-primary/20 hover:text-foreground"
                   aria-label="Increase"
                 >+</button>
               </div>
-              <p className="mt-1.5 text-[10px] text-muted-foreground">
+              <p id="preview-page-count-help" className={`mt-1.5 text-[10px] ${pageCountRangeError ? 'text-danger' : 'text-muted-foreground'}`}>
                 Spine: <span className="font-mono text-foreground/70">{formatInches(measurements.spineWidthIn)}</span>
-                {' · '}Range {MIN_PAGE_COUNT}–{maxPages}
+                {' · '}
+                {pageCountRangeError ? `Enter ${MIN_PAGE_COUNT}-${maxPages} pages` : `Range ${MIN_PAGE_COUNT}-${maxPages}`}
               </p>
             </div>
 

@@ -2,7 +2,6 @@
 
 import {
   BARCODE_AREA,
-  MAX_PAGE_COUNT_HARDCOVER,
   MAX_PAGE_COUNT_PAPERBACK,
   MIN_PAGE_COUNT,
   TRIM_SIZES,
@@ -79,9 +78,15 @@ export default function SetupFeature() {
   const isKindle = bookType === 'kindle'
   const isHardcover = bookType === 'hardcover'
   const trimKeys = isHardcover ? HARDCOVER_TRIMS : PAPERBACK_TRIMS
-  const maxPages = isHardcover ? MAX_PAGE_COUNT_HARDCOVER : MAX_PAGE_COUNT_PAPERBACK
+  const maxPages = MAX_PAGE_COUNT_PAPERBACK
   const pageWarning = !isKindle && (bookConfig.pageCount < 80 || measurements.spineWidthIn < 0.15)
   const displayedPageCount = isEditingPageCount ? pageCountInput : String(bookConfig.pageCount)
+  const pageCountDraft = Number.parseInt(pageCountInput, 10)
+  const pageCountRangeError =
+    isEditingPageCount &&
+    pageCountInput.length > 0 &&
+    Number.isFinite(pageCountDraft) &&
+    (pageCountDraft < MIN_PAGE_COUNT || pageCountDraft > maxPages)
 
   const specs = useMemo(() => {
     const manuscript = isKindle
@@ -154,7 +159,7 @@ export default function SetupFeature() {
   const commitPageCount = useCallback(
     (value: string) => {
       const raw = Number.parseInt(value, 10)
-      const safeRaw = Number.isFinite(raw) ? raw : MIN_PAGE_COUNT
+      const safeRaw = Number.isFinite(raw) ? raw : bookConfig.pageCount
       const even = safeRaw % 2 === 0 ? safeRaw : safeRaw + 1
       const pageCount = Math.max(MIN_PAGE_COUNT, Math.min(maxPages, even))
 
@@ -162,30 +167,13 @@ export default function SetupFeature() {
       setIsEditingPageCount(false)
       updateBookConfig({ pageCount })
     },
-    [maxPages, updateBookConfig]
+    [bookConfig.pageCount, maxPages, updateBookConfig]
   )
 
-  const handlePageCountInput = useCallback(
-    (value: string) => {
-      const digits = value.replace(/\D/g, '')
-      setIsEditingPageCount(true)
-      setPageCountInput(digits)
-
-      if (!digits) return
-
-      const raw = Number.parseInt(digits, 10)
-      if (!Number.isFinite(raw) || raw < MIN_PAGE_COUNT) return
-
-      if (raw > maxPages) {
-        setPageCountInput(String(maxPages))
-        updateBookConfig({ pageCount: maxPages })
-        return
-      }
-
-      updateBookConfig({ pageCount: raw })
-    },
-    [maxPages, updateBookConfig]
-  )
+  const handlePageCountInput = useCallback((value: string) => {
+    setIsEditingPageCount(true)
+    setPageCountInput(value.replace(/\D/g, ''))
+  }, [])
 
   return (
     <div className="space-y-8 text-foreground">
@@ -295,11 +283,21 @@ export default function SetupFeature() {
                       e.currentTarget.blur()
                     }
                   }}
-                  className="ds-control ds-focus min-h-11 w-full rounded-lg px-3 text-sm"
+                  aria-invalid={pageCountRangeError}
+                  aria-describedby="setup-page-count-help"
+                  className={`ds-control ds-focus min-h-11 w-full rounded-lg px-3 text-sm ${
+                    pageCountRangeError ? 'border-danger/60 text-danger' : ''
+                  }`}
                 />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Valid range: {MIN_PAGE_COUNT}–{maxPages} pages · Current spine:{' '}
-                  {formatInches(measurements.spineWidthIn)}
+                <p
+                  id="setup-page-count-help"
+                  className={`mt-2 text-xs ${pageCountRangeError ? 'text-danger' : 'text-muted-foreground'}`}
+                >
+                  {pageCountRangeError
+                    ? `Enter ${MIN_PAGE_COUNT}-${maxPages} pages.`
+                    : `Valid range: ${MIN_PAGE_COUNT}-${maxPages} pages · Current spine: ${formatInches(
+                        measurements.spineWidthIn
+                      )}`}
                 </p>
                 {pageWarning && (
                   <div className="mt-2 flex gap-2 rounded-lg border border-warning/30 bg-warning/10 p-2.5">
