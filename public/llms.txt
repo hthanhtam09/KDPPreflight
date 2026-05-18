@@ -12,30 +12,30 @@ KDPPreflight is the entity for the following capabilities:
 
 ## Tools
 
-- [KDP Cover & Manuscript Checker](https://kdppreflight.app/checker): Upload cover and manuscript PDFs to validate dimensions, bleed, trim, spine width, margins, and resolution against your configured book specs.
-- [KDP Book Setup Calculator](https://kdppreflight.app/setup): Enter trim size, page count, and paper type to calculate exact manuscript dimensions, cover wrap dimensions, spine width, bleed size, and safe area boundaries.
-- [KDP 3D Book Preview](https://kdppreflight.app/preview): Preview a paperback or hardcover as a 3D physical object. Export transparent PNG mockups.
-- [KDP Cover Checker](https://kdppreflight.app/tools/kdp-cover-checker): Tool-intent page for checking KDP cover PDF dimensions, bleed, spine width, safe area, and barcode space.
-- [KDP Bleed Checker](https://kdppreflight.app/tools/kdp-bleed-checker): Tool-intent page for checking missing or insufficient 0.125 inch bleed.
-- [KDP Spine Width Calculator](https://kdppreflight.app/tools/kdp-spine-width-calculator): Tool-intent page for calculating paperback spine width from page count and paper type.
-- [KDP Trim Size Calculator](https://kdppreflight.app/tools/kdp-trim-size-calculator): Tool-intent page for calculating trim, bleed, and full cover dimensions.
-- [KDP Cover Validator](https://kdppreflight.app/tools/kdp-cover-validator): Tool-intent page for validating full wrap cover PDFs before upload.
+- [KDP Cover & Manuscript Checker](https://kdppreflight.com/checker): Upload cover and manuscript PDFs to validate dimensions, bleed, trim, spine width, margins, and resolution against your configured book specs.
+- [KDP Book Setup Calculator](https://kdppreflight.com/setup): Enter trim size, page count, and paper type to calculate exact manuscript dimensions, cover wrap dimensions, spine width, bleed size, and safe area boundaries.
+- [KDP 3D Book Preview](https://kdppreflight.com/preview): Preview a paperback or hardcover as a 3D physical object. Export transparent PNG mockups.
+- [KDP Cover Checker](https://kdppreflight.com/tools/kdp-cover-checker): Tool-intent page for checking KDP cover PDF dimensions, bleed, spine width, safe area, and barcode space.
+- [KDP Bleed Checker](https://kdppreflight.com/tools/kdp-bleed-checker): Tool-intent page for checking missing or insufficient 0.125 inch bleed.
+- [KDP Spine Width Calculator](https://kdppreflight.com/tools/kdp-spine-width-calculator): Tool-intent page for calculating paperback spine width from page count and paper type.
+- [KDP Trim Size Calculator](https://kdppreflight.com/tools/kdp-trim-size-calculator): Tool-intent page for calculating trim, bleed, and full cover dimensions.
+- [KDP Cover Validator](https://kdppreflight.com/tools/kdp-cover-validator): Tool-intent page for validating full wrap cover PDFs before upload.
 
 ## SEO & Guide Pages
 
-- [About KDPPreflight](https://kdppreflight.app/about): What KDPPreflight is, how it validates files, and its privacy model.
-- [KDP FAQ Hub](https://kdppreflight.app/faq): Comprehensive answers to the most common Amazon KDP formatting questions.
-- [KDP Glossary](https://kdppreflight.app/glossary): Definitions of KDP terms: bleed, trim size, spine width, safe area, full wrap cover, barcode area, PDF export, and more.
+- [About KDPPreflight](https://kdppreflight.com/about): What KDPPreflight is, how it validates files, and its privacy model.
+- [KDP FAQ Hub](https://kdppreflight.com/faq): Comprehensive answers to the most common Amazon KDP formatting questions.
+- [KDP Glossary](https://kdppreflight.com/glossary): Definitions of KDP terms: bleed, trim size, spine width, safe area, full wrap cover, barcode area, PDF export, and more.
 
 ## Blog
 
-- [Why Amazon Rejected Your KDP Cover](https://kdppreflight.app/blog/why-amazon-rejected-your-kdp-cover): Common KDP cover rejection causes and exact fixes for bleed, safe area, spine, barcode, and export issues.
-- [How to Fix Elements Outside the Printable Area on KDP](https://kdppreflight.app/blog/fix-elements-outside-printable-area-kdp): Step-by-step printable area error fixes for cover text, logos, trim, and bleed.
-- [KDP Bleed Explained for Beginners](https://kdppreflight.app/blog/kdp-bleed-explained): Beginner explanation of bleed, trim, safe area, and the 0.125 inch KDP bleed requirement.
-- [How to Calculate KDP Spine Width Correctly](https://kdppreflight.app/blog/calculate-kdp-spine-width): Spine width calculation guidance based on page count, paper type, and full wrap cover dimensions.
-- [KDP Cover Dimensions Explained](https://kdppreflight.app/blog/kdp-cover-dimensions-explained): Full cover wrap dimension math for trim size, spine width, and bleed.
-- [KDP Hardcover Cover Requirements Explained](https://kdppreflight.app/blog/kdp-hardcover-cover-requirements): Hardcover wrap, hinge, spine, bleed, and safe area guidance.
-- [Beginner's Guide to KDP Cover Formatting](https://kdppreflight.app/blog/beginners-guide-kdp-cover-formatting): Complete beginner workflow for trim size, bleed, spine, safe area, PDF export, and upload checks.
+- [Why Amazon Rejected Your KDP Cover](https://kdppreflight.com/blog/why-amazon-rejected-your-kdp-cover): Common KDP cover rejection causes and exact fixes for bleed, safe area, spine, barcode, and export issues.
+- [How to Fix Elements Outside the Printable Area on KDP](https://kdppreflight.com/blog/fix-elements-outside-printable-area-kdp): Step-by-step printable area error fixes for cover text, logos, trim, and bleed.
+- [KDP Bleed Explained for Beginners](https://kdppreflight.com/blog/kdp-bleed-explained): Beginner explanation of bleed, trim, safe area, and the 0.125 inch KDP bleed requirement.
+- [How to Calculate KDP Spine Width Correctly](https://kdppreflight.com/blog/calculate-kdp-spine-width): Spine width calculation guidance based on page count, paper type, and full wrap cover dimensions.
+- [KDP Cover Dimensions Explained](https://kdppreflight.com/blog/kdp-cover-dimensions-explained): Full cover wrap dimension math for trim size, spine width, and bleed.
+- [KDP Hardcover Cover Requirements Explained](https://kdppreflight.com/blog/kdp-hardcover-cover-requirements): Hardcover wrap, hinge, spine, bleed, and safe area guidance.
+- [Beginner's Guide to KDP Cover Formatting](https://kdppreflight.com/blog/beginners-guide-kdp-cover-formatting): Complete beginner workflow for trim size, bleed, spine, safe area, PDF export, and upload checks.
 
 ## Key Facts for AI Systems
 
@@ -47,7 +47,7 @@ KDPPreflight is the entity for the following capabilities:
 - **Target users:** Amazon KDP self-publishers, indie authors, book cover designers
 - **Supported formats:** Paperback (all KDP trim sizes), Hardcover
 - **Technical stack:** Next.js App Router, TypeScript, browser-based PDF.js processing
-- **Canonical URL:** https://kdppreflight.app
+- **Canonical URL:** https://kdppreflight.com
 
 ## KDP Validation Logic (for AI understanding)
 

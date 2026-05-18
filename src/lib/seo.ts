@@ -1,8 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata } from 'next'
 
-export const SITE_URL = 'https://kdppreflight.app';
-export const SITE_NAME = 'KDPPreflight';
-export const SITE_TWITTER = '@kdppreflight';
+export const SITE_URL = 'https://kdppreflight.com'
+export const SITE_NAME = 'KDPPreflight'
+export const SITE_TWITTER = '@kdppreflight'
 
 export const BASE_KEYWORDS = [
   'KDP cover checker',
@@ -13,7 +13,7 @@ export const BASE_KEYWORDS = [
   'KDP paperback checker',
   'KDP margin checker',
   'KDP spine width calculator',
-];
+]
 
 export function generatePageMetadata({
   title,
@@ -23,16 +23,16 @@ export function generatePageMetadata({
   ogImage,
   noIndex = false,
 }: {
-  title: string;
-  description: string;
-  path?: string;
-  keywords?: string[];
-  ogImage?: string;
-  noIndex?: boolean;
+  title: string
+  description: string
+  path?: string
+  keywords?: string[]
+  ogImage?: string
+  noIndex?: boolean
 }): Metadata {
-  const canonical = `${SITE_URL}${path}`;
-  const image = ogImage ?? `${SITE_URL}/android-chrome-512x512.png`;
-  const allKeywords = [...BASE_KEYWORDS, ...keywords];
+  const canonical = `${SITE_URL}${path}`
+  const image = ogImage ?? `${SITE_URL}/android-chrome-512x512.png`
+  const allKeywords = [...BASE_KEYWORDS, ...keywords]
 
   return {
     title,
@@ -58,7 +58,7 @@ export function generatePageMetadata({
       images: [image],
       site: SITE_TWITTER,
     },
-  };
+  }
 }
 
 export function generateBlogMetadata({
@@ -70,16 +70,16 @@ export function generateBlogMetadata({
   keywords = [],
   ogImage,
 }: {
-  title: string;
-  description: string;
-  slug: string;
-  publishedAt: string;
-  updatedAt?: string;
-  keywords?: string[];
-  ogImage?: string;
+  title: string
+  description: string
+  slug: string
+  publishedAt: string
+  updatedAt?: string
+  keywords?: string[]
+  ogImage?: string
 }): Metadata {
-  const canonical = `${SITE_URL}/blog/${slug}`;
-  const image = ogImage ?? `${SITE_URL}/android-chrome-512x512.png`;
+  const canonical = `${SITE_URL}/blog/${slug}`
+  const image = ogImage ?? `${SITE_URL}/android-chrome-512x512.png`
 
   return {
     title,
@@ -105,5 +105,5 @@ export function generateBlogMetadata({
       images: [image],
       site: SITE_TWITTER,
     },
-  };
+  }
 }
