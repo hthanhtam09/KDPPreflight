@@ -42,7 +42,7 @@ const faqGroups: FaqGroup[] = [
       {
         q: 'How do I fix a KDP bleed error?',
         a: 'The fix is always in the PDF export settings. Enable bleed in the export dialog (Affinity Publisher: File → Export → More → Include Bleed; InDesign: Marks and Bleed tab → Use Document Bleed Settings; Illustrator: Save as PDF → Marks and Bleeds → Use Document Bleed Settings). After fixing the export, verify the PDF dimensions include the 0.125" bleed area on each affected edge.',
-        links: [{ label: 'Step-by-step bleed fix guide', href: '/blog/fix-kdp-bleed-issues' }],
+        links: [{ label: 'Browse KDP guides', href: '/blog' }],
       },
       {
         q: 'Does every KDP manuscript page need bleed?',
@@ -116,14 +116,14 @@ const faqGroups: FaqGroup[] = [
         q: 'What size should a KDP paperback cover be?',
         a: 'The KDP paperback cover PDF must be the full wrap size: (trim_width × 2) + spine_width + 0.25" wide, and trim_height + 0.25" tall. For a 6×9" book with 300 white-paper pages: (6 + 6 + 0.676 + 0.25) × (9 + 0.25) = 12.926"×9.25". This changes with every page count change.',
         links: [
-          { label: 'KDP Cover Size Guide', href: '/blog/kdp-cover-dimensions-explained' },
+          { label: 'Browse KDP guides', href: '/blog' },
           { label: 'KDP Cover Validator', href: '/tools/kdp-cover-validator' },
         ],
       },
       {
         q: 'Why does Amazon KDP reject my cover PDF?',
         a: 'The eight most common causes: (1) uploaded only the front cover instead of the full wrap, (2) wrong total cover width due to incorrect spine calculation, (3) missing or insufficient bleed, (4) image resolution below 300 DPI, (5) spine width mismatch with current page count, (6) content in the barcode zone on the back cover, (7) fonts not embedded, (8) content too close to the trim edge.',
-        links: [{ label: 'Full rejection cause guide', href: '/blog/why-amazon-rejected-your-kdp-cover' }],
+        links: [{ label: 'Browse KDP guides', href: '/blog' }],
       },
       {
         q: 'How do I validate a KDP full cover wrap before uploading?',
@@ -147,7 +147,7 @@ const faqGroups: FaqGroup[] = [
       {
         q: 'What is the KDP safe area?',
         a: 'The KDP safe area is the region ≥0.25" inside the trim edge on all sides of a cover or manuscript page. All critical content — title, author name, barcodes, logos, body text, page numbers — must stay within the safe area. Content between the safe area and the trim edge is in the risk zone where production cut variation can partially remove it.',
-        links: [{ label: 'KDP Safe Area Guide', href: '/blog/kdp-safe-area-guide' }],
+        links: [{ label: 'Browse KDP guides', href: '/blog' }],
       },
       {
         q: 'What are the KDP manuscript margin requirements?',

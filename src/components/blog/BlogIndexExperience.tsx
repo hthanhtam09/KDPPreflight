@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import type React from 'react';
 import { Search } from 'lucide-react';
-import type { BlogCategoryFilter, BlogPost } from '@/lib/blog';
-import { blogCategoryFilters, getBlogCategory } from '@/lib/blog';
+import { blogCategoryFilters, getBlogCategory, type BlogCategoryFilter } from '@/lib/blog-categories';
+import type { BlogPost } from '@/types/blog';
 import { BlogCard } from './BlogCard';
 import { CategoryFilter } from './CategoryFilter';
 
-export function BlogIndexExperience({ posts }: { posts: BlogPost[] }) {
+export function BlogIndexExperience({ posts, footer }: { posts: BlogPost[]; footer?: React.ReactNode }) {
   const [activeCategory, setActiveCategory] = useState<BlogCategoryFilter>('all');
   const [query, setQuery] = useState('');
 
@@ -61,12 +62,19 @@ export function BlogIndexExperience({ posts }: { posts: BlogPost[] }) {
       </div>
       {!filteredPosts.length && (
         <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-card">
-          <p className="text-base font-bold text-foreground">No guide matched that search.</p>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-            Try “bleed,” “spine,” “Canva,” “safe area,” or “cover rejected.”
-          </p>
+          {posts.length ? (
+            <>
+              <p className="text-base font-bold text-foreground">No guide matched that search.</p>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                Try &ldquo;bleed,&rdquo; &ldquo;spine,&rdquo; &ldquo;Canva,&rdquo; &ldquo;safe area,&rdquo; or &ldquo;cover rejected.&rdquo;
+              </p>
+            </>
+          ) : (
+            <p className="text-base font-bold text-foreground">New KDP formatting guides are coming soon.</p>
+          )}
         </div>
       )}
+      {footer}
     </section>
   );
 }

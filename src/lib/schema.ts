@@ -56,11 +56,6 @@ export function websiteSchema(): JsonLdObject {
     inLanguage: 'en-US',
     copyrightHolder: { '@type': 'Organization', name: SITE_NAME },
     publisher: { '@id': `${SITE_URL}/#organization` },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/blog?q={search_term_string}` },
-      'query-input': 'required name=search_term_string',
-    },
   };
 }
 
@@ -261,11 +256,9 @@ export function blogPostingSchema({
       width: 512,
       height: 512,
     },
-    author: {
-      '@type': 'Organization',
-      name: authorName ?? SITE_NAME,
-      url: SITE_URL,
-    },
+    author: authorName
+      ? { '@type': 'Person', name: authorName }
+      : { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
     publisher: {
       '@type': 'Organization',
       name: SITE_NAME,

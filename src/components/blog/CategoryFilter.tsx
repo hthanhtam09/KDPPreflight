@@ -1,6 +1,6 @@
 'use client';
 
-import { getBlogCategory, type BlogCategoryFilter } from '@/lib/blog';
+import { getBlogCategory, type BlogCategoryFilter } from '@/lib/blog-categories';
 
 export function CategoryFilter({
   categories,

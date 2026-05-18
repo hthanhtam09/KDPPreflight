@@ -1,0 +1,132 @@
+{
+  "title": "KDP Cover Uploaded Successfully but Looks Cropped",
+  "slug": "kdp-cover-uploaded-successfully-but-looks-cropped",
+  "description": "Learn why your Amazon KDP cover looks cropped, zoomed in, or cut off after upload, and how to fix bleed, trim, safe area, export settings, and alignment problems correctly.",
+  "metaTitle": "KDP Cover Uploaded Successfully but Looks Cropped: How to Fix It",
+  "metaDescription": "Learn why your Amazon KDP cover looks cropped, zoomed in, or cut off after upload, and how to fix bleed, trim, safe area, export settings, and alignment problems correctly.",
+  "ogTitle": "Why Your KDP Cover Looks Cropped After Upload",
+  "ogDescription": "A detailed guide to fixing cropped, zoomed, shifted, or cut-off KDP covers caused by bleed issues, trim errors, export settings, or unsafe text placement.",
+  "ogImageAlt": "Technical illustration showing a cropped KDP paperback cover with bleed and safe-area comparison.",
+  "excerpt": "If your Amazon KDP cover uploaded successfully but suddenly looks zoomed in, cropped, or cut off in the Previewer, the problem is usually related to bleed, trim size, safe areas, or export dimensions. This guide explains exactly how to fix it.",
+  "category": "cover-rejections",
+  "tags": [
+    "cropped cover",
+    "KDP Previewer",
+    "bleed",
+    "safe area",
+    "trim size"
+  ],
+  "keywords": [
+    "kdp cover looks cropped",
+    "amazon kdp cover cropped",
+    "kdp cover cut off",
+    "kdp preview cropped",
+    "kdp cover trimmed incorrectly",
+    "kdp cover shifted",
+    "kdp bleed crop issue",
+    "kdp cover preview wrong",
+    "kdp cover missing edges",
+    "kdp text cut off",
+    "kdp cover alignment issue"
+  ],
+  "publishedAt": "2026-05-18",
+  "updatedAt": "2026-05-18",
+  "author": "KDP Preflight Editorial",
+  "shortAnswer": "If your KDP cover looks cropped after upload, check whether important text or artwork is too close to the trim edge. KDP Previewer is usually showing bleed and trim behavior, not randomly zooming your file. Verify trim size, bleed, safe area, and final PDF dimensions, then move important content inward and re-export.",
+  "relatedToolKeys": [
+    "checker",
+    "bleedChecker",
+    "validator",
+    "trimCalculator"
+  ],
+  "relatedGuides": [
+    {
+      "label": "KDP Cover Checker",
+      "href": "/tools/kdp-cover-checker"
+    },
+    {
+      "label": "KDP Bleed Checker",
+      "href": "/tools/kdp-bleed-checker"
+    },
+    {
+      "label": "Safe area glossary",
+      "href": "/glossary/safe-area"
+    },
+    {
+      "label": "Printable area glossary",
+      "href": "/glossary/printable-area"
+    },
+    {
+      "label": "Barcode area guide",
+      "href": "/blog/fix-barcode-area-contains-text-kdp"
+    },
+    {
+      "label": "Spine Width Calculator",
+      "href": "/tools/kdp-spine-width-calculator"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Why does my KDP cover look zoomed in?",
+      "answer": "The Previewer may look zoomed in because it is showing the final trim area of the printed cover. If your background, border, or text was built too close to the trim line, the simulated cut can make the cover feel cropped."
+    },
+    {
+      "question": "Why is my text cut off in KDP Previewer?",
+      "answer": "Text usually gets cut off when it sits in the bleed area, outside the safe area, or too close to the trim edge. Move subtitles, author names, logos, and small text inward before exporting again."
+    },
+    {
+      "question": "Does bleed make the cover look cropped?",
+      "answer": "Bleed itself is not the problem. Bleed is supposed to be trimmed away. The issue happens when important content is placed in the area that KDP expects to trim."
+    },
+    {
+      "question": "Can Canva cause KDP cropping issues?",
+      "answer": "Yes. Canva covers often look fine on screen while text, borders, or artwork sit outside the safe area. Use the correct custom size, import the KDP template as a guide, and export as PDF Print."
+    },
+    {
+      "question": "Why does my PDF look fine before upload?",
+      "answer": "Most PDF viewers show the full page box, not the final printed trim result. KDP Previewer is closer to print production because it shows where the cover may be cut."
+    },
+    {
+      "question": "How far should text stay from the trim edge?",
+      "answer": "Use the safe area shown in the KDP template and add extra breathing room for important text. More padding is especially helpful near the bottom edge, outer edges, and spine folds."
+    },
+    {
+      "question": "Why do borders look uneven on KDP covers?",
+      "answer": "Thin borders make normal trim variation obvious. Even a small shift during printing can make one side look thicker than another, so keep borders away from the trim edge or avoid them."
+    },
+    {
+      "question": "Can KDP trim slightly differently during printing?",
+      "answer": "Yes. Small trim variation is normal in print production. That is why important content should stay inside the safe area and backgrounds should extend through the bleed."
+    },
+    {
+      "question": "Should backgrounds extend beyond trim size?",
+      "answer": "Yes, if your cover uses bleed. Background colors, textures, and edge artwork should extend beyond the trim line to the bleed edge so there are no accidental white strips after trimming."
+    }
+  ],
+  "summary": [
+    "A cropped-looking KDP cover is usually a bleed, trim, safe-area, or export-dimension issue.",
+    "KDP Previewer shows the final print trim more honestly than many local PDF viewers.",
+    "Move important content inward, extend backgrounds outward, avoid thin edge borders, and verify the exported PDF before uploading again."
+  ],
+  "checklist": [
+    "Bleed is enabled correctly.",
+    "Trim size matches the KDP project.",
+    "All important text is inside the safe area.",
+    "Backgrounds extend fully to the bleed edge.",
+    "No important content sits near the trim line.",
+    "PDF exported at the correct full cover dimensions.",
+    "The correct KDP template was used.",
+    "The final upload was checked in KDP Previewer."
+  ],
+  "diagrams": [
+    "cropped-bleed-trim-safe",
+    "cropped-text-example",
+    "correct-spacing-example",
+    "canva-crop-unsafe",
+    "thin-border-trim",
+    "black-cover-trim-illusion",
+    "correct-full-bleed",
+    "edge-spacing-comparison"
+  ],
+  "content": "\nIf your cover uploaded to Amazon KDP successfully but suddenly looks cropped or zoomed in inside the Previewer, you are not alone. This usually happens because the visible trim area is different from the full exported cover size.\n\nThe upload can succeed even when the layout is technically risky. KDP may accept the PDF file, then Previewer shows how the cover will be trimmed in print. That is when authors notice the cover looks cropped, the cover cut off near an edge, or the cover zoomed in compared with Canva, Photoshop, Affinity, Illustrator, or a local PDF viewer.\n\nThis is especially common with Canva exports, coloring books, journals, puzzle books, and dark full-bleed covers. The design may look correct in the editor because you are seeing the full canvas. KDP Previewer is showing the production result: bleed can be trimmed away, trim lines matter, and important content must stay inside the safe area.\n\nThe good news is that this is usually fixable without redesigning the whole cover. You need to identify whether the problem is bleed, trim size, safe area, export dimensions, or a layout element placed too close to the edge.\n\n## Why Your Cover Looks Different Inside KDP Previewer\n\nKDP Previewer is not just a PDF viewer. It simulates how the cover will be positioned and trimmed for printing. That means it can look different from the same file opened on your computer.\n\nBleed is extra artwork that extends beyond the final trim size. It exists so the printer can cut the book without leaving accidental white edges. The bleed area is supposed to disappear after trimming. If your title, subtitle, logo, border, or author name sits in that area, KDP may show it as cropped.\n\nTrim is the final cut size of the book. A 6 x 9 paperback is intended to finish as 6 inches wide by 9 inches tall, but the full cover PDF is larger because it includes bleed, spine, and the wraparound layout. The Previewer focuses on the final result, not just the raw PDF page.\n\nSafe area is the protected zone for important content. Text, logos, subtitles, series labels, QR codes, and key illustrations should stay inside it. What you see in Canva is not always what prints because Canva may show the design canvas without making trim risk obvious.\n\nKDP is not randomly cropping the file. In most cases, the file is revealing unsafe layout positioning. If a local PDF viewer looks fine, that may be because it shows the entire PDF page box, including bleed that will not be visible after printing.\n\nFor related production concepts, see the [safe area glossary](/glossary/safe-area), [printable area glossary](/glossary/printable-area), and [KDP bleed checker](/tools/kdp-bleed-checker).\n\n## The Most Common Cause: Text Too Close to the Edge\n\nThe most common reason a KDP cover looks cropped is that text is too close to the edge. This includes subtitles, author names, taglines, review quotes, series labels, and small call-to-action text on the back cover.\n\nA subtitle placed near the bottom edge may look perfectly fine in Canva but appear trimmed in KDP Previewer. The same can happen with an author name at the top of the front cover or a website URL near the bottom of the back cover.\n\nSafe area exists because printing is physical. A cover is printed on paper, aligned, trimmed, and folded. Small production shifts are normal. If important text sits right beside the trim line, even normal trimming can make it look cut off.\n\nMove important content inward. Do not move the background inward. Background color and artwork should usually extend outward into bleed, while readable text moves inward into the safe area.\n\n## Understanding Bleed vs Trim vs Safe Area\n\nThink of the cover as three zones.\n\nBleed is the outer buffer. It is extra artwork printed beyond the final edge. Bleed is not a place for important information. It is a sacrificial area that helps avoid white slivers after cutting.\n\nTrim is the final cut line. This is where the printed cover is expected to be cut. Anything outside trim may disappear. Anything exactly on trim is risky.\n\nSafe area is the inner comfort zone. This is where important text and critical artwork belong. Safe area gives your design breathing room so normal trim variation does not damage the cover.\n\nThe beginner mistake is treating the full exported PDF as the visible cover. The full PDF includes production space. The printed cover is the trimmed result.\n\nCorrect setup looks like this: background art extends all the way to the bleed edge, the trim line sits inside that background, and important text stays well inside the safe area.\n\nIncorrect setup looks like this: title text touches the trim line, a border hugs the edge, a subtitle sits in the bleed, or a Canva element extends outside the safe area because it looked balanced on screen.\n\n## Why Canva Covers Often Look Cropped on KDP\n\nCanva is popular because it makes cover design approachable. But Canva does not automatically make a cover KDP-safe.\n\nMany users design only what they think is the visible area. They create a front cover that looks like 6 x 9, then later discover that KDP needs a full paperback wraparound cover with back cover, spine, front cover, and bleed. If the canvas is wrong, the Previewer may appear cropped, shifted, or zoomed.\n\nBleed misunderstanding is another common cause. Canva may show a print bleed guide, but users often ignore it or place text inside it. The bleed guide is not a decoration. It marks the area that can be trimmed away.\n\nIncorrect custom size can also cause problems. If the full cover size does not match the KDP template, KDP may scale, position, or reject the file. Use the latest KDP template or a reliable [KDP cover checker](/tools/kdp-cover-checker), especially when page count or spine width changed.\n\nBackgrounds must extend fully to bleed. If you stop a background at the trim edge, the preview can show white edges or odd cropping. But do not solve that by stretching the whole design outward with text attached. Extend background art outward and keep important content inward.\n\nCanva templates can also include elements too close to edges: thin frames, corner decorations, subtitles, author names, and small bottom text. A template can look professional and still fail print-safe spacing.\n\nAfter the Canva workflow section, run the exported PDF through [KDPPreflight](/tools/kdp-cover-checker). Check the PDF you will upload, not only the Canva design view.\n\n## Photoshop, Affinity, and Illustrator Causes\n\nProfessional tools can create the same issue if the technical setup is wrong.\n\nWrong canvas size is the first thing to check. The file must be the full cover dimensions, not just the front cover dimensions. For paperback, that means back cover + spine + front cover + bleed. If the spine width changed, the canvas may need to change too. Use the [spine width calculator](/tools/kdp-spine-width-calculator) when page count changes.\n\nHidden crop marks or export marks can confuse the final PDF. KDP generally wants the cover artwork at the correct size, not a file padded with extra printer marks unless the workflow specifically calls for them.\n\nExport scaling is another problem. If the export dialog says \"fit to page,\" \"scale to printable area,\" or adds margins, the final PDF can be smaller or larger than expected. That can make KDP Previewer appear to crop or shift the cover.\n\nGuide layers can be ignored or accidentally flattened. If you build guides for bleed, trim, and safe area, keep them locked while designing, then remove or hide technical template layers before final export.\n\nDPI confusion also trips people up. A 300 DPI file can still have the wrong physical dimensions. Resolution does not automatically guarantee correct layout. The page size, bleed setup, and object positions matter just as much.\n\nFor export-specific troubleshooting, verify PDF dimensions and export format carefully before reuploading.\n\n## How to Fix a Cropped KDP Cover\n\n### Step 1: Check Trim Size\n\nConfirm the trim size selected in KDP. If your KDP setup says 6 x 9 but your cover was designed for 8.5 x 11, the Previewer will not match your expectations. The trim size must match the cover template and interior setup.\n\n### Step 2: Verify Bleed Setting\n\nCheck whether your project uses bleed and whether the cover includes the required bleed area. If the design reaches the edge, you usually need bleed. If KDP expects bleed and the file does not include it correctly, the preview may show missing edges or cropping.\n\n### Step 3: Move Text Inward\n\nMove every important text element away from trim: title, subtitle, author name, back-cover blurb, website, logo, and barcode-adjacent content. Use the safe area as the minimum, then add extra padding when possible.\n\n### Step 4: Extend Backgrounds Fully to Bleed\n\nDo not leave the bleed area empty. Extend background colors, photos, patterns, or illustrations outward to the bleed edge. This prevents white strips after trimming.\n\n### Step 5: Compare PDF Dimensions With the KDP Template\n\nOpen the exported PDF properties and compare the page size with the KDP template dimensions. If the PDF dimensions are wrong, fix the source file size or export settings before trying layout tweaks.\n\n### Step 6: Check Safe Area Spacing\n\nLook at every important object. If it would be painful to lose it, it belongs inside safe area. This includes decorative text, series labels, QR codes, logos, and small elements that seem minor but matter to the cover.\n\n### Step 7: Re-Export Correctly\n\nExport as a print-ready PDF. Avoid extra margins, scaling, crop marks, or accidental template overlays. If using Canva, choose PDF Print and confirm the final size when possible. If using Photoshop or Illustrator, export at the actual document dimensions.\n\n### Step 8: Upload to Previewer Again\n\nUpload the corrected file and inspect the Previewer slowly. Check the front cover, back cover, spine edges, top and bottom edges, and barcode area. If the cover still appears shifted, compare it against the KDP template again.\n\nBefore uploading your paperback again, run your cover through [KDPPreflight](/tools/kdp-cover-checker) to detect bleed issues, unsafe text placement, trim problems, and potential cropping risks before Amazon KDP Previewer catches them.\n\n## How Much Space Should Text Stay Away from the Edge?\n\nUse the official KDP template safe area first. Then add extra room for important text whenever the design allows it.\n\nAs a practical rule, do not place subtitles, author names, logos, or small text right beside the trim edge. Extra padding makes the cover more reliable in print and less stressful in Previewer.\n\nSpine edges are especially risky. Text near the spine fold can look off-center after binding, and full cover alignment issues can become obvious around the front/spine and back/spine boundaries. If your page count changed, also revisit the [KDP cover size mismatch guide](/blog/kdp-cover-size-does-not-match-interior).\n\nGOOD example: subtitle centered with clear space below it, author name inside the safe area, background extended to bleed.\n\nBAD example: subtitle touching the bottom trim line, author name partly in bleed, thin border hugging the cover edge.\n\n## Full-Black Covers and Cropping Illusions\n\nFull-black covers are common for coloring books, journals, notebooks, and puzzle books. They can look beautiful, but they make trim movement more visible.\n\nOn a light cover, a tiny shift may be hard to see. On a black cover, a small trim difference can look like the cover is cropped, shifted, or uneven. If the design includes a bright border, the effect is even stronger.\n\nFull-page artwork can also appear zoomed in because the Previewer is showing the trimmed area. If the artwork contains important details right at the edge, those details may disappear during trim.\n\nPrinting trim tolerance is normal. The fix is to design for it: extend dark backgrounds through bleed, avoid edge-critical details, and keep important artwork inside safe area.\n\n## Why Thin Borders Often Cause Cropping Problems\n\nThin edge borders are one of the fastest ways to make a normal print trim look wrong.\n\nImagine a journal cover with a narrow white line running around the edge. If the physical trim shifts slightly, one side of the border may look thicker than the other. The cover may technically be acceptable, but the design makes normal variation obvious.\n\nPuzzle books and coloring books often use frames. If the frame hugs the trim line, KDP Previewer may make it look cropped. Printed copies may also show uneven border spacing.\n\nThe safer approach is to move borders inward or avoid edge borders altogether. If you want a frame, give it enough distance from trim that small shifts do not ruin the look.\n\n## Common Beginner Mistakes\n\nPlacing text inside bleed is the big one. Bleed is not a text zone. It is an outer buffer for backgrounds.\n\nForgetting safe area is next. If the KDP template shows a safe boundary and the title crosses it, the cover may upload but still look risky in Previewer.\n\nUsing the wrong template can make everything look shifted. Templates depend on trim size, page count, paper type, and format. If you changed the interior, regenerate the cover template.\n\nExporting wrong dimensions is also common. A PDF can look sharp and still be the wrong physical size. Always check page dimensions, not just image quality.\n\nUploading an outdated version causes confusion. Authors often fix the source file but accidentally upload the previous PDF. Rename files clearly and check timestamps.\n\nFlattening incorrectly can move or crop objects. If your app trims to visible pixels, adds artboard margins, or changes page boxes, the exported PDF may not match your canvas.\n\nCanva margin misunderstandings cause many issues. Canva's visual margins are not automatically KDP safe areas. Use the KDP template.\n\nDecorative frames touching the edge are risky. They make normal trim variation look like a production error.\n\n## How to Prevent Cropping Problems Before Uploading\n\nStart with the official KDP template for the exact book. Keep guides visible while designing, then hide the guide layer before final export.\n\nKeep important content inside the safe area. This includes front-cover title, author name, subtitle, back-cover blurb, logos, and anything near the [barcode area guide](/blog/fix-barcode-area-contains-text-kdp).\n\nExtend backgrounds fully to bleed. A background can go outward; important content should go inward. That one distinction solves many KDP crop issues.\n\nAvoid thin edge borders. If you use borders, move them inward enough that trim variation will not look obvious.\n\nTest upload early. Do not wait until launch day to discover that KDP Previewer looks wrong. Upload a draft cover, check the preview, and adjust before finalizing.\n\nVerify the PDF dimensions after export. If the numbers do not match the template, fix the source or export settings. Preflight tools can catch issues before KDP does.\n\n## Quick Checklist Before Uploading Again\n\n- Bleed enabled correctly\n- Trim size matches project\n- Text inside safe area\n- Backgrounds extend fully\n- No important content near trim\n- PDF exported correctly\n- Correct template used\n- Final upload preview checked\n\n## FAQ\n\n### Why does my KDP cover look zoomed in?\n\nKDP Previewer may look zoomed in because it is showing the trimmed print result. If your design relies on edge details, the simulated trim can make the cover feel cropped.\n\n### Why is my text cut off in KDP Previewer?\n\nText is usually cut off because it sits too close to the trim edge, inside bleed, or outside the safe area. Move it inward and re-export.\n\n### Does bleed make the cover look cropped?\n\nBleed is meant to be trimmed away. It only becomes a problem when important content is placed in the bleed area instead of using bleed only for backgrounds.\n\n### Can Canva cause KDP cropping issues?\n\nYes. Canva designs often look fine visually while ignoring KDP trim and safe-area rules. Import the KDP template, lock it as a guide, and export the final cover as PDF Print.\n\n### Why does my PDF look fine before upload?\n\nYour local PDF viewer may show the entire page box, including bleed. KDP Previewer shows the expected printed trim result, which can reveal unsafe content near edges.\n\n### How far should text stay from the trim edge?\n\nUse the safe area on the KDP template and add extra padding when possible. Important text should never sit directly on or near the trim line.\n\n### Why do borders look uneven on KDP covers?\n\nThin borders exaggerate normal trim variation. Even a tiny shift can make one side look thicker, so keep borders farther from the edge.\n\n### Can KDP trim slightly differently during printing?\n\nYes. Small trim variation is normal. Designing with bleed and safe area protects the cover from those physical production shifts.\n\n### Should backgrounds extend beyond trim size?\n\nYes. Background colors, textures, and edge artwork should extend to the bleed edge so trimming does not reveal unwanted white strips.\n\n## Final Check Before You Upload Again\n\nA cropped-looking KDP cover is frustrating because the upload can succeed and the PDF can look normal locally. But Previewer is showing production reality: bleed gets trimmed, edges have tolerance, and unsafe content near trim can disappear.\n\nBefore uploading your paperback again, run your cover through [KDPPreflight](/tools/kdp-cover-checker) to detect bleed issues, unsafe text placement, trim problems, and potential cropping risks before Amazon KDP Previewer catches them.\n"
+}

@@ -70,7 +70,7 @@ const capabilities = [
     summary: 'Identifies content placed in the trim-risk zone.',
     detail:
       'The safe area is the region ≥0.25" inside the trim edge on all sides. The checker flags content that falls between the safe area boundary and the trim line — the zone where production cut variation can remove or damage printed content.',
-    href: '/blog/kdp-safe-area-guide',
+    href: '/blog',
   },
   {
     id: 'preview',

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ArrowRight, Clock } from 'lucide-react';
-import { formatBlogDate, getBlogCategory, type BlogPost } from '@/lib/blog';
+import { getBlogCategory } from '@/lib/blog-categories';
+import { formatBlogDate } from '@/lib/blog/blog-utils';
+import type { BlogPost } from '@/types/blog';
 import { BlogPostVisual } from './BlogPostVisual';
 
 export function BlogCard({ post }: { post: BlogPost }) {
@@ -14,11 +16,11 @@ export function BlogCard({ post }: { post: BlogPost }) {
       >
         <div className="relative h-40 overflow-hidden border-b border-border bg-muted/35">
           <BlogPostVisual postSlug={post.slug} category={category} />
-          <div className="absolute inset-x-5 top-5 flex items-center justify-between gap-3">
-            <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+          <div className="absolute inset-x-5 top-5 z-10 flex items-center justify-between gap-3">
+            <span className="max-w-[calc(100%-7.5rem)] truncate rounded-full border border-primary/25 bg-card/95 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-primary shadow-soft backdrop-blur-md">
               {category.label}
             </span>
-            <span className="rounded-full border border-border bg-background/75 px-3 py-1 text-[11px] font-semibold text-muted-foreground backdrop-blur">
+            <span className="shrink-0 rounded-full border border-border bg-card/95 px-3 py-1 text-[11px] font-semibold text-muted-foreground shadow-soft backdrop-blur-md">
               {post.readingTime}
             </span>
           </div>

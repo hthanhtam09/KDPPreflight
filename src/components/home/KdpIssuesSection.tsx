@@ -296,10 +296,10 @@ export default function KdpIssuesSection() {
                   Run free cover check
                 </Link>
                 <Link
-                  href="/blog/why-amazon-rejected-your-kdp-cover"
+                  href="/blog"
                   className="ds-button-secondary inline-flex min-h-9 items-center gap-2 rounded-xl px-4 text-[13px] font-bold transition hover:-translate-y-px hover:border-primary/30 active:translate-y-px"
                 >
-                  KDP rejection guide
+                  KDP guides
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>

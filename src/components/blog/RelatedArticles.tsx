@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { getBlogCategory, type BlogPost } from '@/lib/blog';
+import { getBlogCategory } from '@/lib/blog-categories';
+import type { BlogPost } from '@/types/blog';
 
 export function RelatedArticles({ posts }: { posts: BlogPost[] }) {
   if (!posts.length) return null;

@@ -9,7 +9,11 @@ import { ArticleCallout } from '@/components/blog/ArticleCallout';
 import { ArticleDiagram } from '@/components/blog/ArticleDiagram';
 import { ArticleFAQ } from '@/components/blog/ArticleFAQ';
 import { BlogCTA } from '@/components/blog/BlogCTA';
+import { BlogJumpLinks } from '@/components/blog/BlogJumpLinks';
 import { BlogPostVisual } from '@/components/blog/BlogPostVisual';
+import { BlogReadingProgress } from '@/components/blog/BlogReadingProgress';
+import { FloatingRelatedSidebar } from '@/components/blog/FloatingRelatedSidebar';
+import { MobileTocSheet } from '@/components/blog/MobileTocSheet';
 import { RelatedArticles } from '@/components/blog/RelatedArticles';
 import { TableOfContents } from '@/components/blog/TableOfContents';
 import { FeatureFeedback } from '@/components/feedback/FeatureFeedback';
@@ -24,26 +28,21 @@ import {
   getTableOfContents,
   slugifyHeading,
 } from '@/lib/blog';
-import { generateBlogMetadata } from '@/lib/seo';
-import { articleSchema, blogPostingSchema, breadcrumbSchema, faqSchema, SITE_URL } from '@/lib/schema';
+import { getBlogPostMetadata } from '@/lib/blog/metadata';
+import { blogPostingSchema, breadcrumbSchema, faqSchema, SITE_URL } from '@/lib/schema';
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
+
+export const dynamicParams = false;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = getBlogPost(slug);
   if (!post) return {};
 
-  return generateBlogMetadata({
-    title: `${post.title} | KDP Preflight`,
-    description: post.description,
-    slug: post.slug,
-    publishedAt: post.publishedAt,
-    updatedAt: post.updatedAt,
-    keywords: post.keywords,
-  });
+  return getBlogPostMetadata(post);
 }
 
 export function generateStaticParams() {
@@ -62,17 +61,10 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
+      <BlogReadingProgress articleId="blog-article-content" />
       <JsonLd
         id={`blog-${slug}-schema`}
         data={[
-          articleSchema({
-            title: post.title,
-            description: post.description,
-            slug: post.slug,
-            publishedAt: post.publishedAt,
-            modifiedAt: post.updatedAt,
-            keywords: post.keywords,
-          }),
           blogPostingSchema({
             title: post.title,
             description: post.description,
@@ -148,33 +140,37 @@ export default async function BlogPostPage({ params }: Props) {
         </header>
 
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[240px_minmax(0,760px)_260px] lg:py-14">
-          <aside className="order-3 space-y-8 self-start lg:order-1">
-            <RelatedArticles posts={relatedPosts} />
-            {post.relatedGuides.length > 0 && (
-              <section aria-labelledby="related-guides-heading">
-                <h2 id="related-guides-heading" className="text-sm font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                  Related KDP pages
-                </h2>
-                <div className="mt-4 grid gap-2">
-                  {post.relatedGuides.map((guide) => (
-                    <Link
-                      key={guide.href}
-                      href={guide.href}
-                      className="inline-flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
-                    >
-                      {guide.label}
-                      <ArrowRight className="h-3.5 w-3.5 text-primary" />
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
+          <aside className="order-3 self-start lg:order-1">
+            <FloatingRelatedSidebar>
+              <RelatedArticles posts={relatedPosts} />
+              {post.relatedGuides.length > 0 && (
+                <section aria-labelledby="related-guides-heading">
+                  <h2 id="related-guides-heading" className="text-sm font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                    Related KDP pages
+                  </h2>
+                  <div className="mt-4 grid gap-2">
+                    {post.relatedGuides.map((guide) => (
+                      <Link
+                        key={guide.href}
+                        href={guide.href}
+                        className="inline-flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
+                      >
+                        {guide.label}
+                        <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </FloatingRelatedSidebar>
           </aside>
 
           <article id="blog-article-content" className="order-2 min-w-0 self-start">
             <ArticleCallout variant="tip" title="Quick answer">
               {post.shortAnswer}
             </ArticleCallout>
+
+            <BlogJumpLinks items={toc} />
 
             {post.diagrams.slice(0, 2).map((diagram) => (
               <ArticleDiagram key={diagram} type={diagram} />
@@ -233,10 +229,12 @@ export default async function BlogPostPage({ params }: Props) {
             </footer>
           </article>
 
-          <aside className="order-1 self-start lg:order-3">
+          <aside className="order-1 hidden self-start lg:order-3 lg:block">
             <TableOfContents items={toc} />
           </aside>
         </div>
+
+        <MobileTocSheet items={toc} />
 
         <BlogCTA title="Check your KDP cover before uploading" />
       </main>

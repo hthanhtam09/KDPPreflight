@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ListTree } from 'lucide-react';
-import type { TocItem } from '@/lib/blog';
+import type { TocItem } from '@/types/blog';
 
 export function TableOfContents({ items }: { items: TocItem[] }) {
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState(items[0]?.id ?? '');
   const [floating, setFloating] = useState(false);
   const [floatingTop, setFloatingTop] = useState(96);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const activeLinkRefs = useRef(new Map<string, HTMLAnchorElement>());
   const activeIdRef = useRef(items[0]?.id ?? '');
   const tickingRef = useRef(false);
 
@@ -73,10 +75,10 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
   useEffect(() => {
     if (!floating) return;
 
-    const article = document.getElementById('blog-article-content');
-    if (!article) return;
+    const articleElement = document.getElementById('blog-article-content');
+    if (!(articleElement instanceof HTMLElement)) return;
 
-    function updatePosition() {
+    function updatePosition(article: HTMLElement) {
       const articleRect = article.getBoundingClientRect();
       const viewportTopOffset = 96;
       const viewportBottomPadding = 24;
@@ -87,15 +89,31 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
       setFloatingTop(Math.min(topLimitedByArticleStart, bottomLimitedTop));
     }
 
-    updatePosition();
-    window.addEventListener('scroll', updatePosition, { passive: true });
-    window.addEventListener('resize', updatePosition);
+    const requestPositionUpdate = () => updatePosition(articleElement);
+
+    requestPositionUpdate();
+    window.addEventListener('scroll', requestPositionUpdate, { passive: true });
+    window.addEventListener('resize', requestPositionUpdate);
 
     return () => {
-      window.removeEventListener('scroll', updatePosition);
-      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', requestPositionUpdate);
+      window.removeEventListener('resize', requestPositionUpdate);
     };
   }, [floating]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    const activeLink = activeLinkRefs.current.get(activeId);
+    if (!container || !activeLink) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const activeRect = activeLink.getBoundingClientRect();
+    const padding = 16;
+
+    if (activeRect.top < containerRect.top + padding || activeRect.bottom > containerRect.bottom - padding) {
+      activeLink.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
+  }, [activeId]);
 
   const floatingStyle = floating
     ? ({
@@ -111,6 +129,7 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
 
   return (
     <div
+      ref={scrollContainerRef}
       style={floatingStyle}
       className="max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl border border-border bg-card p-4 shadow-soft [scrollbar-gutter:stable]"
     >
@@ -134,6 +153,13 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
             return (
               <li key={item.id} className={item.level === 3 ? 'pl-4' : undefined}>
                 <a
+                  ref={(node) => {
+                    if (node) {
+                      activeLinkRefs.current.set(item.id, node);
+                    } else {
+                      activeLinkRefs.current.delete(item.id);
+                    }
+                  }}
                   href={`#${item.id}`}
                   aria-current={active ? 'location' : undefined}
                   className={`relative block rounded-lg border px-2 py-1.5 text-sm leading-5 transition ${

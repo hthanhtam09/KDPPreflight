@@ -58,7 +58,7 @@ export const toolPages: ToolPage[] = [
     h1: 'Check KDP bleed before Amazon flags your PDF.',
     intro: 'Missing bleed is one of the easiest KDP upload problems to prevent. Check whether your exported PDF includes the correct 0.125 inch bleed area before upload.',
     primaryCta: { label: 'Check Bleed in My PDF', href: '/checker' },
-    secondaryCta: { label: 'Read Bleed Guide', href: '/blog/kdp-bleed-explained' },
+    secondaryCta: { label: 'Browse Guides', href: '/blog' },
     checks: ['Bleed-inclusive PDF size', 'Trim vs bleed mismatch', 'Full-bleed artwork risk', 'Canva and Photoshop export mistakes'],
     steps: [
       { name: 'Choose trim size', text: 'Select the trim size used in your KDP book setup.' },
@@ -106,7 +106,7 @@ export const toolPages: ToolPage[] = [
     h1: 'Calculate KDP trim, bleed, and cover dimensions.',
     intro: 'Choose the right trim size and calculate the dimensions your manuscript and cover PDF need before you design or export.',
     primaryCta: { label: 'Calculate Trim Dimensions', href: '/setup' },
-    secondaryCta: { label: 'Read Trim Size Guide', href: '/blog/kdp-trim-size-guide' },
+    secondaryCta: { label: 'Browse Guides', href: '/blog' },
     checks: ['Common paperback trim sizes', 'Bleed-inclusive page size', 'Cover wrap dimensions', 'Trim mismatch risk', 'Setup consistency'],
     steps: [
       { name: 'Select trim size', text: 'Pick the book size that matches genre, page count, and reader expectations.' },
@@ -130,7 +130,7 @@ export const toolPages: ToolPage[] = [
     h1: 'Validate your KDP full cover wrap before upload.',
     intro: 'A valid KDP print cover must be one full wrap PDF with the correct back cover, spine, front cover, and bleed dimensions. Validate the final PDF before Amazon reviews it.',
     primaryCta: { label: 'Validate My Cover', href: '/checker' },
-    secondaryCta: { label: 'Learn Cover Dimensions', href: '/blog/kdp-cover-dimensions-explained' },
+    secondaryCta: { label: 'Browse Guides', href: '/blog' },
     checks: ['Back + spine + front cover wrap', 'Total cover width', 'Total cover height', 'Bleed on outside edges', 'Barcode zone', 'Safe area content'],
     steps: [
       { name: 'Calculate cover dimensions', text: 'Use trim size, page count, paper type, spine width, and bleed.' },

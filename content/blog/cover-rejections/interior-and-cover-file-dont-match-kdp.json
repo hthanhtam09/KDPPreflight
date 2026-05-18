@@ -1,0 +1,141 @@
+{
+  "title": "How to Fix \"Interior and Cover File Don't Match\" on KDP",
+  "slug": "interior-and-cover-file-dont-match-kdp",
+  "description": "Learn why Amazon KDP says your interior and cover files don't match, what causes trim size and spine mismatches, and how to fix your files before uploading again.",
+  "metaTitle": "How to Fix \"Interior and Cover File Don't Match\" on KDP",
+  "metaDescription": "Learn why Amazon KDP says your interior and cover files don't match, what causes trim size and spine mismatches, and how to fix your files before uploading again.",
+  "ogTitle": "KDP Interior and Cover Files Don't Match: Complete Fix Guide",
+  "ogDescription": "A detailed guide to fixing KDP cover and manuscript mismatch errors caused by incorrect trim size, bleed settings, page count, spine width, or export dimensions.",
+  "ogImageAlt": "Technical diagram comparing mismatched KDP interior and cover file dimensions.",
+  "excerpt": "Amazon KDP shows the \"Interior and Cover File Don't Match\" warning when your cover file settings do not align with your manuscript setup. This guide explains how to fix trim size, bleed, spine width, page count, and export mismatches correctly.",
+  "category": "cover-rejections",
+  "tags": [
+    "interior cover mismatch",
+    "KDP file mismatch",
+    "trim size mismatch",
+    "spine width",
+    "bleed mismatch"
+  ],
+  "keywords": [
+    "interior and cover file don't match kdp",
+    "cover and interior files do not match",
+    "kdp file mismatch",
+    "amazon kdp cover mismatch",
+    "kdp manuscript and cover mismatch",
+    "kdp cover does not match interior",
+    "paperback cover mismatch",
+    "kdp trim size mismatch",
+    "kdp spine width mismatch",
+    "kdp upload mismatch",
+    "kdp interior dimensions problem"
+  ],
+  "publishedAt": "2026-05-18",
+  "updatedAt": "2026-05-18",
+  "featured": true,
+  "author": "KDP Preflight Editorial",
+  "shortAnswer": "If Amazon KDP says your interior and cover files don't match, the cover PDF was built using different book settings than the manuscript you uploaded. Check trim size, final page count, paper type, bleed settings, and spine width — then rebuild the cover to match the exact manuscript configuration and re-export both files.",
+  "relatedToolKeys": [
+    "checker",
+    "trimCalculator",
+    "spineCalculator",
+    "bleedChecker"
+  ],
+  "relatedGuides": [
+    {
+      "label": "KDP Cover Checker",
+      "href": "/tools/kdp-cover-checker"
+    },
+    {
+      "label": "KDP Trim Size Calculator",
+      "href": "/tools/kdp-trim-size-calculator"
+    },
+    {
+      "label": "KDP Spine Width Calculator",
+      "href": "/tools/kdp-spine-width-calculator"
+    },
+    {
+      "label": "KDP Bleed Checker",
+      "href": "/tools/kdp-bleed-checker"
+    },
+    {
+      "label": "Spine width glossary",
+      "href": "/glossary/spine-width"
+    },
+    {
+      "label": "Trim size glossary",
+      "href": "/glossary/trim-size"
+    },
+    {
+      "label": "Cover size mismatch guide",
+      "href": "/blog/kdp-cover-size-does-not-match-interior"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Why does KDP say my interior and cover files don't match?",
+      "answer": "KDP compares the dimensions of both uploaded files against the book settings in your project. If trim size, bleed, page count, paper type, or spine width differs between the two files, the mismatch warning appears. The most common cause is a cover built from different settings than the final manuscript."
+    },
+    {
+      "question": "Can changing page count affect the cover file?",
+      "answer": "Yes. Page count controls spine width in KDP's formula. Even adding or removing a few pages changes the spine calculation, which changes the required total cover width. A cover built for the old page count will not match the new one."
+    },
+    {
+      "question": "Does bleed affect KDP cover dimensions?",
+      "answer": "Yes. KDP requires 0.125-inch bleed on the outside edges of the full cover wrap. The cover PDF must be 0.25 inches taller and wider than the trim dimensions to include this bleed. If bleed is missing, inconsistent, or set to the wrong value, the total dimensions will not match what KDP expects."
+    },
+    {
+      "question": "Why does my KDP Previewer look misaligned?",
+      "answer": "A misaligned Previewer usually means the spine width in your cover does not match the spine KDP calculates from your actual page count and paper type. The spine section shifts, making the front and back panels appear off-center or overlapping."
+    },
+    {
+      "question": "Can Canva cause cover mismatch errors?",
+      "answer": "Yes, very commonly. Canva's most frequent mistake is designing the cover at front-panel dimensions only rather than full wrap dimensions. Exporting as Standard PDF instead of PDF Print can also cause dimension rounding that fails KDP's validation."
+    },
+    {
+      "question": "Should I finalize the manuscript before designing the cover?",
+      "answer": "Always. The cover depends on the exact page count — which determines spine width — and the exact trim size. If either changes after the cover is designed, the cover must be rebuilt. Design the interior first, finalize it completely, then begin the cover."
+    },
+    {
+      "question": "What happens if the spine width is wrong?",
+      "answer": "A wrong spine width changes the total cover width. KDP will reject the file as a mismatch because the cover is either too wide or too narrow for the book it is paired with. In some cases KDP may accept the upload but show a misaligned Previewer."
+    },
+    {
+      "question": "Can I reuse an old KDP template for a new book?",
+      "answer": "Only if the trim size, page count, and paper type are completely identical to the old book. Otherwise the spine width will be wrong. It is safer to always generate a fresh template for each book."
+    },
+    {
+      "question": "How do I know if my PDF dimensions are correct?",
+      "answer": "Open your cover PDF in any PDF viewer and check the page size in document properties. It should equal back trim width + spine width + front trim width + 0.25 inches for width, and trim height + 0.25 inches for height. You can also run it through KDPPreflight for an automated check."
+    },
+    {
+      "question": "Can KDP reject mismatched files completely?",
+      "answer": "KDP may reject the file outright or allow upload while showing the mismatch warning in Previewer. Either way the book cannot be published until both files match. If the Previewer looks correct but the warning persists, double-check your file dimensions and re-export."
+    }
+  ],
+  "summary": [
+    "This error appears when your cover PDF was built using different trim size, page count, paper type, or bleed settings than the interior you uploaded — fix by aligning both files to the same book setup.",
+    "Page count drives spine width, so any late manuscript changes require recalculating and rebuilding the cover before re-uploading.",
+    "Always finalize the interior, generate a fresh KDP template for the final page count, then design and verify the cover PDF dimensions before uploading."
+  ],
+  "checklist": [
+    "Trim sizes match between interior and cover",
+    "Page count is final and verified in KDP setup",
+    "Bleed set to 0.125 inches on all required outside edges",
+    "Spine width recalculated from final page count and paper type",
+    "Paper type confirmed in KDP setup (white, cream, or color)",
+    "Fresh cover template generated for current book settings",
+    "Cover PDF dimensions verified against KDP spec",
+    "Latest exported file version uploaded — not an old draft"
+  ],
+  "diagrams": [
+    "interior-cover-mismatch",
+    "trim-mismatch-comparison",
+    "bleed-mismatch-overlay",
+    "canva-wrong-setup",
+    "canva-correct-wraparound",
+    "spine-mismatch",
+    "pdf-dimension-check",
+    "file-alignment-workflow"
+  ],
+  "content": "If Amazon KDP says your interior and cover files don't match, it almost always means the cover PDF was built using different book settings than the manuscript you uploaded. Both files may have uploaded without error messages, and the dimensions may look correct at first glance — but KDP compares trim size, page count, paper type, bleed, and spine width together. Even a single setting out of alignment can trigger the mismatch warning.\n\nThe error appears under several names: \"Interior and Cover File Don't Match,\" \"cover does not match interior,\" \"files don't match,\" or a broken KDP Previewer with a misaligned spine. Each phrase points to the same root cause — one file was made using different book setup parameters than the other.\n\nThis guide walks through every cause of the mismatch, how to identify which setting is wrong, and how to fix both files so they align correctly before you upload again.\n\n## What Does This Error Actually Mean?\n\nKDP validates both files against the book setup you configured during the interior upload. It checks:\n\n- **Trim size** — the physical page dimensions of the printed book\n- **Bleed** — whether the PDF includes the required 0.125-inch bleed border\n- **Page count** — which drives spine width calculations\n- **Paper type** — white, cream, or color interior\n- **Full cover wrap dimensions** — back cover + spine + front cover + both bleed sides\n\nIf your cover PDF dimensions do not match what KDP calculates from those parameters, the mismatch warning appears.\n\nThe critical insight: KDP does not compare files visually. It compares dimensions mathematically. A cover that looks exactly correct at first glance but was built from different settings will still fail.\n\n## The Most Common Cause: Trim Size Mismatch\n\nThe single most frequent cause of interior and cover file mismatch is building the cover at the wrong trim size.\n\nKDP trim sizes define the physical page dimensions: 6×9, 5.5×8.5, 8.5×11, and others. Your interior manuscript must be designed for one specific trim size, and your cover must be a full wrap built around that exact same trim size.\n\n**Common trim size mistakes:**\n\n- Designing the cover for a 6×9 trim when the manuscript is 5.5×8.5\n- Using an old cover template from a previous book with a different trim size\n- Confusing the full cover width (back + spine + front + bleed) with the front cover trim size\n- Using a stock cover template with preset dimensions that do not match your book\n\n**What this looks like in practice:** You designed a cover for your 8.5×11 workbook, then decided mid-project to change the trim size to 6×9 to reduce printing cost. If you resize the interior but do not rebuild the cover from scratch at the new trim size, the two files will disagree on every dimension.\n\nFor a full breakdown of trim-size causes and fixes, see [Why Amazon KDP Says \"Cover Size Does Not Match Interior\"](/blog/kdp-cover-size-does-not-match-interior).\n\n## How Page Count Changes Affect the Cover\n\nPage count controls spine width. That is the link between your manuscript and your cover — and it is the link most authors accidentally break.\n\n**The spine width formula for paperback:**\n- White paper: pages × 0.002252 inches\n- Cream paper: pages × 0.0025 inches\n- Color interior: pages × 0.002347 inches\n\nA 200-page cream-paper paperback has a spine of 0.500 inches. A 220-page version has a spine of 0.550 inches. That 0.050-inch difference changes the total cover width, and if your cover was built for the 200-page spine, it will be too narrow for the 220-page version.\n\n**When this typically happens:**\n\n- Adding acknowledgments, appendices, or dedication pages after the cover is complete\n- Removing chapters or trimming content late in the editing process\n- Discovering KDP requires a minimum page count and adding filler pages\n- Coloring books adding or removing illustrations after the cover is designed\n\nEven adding two blank pages can shift the spine width enough to trigger a mismatch. Always verify the final page count before finalizing the cover.\n\n## Bleed vs No-Bleed Mismatch\n\nBleed is a 0.125-inch extension of your artwork beyond the trim line on each outside edge of the cover. KDP expects the full wraparound cover PDF to include bleed — making the cover both taller and wider than the bare trim dimensions.\n\n**How bleed causes mismatches:**\n\n- Cover formatted without bleed where KDP expects bleed on the outside edges\n- Bleed included on some edges but not all\n- Bleed set to the wrong value (0.0625 inches instead of 0.125 inches)\n- Interior formatted with bleed but cover built for no-bleed dimensions\n\nIf the bleed setup is inconsistent, the final dimensions will not match what KDP calculates from your book setup.\n\n**In Previewer terms:** A bleed mismatch often appears as a shifted or misaligned preview where the spine does not sit in the correct position or the front cover panel appears slightly cropped. If you have seen this, see [KDP Cover Uploaded Successfully but Looks Cropped](/blog/kdp-cover-uploaded-successfully-but-looks-cropped) for more on how bleed affects the Previewer.\n\nRun your cover through the [KDP Bleed Checker](/tools/kdp-bleed-checker) to confirm the bleed dimensions are correct before uploading.\n\n## Why Canva Projects Often Cause This Error\n\nCanva is one of the most common sources of interior and cover mismatch errors because it is easy to configure the canvas at the wrong size.\n\n**The front-cover-only trap:** Many Canva templates and tutorials show authors creating a cover using only the front panel dimensions — for example, a 6×9 canvas. This produces a front-cover-only PDF, not a full wraparound cover PDF. KDP requires the full back + spine + front + bleed layout. Uploading a front-cover-only file will always fail for paperback.\n\n**Common Canva setup mistakes:**\n\n- Creating a custom canvas at the front trim size instead of the full wrap width\n- Copying a previous Canva project without updating dimensions for the new book's page count\n- Not enabling bleed guides in Canva before starting the design\n- Exporting as Standard PDF instead of PDF Print\n- Designing at a canvas size that rounds to the wrong final dimensions\n\n**Correct Canva setup for a wraparound cover:**\n\n1. Calculate the full wrap width: back trim width + spine width + front trim width + 0.25 inches (0.125 in bleed on each outside edge)\n2. Create a custom Canva design using those exact dimensions\n3. Enable bleed guides before starting the design\n4. Export as PDF Print — not Standard PDF\n\nIf you export as Standard PDF, Canva applies additional compression that can cause dimension rounding and quality loss. For more on Canva export quality, see [Why Your KDP Cover Looks Blurry After Upload](/blog/why-your-kdp-cover-looks-blurry-after-upload).\n\nBefore uploading, run your Canva export through [KDPPreflight](/tools/kdp-cover-checker) to verify the dimensions and bleed match your book setup.\n\n## Photoshop, Affinity, and Illustrator Workflow Problems\n\nProfessional design software can also produce mismatch errors when the document setup is incorrect.\n\n**Photoshop common issues:**\n\n- Creating a document at trim size without adding bleed extensions to the canvas\n- Using a KDP template as a reference without setting the actual document dimensions to match\n- Exporting as JPEG or PNG instead of PDF — which strips bleed information\n- Using legacy templates from older KDP specification versions\n- Flattening layers and exporting with incorrect output dimensions\n\n**Affinity Publisher and Illustrator:**\n\n- Bleed settings in document setup not matching the required 0.125 inches\n- Crop marks being included in the exported PDF area, adding extra unexpected space to file dimensions\n- Document DPI not set to 300, causing export pipelines to scale the file on output\n- Exporting a selection instead of the full artboard\n\n**The key rule for professional software:** Set the canvas at the full wrap dimensions including bleed. Do not add bleed in export settings from a trim-sized canvas — this can introduce rounding differences. Build the document at the exact full-wrap pixel dimensions KDP requires.\n\nUse the [KDP Trim Size Calculator](/tools/kdp-trim-size-calculator) and [KDP Spine Width Calculator](/tools/kdp-spine-width-calculator) to calculate the exact full wrap dimensions before setting up your document.\n\n## How to Fix the Error Step by Step\n\nWork through this checklist in order. Many authors resolve the problem at step 2 or 3.\n\n**Step 1 — Confirm trim size in KDP setup.**\nOpen your KDP book setup and note the exact trim size. This is your baseline. Do not change it.\n\n**Step 2 — Verify final manuscript page count.**\nDownload your interior PDF and count the pages. Compare this to the page count shown in your KDP setup. They must match exactly.\n\n**Step 3 — Check bleed settings.**\nFor paperback, KDP requires 0.125-inch bleed on the outside edges of the full cover wrap. The cover must be 0.25 inches taller than the trim height, and the total width must include 0.125 inches on each outside edge plus the spine width.\n\n**Step 4 — Confirm paper type.**\nIn KDP book setup, verify whether white, cream, or color interior is selected. The spine width formula changes with paper type.\n\n**Step 5 — Generate a fresh KDP template.**\nUse the [KDP Spine Width Calculator](/tools/kdp-spine-width-calculator) or the official KDP template tool to generate a current template for your exact trim size, page count, and paper type. Do not reuse old templates.\n\n**Step 6 — Compare your PDF dimensions.**\nOpen your current cover PDF and check the page size in document properties. Compare it against what the fresh template specifies. Note any differences in width or height.\n\n**Step 7 — Update cover dimensions.**\nRebuild or resize the cover to the exact dimensions shown on the fresh template. If the trim size was wrong, rebuild from scratch rather than scaling the existing file.\n\n**Step 8 — Re-export both files.**\nExport the interior as PDF and the cover as PDF Print with bleed. Verify both file dimensions before uploading.\n\n**Step 9 — Upload to KDP Previewer.**\nUpload both files and check the Previewer carefully. Spine position, front cover layout, and back cover content should all align without any visible shifting.\n\nBefore uploading again, run both files through [KDPPreflight](/tools/kdp-cover-checker) to automatically detect trim mismatches, bleed inconsistencies, and spine-width errors.\n\n## How to Verify Your PDF Dimensions Correctly\n\nBefore uploading, verify your PDF dimensions match what KDP expects.\n\n**In Adobe Acrobat or Reader:**\nOpen the PDF and go to File → Properties → Description. The page size is listed in the document properties panel.\n\n**In macOS Preview:**\nOpen the PDF and press ⌘I or go to File → Get Info. The page dimensions appear in the information panel.\n\n**What to check:**\n- Cover PDF width should equal: back trim width + spine width + front trim width + 0.25 inches\n- Cover PDF height should equal: trim height + 0.25 inches\n- Interior PDF should match the exact trim size (with or without bleed depending on your interior setup)\n\n**Using KDPPreflight:**\nUpload your cover PDF through [KDPPreflight](/tools/kdp-cover-checker). It compares your PDF dimensions against your specified trim size, page count, and paper type, and reports any mismatch before upload.\n\n## Common Beginner Mistakes\n\n**Using an old cover after editing the manuscript.** If you edited the interior — even to fix a typo that changed page count — the old cover may no longer match the new spine width.\n\n**Forgetting that spine width changes with page count.** Many authors design the cover, finalize it, then add an index or appendix to the manuscript. Even ten extra pages changes the spine calculation.\n\n**Mixing bleed and no-bleed files.** If the interior was formatted with bleed but the cover was not — or vice versa — the dimension expectations will not align.\n\n**Resizing the manuscript trim size after the cover is complete.** Changing trim size after the cover is done means starting the cover over from scratch. There is no shortcut.\n\n**Uploading the wrong file version.** Uploading an older export saved before you made the last correction is surprisingly common, especially when working across multiple computer sessions or software versions.\n\n**Using a front-cover-only file for paperback.** For KDP paperback, the cover must be the full wraparound layout. A front-only cover will never match, regardless of dimensions.\n\n**Forgetting hardcover differences.** Hardcover covers have wrap and hinge allowances beyond spine width. The formula is different from paperback. Always use the hardcover-specific KDP template.\n\n**Exporting from Canva as Standard PDF.** Standard PDF from Canva applies compression and may round dimensions. Always use PDF Print for KDP covers.\n\n## How to Prevent This Error Before Uploading\n\n**Finalize the manuscript first.** Do not start the cover until the interior page count is completely final. Every post-cover change to page count risks a mismatch.\n\n**Lock the trim size early.** Decide on trim size before designing anything. Changing trim size mid-project means rebuilding both files.\n\n**Generate a fresh template late in the workflow.** Generate or download the KDP cover template only after the page count is finalized. This ensures the spine width in the template matches your actual book.\n\n**Avoid editing page count after cover completion.** If you must add or remove pages, recalculate the spine width and update the cover before exporting.\n\n**Verify export dimensions.** After exporting the cover PDF, open it and confirm the page dimensions before uploading. Taking 30 seconds to check can save hours of re-uploading.\n\n**Run a preflight check before upload.** Use [KDPPreflight](/tools/kdp-cover-checker) to verify both files meet KDP requirements before hitting the upload button.\n\n## Quick Checklist Before Uploading Again\n\n- Trim sizes match between interior and cover\n- Page count is final and verified\n- Bleed set to 0.125 inches on all required edges\n- Spine width calculated from final page count and paper type\n- Paper type confirmed in KDP setup\n- Fresh cover template generated for current settings\n- Cover PDF dimensions verified against template\n- Latest exported version uploaded — not an old draft\n\n## FAQ\n\n### Why does KDP say my interior and cover files don't match?\n\nKDP compares the dimensions of both uploaded files against the book settings in your project setup. If trim size, bleed, page count, paper type, or spine width differs between the two files, the mismatch warning appears. The most common cause is a cover built from different settings than the final manuscript.\n\n### Can changing page count affect the cover file?\n\nYes. Page count controls spine width in KDP's formula. Even adding or removing a few pages changes the spine calculation, which changes the required total cover width. A cover built for the old page count will not match the new one.\n\n### Does bleed affect KDP cover dimensions?\n\nYes. KDP requires 0.125-inch bleed on the outside edges of the full cover wrap. The cover PDF must be 0.25 inches taller and wider than the trim dimensions. If bleed is wrong, the total dimensions will not match.\n\n### Why does my KDP Previewer look misaligned?\n\nA misaligned Previewer usually means the spine width in your cover does not match what KDP calculates from your actual page count and paper type. The spine section shifts, making the front and back panels appear off-center.\n\n### Can Canva cause cover mismatch errors?\n\nYes, very commonly. The most frequent Canva mistake is designing the cover at front-panel dimensions only rather than full wrap dimensions. Exporting as Standard PDF instead of PDF Print can also cause dimension rounding that fails KDP's validation.\n\n### Should I finalize the manuscript before designing the cover?\n\nAlways. The cover depends on exact page count — which determines spine width — and exact trim size. If either changes after the cover is designed, the cover must be rebuilt. Design the interior first, finalize it completely, then begin the cover.\n\n### What happens if the spine width is wrong?\n\nA wrong spine width changes the total cover width. KDP will reject the file as a mismatch because the cover is either too wide or too narrow for the book it is paired with. In some cases KDP may accept the upload but show a misaligned Previewer.\n\n### Can I reuse an old KDP template for a new book?\n\nOnly if the trim size, page count, and paper type are completely identical to the old book. Otherwise the spine width will be wrong. It is always safer to generate a fresh template for each book.\n\n### How do I know if my PDF dimensions are correct?\n\nOpen your cover PDF in any PDF viewer and check the page size in document properties. It should equal back trim width + spine width + front trim width + 0.25 inches for width, and trim height + 0.25 inches for height. You can also run it through [KDPPreflight](/tools/kdp-cover-checker) for an automated check.\n\n### Can KDP reject mismatched files completely?\n\nKDP may reject the file outright or allow upload while showing the mismatch warning in Previewer. Either way the book cannot be published until both files match. If the Previewer looks correct but the warning persists, double-check your file dimensions and re-export.\n\n## Fix the Mismatch Before It Delays Your Launch\n\nThe \"Interior and Cover File Don't Match\" warning is one of the most common KDP upload problems — and one of the most preventable. The fix is not complicated, but it requires working in the correct order: finalize the manuscript, lock the page count, generate a fresh template, and verify both file dimensions before uploading.\n\nBefore uploading again, run both your manuscript and cover through [KDPPreflight](/tools/kdp-cover-checker) to detect trim mismatches, bleed inconsistencies, spine-width errors, and unsafe export settings before Amazon KDP rejects the files.\n"
+}

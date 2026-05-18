@@ -1,4 +1,4 @@
-import { blogCategories, blogPosts } from '@/lib/blog';
+import { getBlogSitemapEntries } from '@/lib/blog/sitemap';
 import { glossaryTerms } from '@/lib/glossary-data';
 import { SITE_URL } from '@/lib/seo';
 import { toolPages } from '@/lib/tool-pages';
@@ -29,19 +29,7 @@ export function GET() {
       changeFrequency: 'monthly',
       priority: tool.slug === 'kdp-cover-checker' ? 0.88 : 0.84,
     })),
-    { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: 'weekly', priority: 0.75 },
-    ...blogCategories.map((category): SitemapEntry => ({
-      url: `${SITE_URL}/blog/category/${category.slug}`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.66,
-    })),
-    ...blogPosts.map((post): SitemapEntry => ({
-      url: `${SITE_URL}/blog/${post.slug}`,
-      lastModified: post.updatedAt ?? post.publishedAt,
-      changeFrequency: 'monthly',
-      priority: post.featured ? 0.78 : 0.7,
-    })),
+    ...getBlogSitemapEntries(now),
     { url: `${SITE_URL}/glossary`, lastModified: now, changeFrequency: 'monthly', priority: 0.72 },
     ...glossaryTerms.map((term): SitemapEntry => ({
       url: `${SITE_URL}/glossary/${term.slug}`,

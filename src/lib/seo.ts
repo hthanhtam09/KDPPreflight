@@ -64,6 +64,9 @@ export function generatePageMetadata({
 export function generateBlogMetadata({
   title,
   description,
+  ogTitle,
+  ogDescription,
+  ogImageAlt,
   slug,
   publishedAt,
   updatedAt,
@@ -72,6 +75,9 @@ export function generateBlogMetadata({
 }: {
   title: string
   description: string
+  ogTitle?: string
+  ogDescription?: string
+  ogImageAlt?: string
   slug: string
   publishedAt: string
   updatedAt?: string
@@ -88,20 +94,20 @@ export function generateBlogMetadata({
     alternates: { canonical },
     robots: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large', 'max-video-preview': -1 },
     openGraph: {
-      title,
-      description,
+      title: ogTitle ?? title,
+      description: ogDescription ?? description,
       url: canonical,
       siteName: SITE_NAME,
       type: 'article',
       locale: 'en_US',
       publishedTime: publishedAt,
       modifiedTime: updatedAt ?? publishedAt,
-      images: [{ url: image, width: 1200, height: 630, alt: title }],
+      images: [{ url: image, width: 1200, height: 630, alt: ogImageAlt ?? title }],
     },
     twitter: {
       card: 'summary_large_image',
-      title,
-      description,
+      title: ogTitle ?? title,
+      description: ogDescription ?? description,
       images: [image],
       site: SITE_TWITTER,
     },

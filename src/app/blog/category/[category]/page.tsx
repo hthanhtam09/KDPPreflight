@@ -4,8 +4,10 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { BlogCTA } from '@/components/blog/BlogCTA';
+import { BlogPagination } from '@/components/blog/BlogPagination';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { blogCategories, getBlogCategory, getPostsByCategory, type BlogCategorySlug } from '@/lib/blog';
+import { paginateItems } from '@/lib/blog/pagination';
 import { generatePageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, itemListSchema, SITE_URL } from '@/lib/schema';
 
@@ -22,20 +24,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = blogCategories.find((item) => item.slug === slug);
   if (!category) return {};
 
+  const postCount = getPostsByCategory(category.slug).length;
+
   return generatePageMetadata({
     title: `${category.label} | KDP Preflight Blog`,
     description: category.seoIntro,
     path: `/blog/category/${category.slug}`,
     keywords: ['KDP cover problems', category.label, 'Amazon KDP troubleshooting', 'KDP cover formatting'],
+    noIndex: postCount === 0,
   });
 }
 
-export default async function BlogCategoryPage({ params }: Props) {
+export default async function BlogCategoryPage({ params }: Readonly<Props>) {
   const { category: slug } = await params;
   if (!blogCategories.some((item) => item.slug === slug)) notFound();
 
   const category = getBlogCategory(slug as BlogCategorySlug);
-  const posts = getPostsByCategory(category.slug);
+  const allPosts = getPostsByCategory(category.slug);
+  const { items: posts, totalPages } = paginateItems(allPosts, 1);
   const Icon = category.icon;
 
   return (
@@ -50,7 +56,7 @@ export default async function BlogCategoryPage({ params }: Props) {
           ]),
           itemListSchema(
             `${category.label} KDP guides`,
-            posts.map((post) => ({
+            allPosts.map((post) => ({
               name: post.title,
               url: `${SITE_URL}/blog/${post.slug}`,
               description: post.description,
@@ -81,22 +87,23 @@ export default async function BlogCategoryPage({ params }: Props) {
 
         <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6" aria-labelledby="category-posts-heading">
           <div className="mb-8">
-            <h2 id="category-posts-heading" className="text-3xl font-bold tracking-[-0.025em] text-foreground">
-              {posts.length ? `${category.label} guides` : `${category.label} guides are coming soon`}
+            <h2 id="category-posts-heading" className="text-3xl font-bold tracking-tight text-foreground">
+              {allPosts.length ? `${category.label} guides` : `${category.label} guides are coming soon`}
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{category.description}</p>
           </div>
           {posts.length ? (
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {posts.map((post) => (
-                <BlogCard key={post.slug} post={post} />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                {posts.map((post) => (
+                  <BlogCard key={post.slug} post={post} />
+                ))}
+              </div>
+              <BlogPagination currentPage={1} totalPages={totalPages} baseUrl={`/blog/category/${category.slug}`} />
+            </>
           ) : (
             <div className="rounded-2xl border border-border bg-card p-8 shadow-card">
-              <p className="text-sm leading-6 text-muted-foreground">
-                This category is part of the KDP troubleshooting taxonomy and will hold upcoming hardcover-specific production guides.
-              </p>
+              <p className="text-sm font-bold leading-6 text-foreground">New KDP formatting guides are coming soon.</p>
             </div>
           )}
         </section>

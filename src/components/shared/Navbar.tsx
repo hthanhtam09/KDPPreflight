@@ -1,5 +1,6 @@
 'use client'
 
+import { FeatureFeedback } from '@/components/feedback/FeatureFeedback'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import { Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -7,7 +8,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { FeatureFeedback } from '@/components/feedback/FeatureFeedback'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Home' },
@@ -39,8 +39,9 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-[var(--z-nav)] h-[var(--app-header-height)] border-b backdrop-blur-2xl transition-[background-color,border-color,box-shadow] duration-300 w-full ${scrolled ? 'border-border bg-background/95 shadow-elevated' : 'border-border/70 bg-background/85 shadow-none'
-        }`}
+      className={`fixed inset-x-0 top-0 z-[var(--z-nav)] h-[var(--app-header-height)] border-b backdrop-blur-2xl transition-[background-color,border-color,box-shadow] duration-300 w-full ${
+        scrolled ? 'border-border bg-background/95 shadow-elevated' : 'border-border/70 bg-background/85 shadow-none'
+      }`}
     >
       <div className="mx-auto flex h-[var(--nav-height)] w-full max-w-7xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
         <Link
@@ -58,8 +59,8 @@ export default function Navbar() {
               priority
             />
           </div>
-          <div className="min-w-0 hidden xs:block">
-            <span className="block truncate text-base font-semibold leading-tight tracking-tight text-foreground sm:text-xl lg:text-xl md:text-lg">
+          <div className="min-w-0">
+            <span className="block truncate text-base font-semibold leading-tight tracking-tight text-foreground sm:text-xl lg:text-xl md:text-lg hover:text-primary">
               KDPPreflight
             </span>
           </div>
@@ -168,11 +169,15 @@ function NavLinks({
         key={href}
         href={href}
         onClick={onNavigate}
-        className={`ds-focus flex items-center gap-2 font-medium transition-all duration-150 ${mobile ? 'h-11 rounded-xl px-4 text-base' : 'h-8 md:h-9 rounded-full px-2.5 md:px-3 text-[11px] md:text-xs lg:px-3.5'
-          } ${active
+        className={`ds-focus flex items-center gap-2 font-medium transition-all duration-150 ${
+          mobile
+            ? 'h-11 rounded-xl px-4 text-base'
+            : 'h-8 md:h-9 rounded-full px-2.5 md:px-3 text-[11px] md:text-xs lg:px-3.5'
+        } ${
+          active
             ? 'bg-primary text-primary-foreground shadow-soft'
             : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-          }`}
+        }`}
         aria-current={active ? 'page' : undefined}
       >
         <span>{label}</span>

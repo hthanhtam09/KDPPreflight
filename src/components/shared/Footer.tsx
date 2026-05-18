@@ -10,9 +10,9 @@ const toolLinks = [
 
 const guideLinks = [
   { href: '/blog', label: 'Blog' },
-  { href: '/blog/kdp-cover-dimensions-explained', label: 'KDP Cover Dimensions' },
-  { href: '/blog/kdp-safe-area-guide', label: 'KDP Safe Area Guide' },
-  { href: '/blog/beginners-guide-kdp-cover-formatting', label: 'KDP Cover Formatting Guide' },
+  { href: '/glossary/full-wrap-cover', label: 'Full Wrap Cover' },
+  { href: '/glossary/safe-area', label: 'Safe Area' },
+  { href: '/glossary/trim-size', label: 'Trim Size' },
 ];
 
 const resourceLinks = [
@@ -23,13 +23,7 @@ const resourceLinks = [
   { href: '/about', label: 'About KDPPreflight' },
 ];
 
-const blogLinks = [
-  { href: '/blog/why-amazon-rejected-your-kdp-cover', label: 'Why Amazon Rejected Your KDP Cover' },
-  { href: '/blog/fix-elements-outside-printable-area-kdp', label: 'Fix Printable Area Errors' },
-  { href: '/blog/kdp-bleed-explained', label: 'KDP Bleed Explained' },
-  { href: '/blog/calculate-kdp-spine-width', label: 'Calculate KDP Spine Width' },
-  { href: '/blog/beginners-guide-kdp-cover-formatting', label: 'Beginner KDP Cover Formatting' },
-];
+const blogLinks: { href: string; label: string }[] = [];
 
 export default function Footer() {
   return (

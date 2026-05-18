@@ -108,6 +108,9 @@
   --primary-hover: #c2410c;
   --primary-active: #9a3412;
   --primary-foreground: #ffffff;
+  --scrollbar-thumb: var(--primary);
+  --scrollbar-thumb-hover: var(--primary-hover);
+  --scrollbar-track: transparent;
   --secondary: #eef2f7;
   --secondary-foreground: #162033;
   --muted: #eaeff6;
@@ -185,6 +188,9 @@
   --primary-hover: #d4a373;
   --primary-active: #b87333;
   --primary-foreground: #111827;
+  --scrollbar-thumb: var(--primary);
+  --scrollbar-thumb-hover: var(--primary-hover);
+  --scrollbar-track: transparent;
   --secondary: rgba(255, 255, 255, 0.07);
   --secondary-foreground: rgba(255, 255, 255, 0.88);
   --muted: rgba(255, 255, 255, 0.06);
@@ -243,6 +249,22 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
   }
   html,
   body {
@@ -492,12 +514,20 @@ a, button, [role="button"] {
 }
 
 .blog-article h2 {
-  margin-top: 3rem;
+  margin-top: 3.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
   font-size: clamp(1.65rem, 3vw, 2.15rem);
 }
 
+.blog-article h2:first-child {
+  margin-top: 0;
+  border-top: none;
+  padding-top: 0;
+}
+
 .blog-article h3 {
-  margin-top: 2rem;
+  margin-top: 2.25rem;
   font-size: 1.25rem;
 }
 
@@ -973,14 +1003,11 @@ a, button, [role="button"] {
 
 .workflow-result-line {
   right: 0;
+  top: 1.25rem;
   width: 34%;
   min-width: 6.25rem;
   padding: 0.48rem 0.58rem;
   color: color-mix(in srgb, var(--primary) 86%, var(--foreground));
-}
-
-.workflow-result-line {
-  top: 1.25rem;
 }
 
 .workflow-result-spine {

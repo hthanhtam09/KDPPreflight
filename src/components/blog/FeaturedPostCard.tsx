@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ArrowRight, CalendarDays, Clock } from 'lucide-react';
-import { formatBlogDate, getBlogCategory, type BlogPost } from '@/lib/blog';
+import { getBlogCategory } from '@/lib/blog-categories';
+import { formatBlogDate } from '@/lib/blog/blog-utils';
+import type { BlogPost } from '@/types/blog';
 import { BlogPostVisual } from './BlogPostVisual';
 
 export function FeaturedPostCard({ post }: { post: BlogPost }) {

@@ -1,4 +1,4 @@
-import type { BlogFAQ } from '@/lib/blog';
+import type { BlogFAQ } from '@/types/blog';
 
 export function ArticleFAQ({ items }: { items: BlogFAQ[] }) {
   if (!items.length) return null;

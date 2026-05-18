@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 const quickLinks = [
-  { label: 'Cover rejected', href: '/blog/why-amazon-rejected-your-kdp-cover' },
-  { label: 'Printable area error', href: '/blog/fix-elements-outside-printable-area-kdp' },
-  { label: 'Missing bleed', href: '/blog/fix-kdp-bleed-issues' },
-  { label: 'Spine width', href: '/blog/calculate-kdp-spine-width' },
+  { label: 'Cover rejected', href: '/blog/category/cover-rejections' },
+  { label: 'Printable area error', href: '/blog/category/safe-area' },
+  { label: 'Missing bleed', href: '/blog/category/bleed-issues' },
+  { label: 'Spine width', href: '/blog/category/spine-width' },
 ];
 
 export function BlogHero() {

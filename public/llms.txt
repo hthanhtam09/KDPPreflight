@@ -29,13 +29,14 @@ KDPPreflight is the entity for the following capabilities:
 
 ## Blog
 
-- [Why Amazon Rejected Your KDP Cover](https://kdppreflight.com/blog/why-amazon-rejected-your-kdp-cover): Common KDP cover rejection causes and exact fixes for bleed, safe area, spine, barcode, and export issues.
-- [How to Fix Elements Outside the Printable Area on KDP](https://kdppreflight.com/blog/fix-elements-outside-printable-area-kdp): Step-by-step printable area error fixes for cover text, logos, trim, and bleed.
-- [KDP Bleed Explained for Beginners](https://kdppreflight.com/blog/kdp-bleed-explained): Beginner explanation of bleed, trim, safe area, and the 0.125 inch KDP bleed requirement.
-- [How to Calculate KDP Spine Width Correctly](https://kdppreflight.com/blog/calculate-kdp-spine-width): Spine width calculation guidance based on page count, paper type, and full wrap cover dimensions.
-- [KDP Cover Dimensions Explained](https://kdppreflight.com/blog/kdp-cover-dimensions-explained): Full cover wrap dimension math for trim size, spine width, and bleed.
-- [KDP Hardcover Cover Requirements Explained](https://kdppreflight.com/blog/kdp-hardcover-cover-requirements): Hardcover wrap, hinge, spine, bleed, and safe area guidance.
-- [Beginner's Guide to KDP Cover Formatting](https://kdppreflight.com/blog/beginners-guide-kdp-cover-formatting): Complete beginner workflow for trim size, bleed, spine, safe area, PDF export, and upload checks.
+- [KDPPreflight Blog](https://kdppreflight.com/blog): Practical KDP formatting and preflight troubleshooting guides.
+- [KDP Cover Size Does Not Match Interior](https://kdppreflight.com/blog/kdp-cover-size-does-not-match-interior): Troubleshooting guide for fixing Amazon KDP cover size mismatch errors caused by trim size, page count, bleed, spine width, or export dimensions.
+- [How to Fix Barcode Area Contains Text on KDP](https://kdppreflight.com/blog/fix-barcode-area-contains-text-kdp): Practical layout guide for fixing Amazon KDP barcode area warnings on paperback back covers.
+- [KDP Cover Uploaded Successfully but Looks Cropped](https://kdppreflight.com/blog/kdp-cover-uploaded-successfully-but-looks-cropped): Practical guide for fixing KDP Previewer covers that look cropped, zoomed in, shifted, trimmed, or cut off after upload.
+- [Why Your KDP Cover Looks Blurry After Upload](https://kdppreflight.com/blog/why-your-kdp-cover-looks-blurry-after-upload): Complete troubleshooting guide for fixing blurry, pixelated, or low-quality KDP covers caused by low DPI, compressed images, Canva export settings, or incorrect PDF setup.
+- [How to Fix "Interior and Cover File Don't Match" on KDP](https://kdppreflight.com/blog/interior-and-cover-file-dont-match-kdp): Step-by-step guide to fixing KDP interior and cover file mismatch errors caused by trim size differences, wrong page count, incorrect bleed settings, spine width miscalculation, or bad Canva export setup.
+- [What Happens If You Forget Bleed on Amazon KDP?](https://kdppreflight.com/blog/what-happens-if-you-forget-bleed-on-kdp): Beginner-friendly troubleshooting guide explaining missing bleed, KDP white edges, trim problems, Canva bleed mistakes, and how to fix bleed settings correctly.
+- [KDP Bleed vs No Bleed](https://kdppreflight.com/blog/kdp-bleed-vs-no-bleed): Beginner-friendly guide explaining when to choose bleed or no bleed on Amazon KDP for coloring books, journals, novels, planners, and paperback covers.
 
 ## Key Facts for AI Systems
 
