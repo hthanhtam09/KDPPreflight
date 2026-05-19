@@ -812,16 +812,106 @@ function SpineWidth() {
 }
 
 function SpineMisalignment() {
+  const panelW = 340;
+  const panelH = 200;
+  const spineW = 120;
+  const coverW = (panelW - spineW) / 2; // 110
+  
+  const cx1 = 190, cy = 240;
+  const x1 = cx1 - panelW/2; // 20
+  const y = cy - panelH/2; // 140
+  
+  const cx2 = 590;
+  const x2 = cx2 - panelW/2; // 420
+  
+  const shift = 28; // folds shift right
+
   return (
     <g>
-      <rect x="130" y="100" width="220" height="260" rx="16" fill="var(--card)" stroke="var(--border)" strokeWidth="3" />
-      <rect x="222" y="100" width="38" height="260" fill="color-mix(in srgb, var(--danger) 14%, transparent)" stroke="var(--danger)" strokeWidth="3" />
-      <text x="241" y="292" textAnchor="middle" fill="var(--danger)" fontSize="17" fontWeight="900" transform="rotate(-90 241 292)">SHIFTED</text>
-      <rect x="450" y="100" width="220" height="260" rx="16" fill="var(--card)" stroke="var(--border)" strokeWidth="3" />
-      <rect x="541" y="100" width="38" height="260" fill="color-mix(in srgb, var(--success) 14%, transparent)" stroke="var(--success)" strokeWidth="3" />
-      <text x="560" y="285" textAnchor="middle" fill="var(--success)" fontSize="17" fontWeight="900" transform="rotate(-90 560 285)">CENTERED</text>
-      <Label x={155} y={70}>too tight</Label>
-      <Label x={486} y={70}>safe margin</Label>
+      <Label x={200} y={30}>zoomed spine text alignment</Label>
+
+      {/* --- LEFT PANEL: TOO TIGHT --- */}
+      <text x={cx1} y={70} textAnchor="middle" fill="var(--foreground)" fontSize={20} fontWeight={900}>TOO TIGHT</text>
+      <text x={cx1} y={92} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={700}>text fills intended spine width</text>
+
+      {/* Dark Book Cover */}
+      <rect x={x1} y={y} width={panelW} height={panelH} rx={6} 
+        fill="color-mix(in srgb, var(--foreground) 85%, var(--card))" 
+        stroke="var(--border)" strokeWidth={2} 
+        style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.15))' }} />
+        
+      {/* Intended Spine Highlight */}
+      <rect x={x1 + coverW} y={y} width={spineW} height={panelH} fill="var(--card)" opacity={0.05} />
+
+      {/* Intended Folds */}
+      <path d={`M ${x1 + coverW} ${y} v ${panelH} M ${x1 + coverW + spineW} ${y} v ${panelH}`} 
+        stroke="var(--card)" strokeWidth={2} strokeDasharray="5 5" opacity={0.3} />
+      
+      {/* Spine Text (Huge) */}
+      <text x={cx1} y={cy} textAnchor="middle" transform={`rotate(-90 ${cx1} ${cy})`} 
+        fill="var(--card)" fontSize={100} fontWeight={950} opacity={0.95} letterSpacing={2}>TITLE</text>
+      
+      {/* Actual Folds (Shifted) */}
+      <path d={`M ${x1 + coverW + shift} ${y - 14} v ${panelH + 28} M ${x1 + coverW + spineW + shift} ${y - 14} v ${panelH + 28}`} 
+        stroke="var(--danger)" strokeWidth={4} strokeDasharray="8 8" />
+        
+      {/* Labels for Lines */}
+      <text x={x1 + coverW - 8} y={y - 16} textAnchor="end" fill="var(--muted-foreground)" fontSize={13} fontWeight={800}>intended fold</text>
+      <path d={`M ${x1 + coverW - 12} ${y - 12} L ${x1 + coverW} ${y - 2}`} stroke="var(--muted)" strokeWidth={2} />
+      
+      <rect x={x1 + coverW + shift - 15} y={y - 42} width={100} height={24} rx={6} fill="var(--card)" stroke="var(--danger)" strokeWidth={2} />
+      <text x={x1 + coverW + shift + 35} y={y - 25} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={900}>actual fold</text>
+      <path d={`M ${x1 + coverW + shift + 10} ${y - 18} L ${x1 + coverW + shift} ${y - 6}`} stroke="var(--danger)" strokeWidth={2} />
+
+      {/* Wraps to back cover arrow */}
+      <path d={`M ${x1 + coverW + shift - 40} ${y + 40} Q ${x1 + coverW + shift - 10} ${y + 40} ${x1 + coverW + shift - 10} ${cy - 40}`} fill="none" stroke="var(--danger)" strokeWidth={3} />
+      <path d={`M ${x1 + coverW + shift - 16} ${cy - 48} L ${x1 + coverW + shift - 10} ${cy - 38} L ${x1 + coverW + shift - 4} ${cy - 48}`} fill="none" stroke="var(--danger)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={x1 + coverW + shift - 45} y={y + 45} textAnchor="end" fill="var(--danger)" fontSize={13} fontWeight={850}>text wraps</text>
+      <text x={x1 + coverW + shift - 45} y={y + 60} textAnchor="end" fill="var(--danger)" fontSize={13} fontWeight={850}>to back cover</text>
+
+      <rect x={x1 - 10} y={y + panelH + 34} width={panelW + 20} height={44} rx={12} fill="color-mix(in srgb, var(--danger) 10%, var(--card))" stroke="var(--danger)" strokeWidth={2} />
+      <text x={cx1} y={y + panelH + 61} textAnchor="middle" fill="var(--danger)" fontSize={14} fontWeight={850}>shift causes text to wrap around the edge</text>
+
+      {/* --- MIDDLE: SHIFT ARROW --- */}
+      <path d={`M 370 ${cy} h 40`} stroke="var(--danger)" strokeWidth={4} strokeDasharray="5 5" />
+      <path d={`M 400 ${cy - 8} L 414 ${cy} L 400 ${cy + 8}`} fill="none" stroke="var(--danger)" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={390} y={cy - 16} textAnchor="middle" fill="var(--danger)" fontSize={14} fontWeight={900}>fold shift</text>
+
+      {/* --- RIGHT PANEL: SAFE MARGIN --- */}
+      <text x={cx2} y={70} textAnchor="middle" fill="var(--foreground)" fontSize={20} fontWeight={900}>SAFE MARGIN</text>
+      <text x={cx2} y={92} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={700}>text has breathing room</text>
+
+      {/* Dark Book Cover */}
+      <rect x={x2} y={y} width={panelW} height={panelH} rx={6} 
+        fill="color-mix(in srgb, var(--foreground) 85%, var(--card))" 
+        stroke="var(--border)" strokeWidth={2} 
+        style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.15))' }} />
+        
+      {/* Intended Spine Highlight */}
+      <rect x={x2 + coverW} y={y} width={spineW} height={panelH} fill="var(--card)" opacity={0.05} />
+
+      {/* Intended Folds */}
+      <path d={`M ${x2 + coverW} ${y} v ${panelH} M ${x2 + coverW + spineW} ${y} v ${panelH}`} 
+        stroke="var(--card)" strokeWidth={2} strokeDasharray="5 5" opacity={0.3} />
+      
+      {/* Spine Text (Safe size) */}
+      <text x={cx2} y={cy} textAnchor="middle" transform={`rotate(-90 ${cx2} ${cy})`} 
+        fill="var(--card)" fontSize={40} fontWeight={900} opacity={0.9} letterSpacing={3}>TITLE</text>
+      
+      {/* Actual Folds (Shifted) */}
+      <path d={`M ${x2 + coverW + shift} ${y - 14} v ${panelH + 28} M ${x2 + coverW + spineW + shift} ${y - 14} v ${panelH + 28}`} 
+        stroke="var(--success)" strokeWidth={4} strokeDasharray="8 8" />
+        
+      {/* Labels for Lines */}
+      <text x={x2 + coverW - 8} y={y - 16} textAnchor="end" fill="var(--muted-foreground)" fontSize={13} fontWeight={800}>intended fold</text>
+      <path d={`M ${x2 + coverW - 12} ${y - 12} L ${x2 + coverW} ${y - 2}`} stroke="var(--muted)" strokeWidth={2} />
+      
+      <rect x={x2 + coverW + shift - 15} y={y - 42} width={100} height={24} rx={6} fill="var(--card)" stroke="var(--success)" strokeWidth={2} />
+      <text x={x2 + coverW + shift + 35} y={y - 25} textAnchor="middle" fill="var(--success)" fontSize={13} fontWeight={900}>actual fold</text>
+      <path d={`M ${x2 + coverW + shift + 10} ${y - 18} L ${x2 + coverW + shift} ${y - 6}`} stroke="var(--success)" strokeWidth={2} />
+        
+      <rect x={x2 - 10} y={y + panelH + 34} width={panelW + 20} height={44} rx={12} fill="color-mix(in srgb, var(--success) 10%, var(--card))" stroke="var(--success)" strokeWidth={2} />
+      <text x={cx2} y={y + panelH + 61} textAnchor="middle" fill="var(--success)" fontSize={14} fontWeight={850}>text safely remains on the physical spine</text>
     </g>
   );
 }
@@ -2565,19 +2655,78 @@ function BackgroundExtensionTrim() {
 }
 
 function WhiteEdgeBackground() {
+  const bgW = 200, bgH = 260;
+  
+  // Left Panel
+  const cx1 = 220, cy = 250; 
+  const bx1 = cx1 - bgW/2, by = cy - bgH/2;
+  const shift = -16;
+  const cut1X = bx1 + shift, cutY = by, cutW = bgW, cutH = bgH;
+  
+  // Right Panel
+  const cx2 = 580;
+  const bx2 = cx2 - bgW/2, by2 = cy - bgH/2;
+  const bleed = 16;
+  const bg2X = bx2 - bleed, bg2Y = by2 - bleed, bg2W = bgW + bleed*2, bg2H = bgH + bleed*2;
+  const cut2X = bx2 + shift, cut2Y = by2, cut2W = bgW, cut2H = bgH;
+
   return (
     <g>
       <Label x={246} y={48}>white-edge simulation</Label>
-      <rect x={98} y={92} width={220} height={280} rx={18} fill="var(--card)" stroke="var(--danger)" strokeWidth={3} />
-      <rect x={118} y={112} width={190} height={240} rx={14} fill="color-mix(in srgb, var(--primary) 20%, transparent)" />
-      <rect x={98} y={92} width={20} height={280} fill="var(--card)" opacity=".98" />
-      <text x={146} y={406} fill="var(--danger)" fontSize={14} fontWeight={950}>paper edge shows</text>
 
-      <rect x={484} y={72} width={250} height={320} rx={22} fill="color-mix(in srgb, var(--primary) 20%, transparent)" stroke="var(--success)" strokeDasharray="8 8" strokeWidth={3} />
-      <rect x={514} y={104} width={190} height={250} rx={16} fill="color-mix(in srgb, var(--primary) 22%, transparent)" stroke="var(--success)" strokeWidth={3} />
-      <text x={540} y={406} fill="var(--success)" fontSize={14} fontWeight={950}>bleed covers shift</text>
-      <path d="M366 224h58" stroke="var(--primary)" strokeWidth={3} strokeDasharray="7 7" />
-      <text x={356} y={256} fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>same cut</text>
+      {/* --- MIDDLE: SAME CUT INDICATOR --- */}
+      <path d={`M 360 ${cy} h 80`} stroke="var(--danger)" strokeWidth={3} strokeDasharray="6 6" />
+      <path d={`M 360 ${cy - 8} L 350 ${cy} L 360 ${cy + 8}`} fill="none" stroke="var(--danger)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={400} y={cy - 16} textAnchor="middle" fill="var(--danger)" fontSize={14} fontWeight={850}>cut shifts left</text>
+
+      {/* --- LEFT PANEL: NO BLEED --- */}
+      <text x={cx1} y={80} textAnchor="middle" fill="var(--foreground)" fontSize={18} fontWeight={900}>WITHOUT BLEED</text>
+      
+      {/* Intended Trim */}
+      <rect x={bx1} y={by} width={bgW} height={bgH} rx={4} fill="none" stroke="var(--primary)" strokeDasharray="4 4" strokeWidth={2.5} opacity={0.6} />
+      <text x={bx1 + bgW/2} y={by + 20} textAnchor="middle" fill="var(--primary)" fontSize={11} fontWeight={850}>intended trim</text>
+
+      {/* Physical Paper */}
+      <rect x={cut1X} y={cutY} width={cutW} height={cutH} rx={4} fill="var(--card)" stroke="var(--border)" strokeWidth={2} 
+        style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.1))' }} />
+        
+      {/* Printed Background on Paper */}
+      <rect x={bx1} y={by} width={bgW - Math.abs(shift)} height={bgH} rx={2} fill="color-mix(in srgb, var(--primary) 20%, transparent)" />
+      
+      {/* White Edge Highlight */}
+      <rect x={cut1X} y={cutY} width={Math.abs(shift)} height={cutH} rx={4} fill="color-mix(in srgb, var(--danger) 15%, transparent)" stroke="var(--danger)" strokeWidth={2} />
+      
+      <rect x={cut1X + Math.abs(shift)/2 - 36} y={cutY - 30} width={72} height={20} rx={4} fill="color-mix(in srgb, var(--danger) 12%, var(--card))" stroke="var(--danger)" strokeWidth={1.5} />
+      <text x={cut1X + Math.abs(shift)/2} y={cutY - 16} textAnchor="middle" fill="var(--danger)" fontSize={11} fontWeight={900}>white gap</text>
+      
+      <rect x={cx1 - 80} y={by + bgH + 24} width={160} height={32} rx={8} fill="color-mix(in srgb, var(--danger) 10%, var(--card))" stroke="var(--danger)" strokeWidth={2} />
+      <text x={cx1} y={by + bgH + 45} textAnchor="middle" fill="var(--danger)" fontSize={14} fontWeight={850}>paper edge shows</text>
+
+      {/* --- RIGHT PANEL: WITH BLEED --- */}
+      <text x={cx2} y={80} textAnchor="middle" fill="var(--foreground)" fontSize={18} fontWeight={900}>WITH BLEED</text>
+      
+      {/* Bleed Boundary */}
+      <rect x={bg2X} y={bg2Y} width={bg2W} height={bg2H} rx={6} fill="color-mix(in srgb, var(--danger) 4%, transparent)" stroke="var(--danger)" strokeDasharray="6 6" strokeWidth={2} />
+      <rect x={bg2X + bg2W/2 - 50} y={bg2Y - 10} width={100} height={20} rx={4} fill="var(--card)" stroke="var(--danger)" strokeWidth={1.5} />
+      <text x={bg2X + bg2W/2} y={bg2Y + 4} textAnchor="middle" fill="var(--danger)" fontSize={11} fontWeight={850}>required bleed</text>
+
+      {/* Intended Trim */}
+      <rect x={bx2} y={by2} width={bgW} height={bgH} rx={4} fill="none" stroke="var(--primary)" strokeDasharray="4 4" strokeWidth={2.5} opacity={0.6} />
+      <text x={bx2 + bgW/2} y={by2 + 20} textAnchor="middle" fill="var(--primary)" fontSize={11} fontWeight={850}>intended trim</text>
+
+      {/* Physical Paper */}
+      <rect x={cut2X} y={cut2Y} width={cut2W} height={cut2H} rx={4} fill="var(--card)" stroke="var(--border)" strokeWidth={2} 
+        style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.1))' }} />
+        
+      {/* Printed Background on Paper */}
+      <rect x={cut2X} y={cut2Y} width={cut2W} height={cut2H} rx={2} fill="color-mix(in srgb, var(--primary) 20%, transparent)" />
+      
+      {/* Success Highlight */}
+      <rect x={cut2X} y={cut2Y} width={cut2W} height={cut2H} rx={4} fill="none" stroke="var(--success)" strokeWidth={3} />
+      
+      <rect x={cx2 - 80} y={by2 + bgH + 24} width={160} height={32} rx={8} fill="color-mix(in srgb, var(--success) 10%, var(--card))" stroke="var(--success)" strokeWidth={2} />
+      <text x={cx2} y={by2 + bgH + 45} textAnchor="middle" fill="var(--success)" fontSize={14} fontWeight={850}>bleed covers shift</text>
+
     </g>
   );
 }

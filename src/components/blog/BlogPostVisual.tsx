@@ -57,6 +57,8 @@ export function BlogPostVisual({ postSlug, variant = 'card' }: BlogPostVisualPro
           <SlowUploadVisual compact={isCard} />
         ) : visualSlug === 'kdp-previewer-not-loading' ? (
           <PreviewerFrozenVisual compact={isCard} />
+        ) : visualSlug === 'white-lines-on-kdp-cover' ? (
+          <WhiteLinesVisual compact={isCard} />
         ) : (
           <g filter={`url(#sketch-${postSlug}-${variant})`}>
             {visualSlug === 'kdp-cover-size-does-not-match-interior' ? <CoverInteriorMismatchVisual compact={isCard} /> : <GenericCoverVisual />}
@@ -609,6 +611,112 @@ function SafeAreaFixVisual({ compact = false }: Readonly<{ compact?: boolean }>)
         <text x={cx + 16} y={cy - 14} fill="var(--foreground)" fontSize="20" fontWeight="900">
           text outside safe area — fix before upload
         </text>
+      )}
+    </g>
+  );
+}
+
+function WhiteLinesVisual({ compact = false }: { compact?: boolean }) {
+  const dy = compact ? 22 : 0;
+
+  // Intended trim dimensions
+  const bx = 110, by = 100 + dy, bw = 400, bh = 240;
+  const bleed = 18;
+  
+  // Trim shift
+  const shift = 14;
+
+  // Physical paper (cut result)
+  const cutX = bx + shift, cutY = by, cutW = bw, cutH = bh;
+
+  // Printed background (stops at intended trim)
+  const bgX = bx, bgY = by, bgW = bw, bgH = bh;
+
+  return (
+    <g>
+      {/* 1. PHYSICAL PAPER AND PRINTED BACKGROUND */}
+      {/* Physical Paper */}
+      <rect x={cutX} y={cutY} width={cutW} height={cutH} rx={2}
+        fill="var(--card)" stroke="var(--border)" strokeWidth={2} 
+        style={{ filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.08))' }} />
+
+      {/* Background printed on the paper */}
+      <rect x={cutX} y={cutY} width={bgX + bgW - cutX} height={bgH} rx={1}
+        fill="color-mix(in srgb, var(--foreground) 85%, var(--card))" />
+
+      {/* Spine fold lines for realism */}
+      <path d={`M ${cutX + cutW/2 - 24} ${cutY} v ${cutH} M ${cutX + cutW/2 + 24} ${cutY} v ${cutH}`} 
+        stroke="var(--card)" strokeWidth={2} opacity={0.15} />
+      
+      <text x={cutX + cutW/2} y={cutY + cutH/2} textAnchor="middle" transform={`rotate(-90 ${cutX + cutW/2} ${cutY + cutH/2})`}
+        fill="var(--card)" fontSize={12} fontWeight={800} opacity={0.5}>SPINE</text>
+
+      {/* Front cover content */}
+      <rect x={cutX + cutW * 0.75 - 70} y={cutY + 40} width={140} height={130} rx={8}
+        fill="var(--card)" opacity={0.05} stroke="var(--card)" strokeWidth={2} strokeDasharray="4 4" />
+      <text x={cutX + cutW * 0.75} y={cutY + 80} textAnchor="middle" 
+        fill="var(--card)" fontSize={18} fontWeight={950} opacity={0.95}>BOOK TITLE</text>
+      <rect x={cutX + cutW * 0.75 - 40} y={cutY + 100} width={80} height={6} rx={3} fill="var(--card)" opacity={0.6} />
+      <rect x={cutX + cutW * 0.75 - 60} y={cutY + 115} width={120} height={6} rx={3} fill="var(--card)" opacity={0.4} />
+
+      {/* 2. BOUNDARY LINES */}
+      {/* Bleed boundary */}
+      <rect x={bx - bleed} y={by - bleed} width={bw + bleed * 2} height={bh + bleed * 2} rx={6}
+        fill="color-mix(in srgb, var(--danger) 4%, transparent)"
+        stroke="var(--danger)" strokeDasharray="6 6" strokeWidth={2.5} />
+      
+      {/* Intended Trim line */}
+      <rect x={bx} y={by} width={bw} height={bh}
+        fill="none" stroke="var(--primary)" strokeDasharray="4 4" strokeWidth={2.5} opacity={0.8} />
+
+      {/* 3. LABELS */}
+      {/* Label for required bleed */}
+      <rect x={bx - bleed + 8} y={by - bleed + 8} width={100} height={24} rx={6}
+        fill="var(--card)" stroke="var(--danger)" strokeWidth={2} />
+      <text x={bx - bleed + 58} y={by - bleed + 24} textAnchor="middle" 
+        fill="var(--danger)" fontSize={11} fontWeight={850}>required bleed</text>
+
+      {/* Label for intended trim */}
+      <rect x={bx + 8} y={by + 16} width={100} height={24} rx={6}
+        fill="var(--card)" stroke="var(--primary)" strokeWidth={2} opacity={0.9} />
+      <text x={bx + 58} y={by + 32} textAnchor="middle" 
+        fill="var(--primary)" fontSize={11} fontWeight={850}>intended trim</text>
+
+      {/* Right side labels */}
+      {/* 1. White Line gap */}
+      <path d={`M ${cutX + cutW + 30} ${cutY + 60} L ${cutX + cutW - 4} ${cutY + 60}`} 
+        stroke="var(--danger)" strokeWidth={2.5} />
+      <circle cx={cutX + cutW - 4} cy={cutY + 60} r={4} fill="var(--danger)" />
+        
+      <rect x={cutX + cutW + 30} y={cutY + 35} width={180} height={50} rx={10}
+        fill="color-mix(in srgb, var(--danger) 8%, var(--card))" stroke="var(--danger)" strokeWidth={2} />
+      <text x={cutX + cutW + 120} y={cutY + 54} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={900}>WHITE LINE</text>
+      <text x={cutX + cutW + 120} y={cutY + 72} textAnchor="middle" fill="var(--danger)" fontSize={11} fontWeight={750}>exposed unprinted paper</text>
+
+      {/* 2. Background stopped at trim */}
+      <path d={`M ${bx + bw + 30} ${cutY + 140} L ${bx + bw + 2} ${cutY + 140}`} 
+        stroke="var(--primary)" strokeWidth={2.5} />
+      <circle cx={bx + bw + 2} cy={cutY + 140} r={4} fill="var(--primary)" />
+
+      <rect x={bx + bw + 30} y={cutY + 115} width={180} height={50} rx={10}
+        fill="var(--card)" stroke="var(--primary)" strokeWidth={2} />
+      <text x={bx + bw + 120} y={cutY + 134} textAnchor="middle" fill="var(--primary)" fontSize={13} fontWeight={900}>BACKGROUND STOPPED</text>
+      <text x={bx + bw + 120} y={cutY + 152} textAnchor="middle" fill="var(--primary)" fontSize={11} fontWeight={750}>did not extend into bleed</text>
+
+      {!compact && (
+        <>
+          <text x={400} y={by - 26} textAnchor="middle"
+            fill="var(--foreground)" fontSize={22} fontWeight={950}>
+            Why white lines appear on printed covers
+          </text>
+          
+          <rect x={120} y={by + bh + 30} width={560} height={36} rx={12}
+            fill="color-mix(in srgb, var(--danger) 10%, var(--card))" stroke="var(--danger)" strokeWidth={2} opacity={0.8} />
+          <text x={400} y={by + bh + 53} textAnchor="middle"
+            fill="var(--danger)" fontSize={14} fontWeight={850}>
+            trim shifts outward → cut misses background → blank paper exposed
+          </text>
+        </>
       )}
     </g>
   );
