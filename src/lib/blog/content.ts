@@ -49,9 +49,6 @@ function loadBlogPosts(): BlogPost[] {
     .map(normalizePost)
     .filter((post) => !post.draft)
     .sort((a, b) => {
-      if (Number(Boolean(b.featured)) !== Number(Boolean(a.featured))) {
-        return Number(Boolean(b.featured)) - Number(Boolean(a.featured));
-      }
       const publishedDelta = new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
       if (publishedDelta !== 0) return publishedDelta;
       const priorityDelta = (b.sortPriority ?? 0) - (a.sortPriority ?? 0);

@@ -7,8 +7,6 @@ import type { TocItem } from '@/types/blog';
 export function TableOfContents({ items }: { items: TocItem[] }) {
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState(items[0]?.id ?? '');
-  const [floating, setFloating] = useState(false);
-  const [floatingTop, setFloatingTop] = useState(96);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeLinkRefs = useRef(new Map<string, HTMLAnchorElement>());
   const activeIdRef = useRef(items[0]?.id ?? '');
@@ -60,77 +58,18 @@ export function TableOfContents({ items }: { items: TocItem[] }) {
   }, [items]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 768px)');
-
-    function updateFloating() {
-      setFloating(mediaQuery.matches);
-    }
-
-    updateFloating();
-    mediaQuery.addEventListener('change', updateFloating);
-
-    return () => mediaQuery.removeEventListener('change', updateFloating);
-  }, []);
-
-  useEffect(() => {
-    if (!floating) return;
-
-    const articleElement = document.getElementById('blog-article-content');
-    if (!(articleElement instanceof HTMLElement)) return;
-
-    function updatePosition(article: HTMLElement) {
-      const articleRect = article.getBoundingClientRect();
-      const viewportTopOffset = 96;
-      const viewportBottomPadding = 24;
-      const tocMaxHeight = window.innerHeight - viewportTopOffset - viewportBottomPadding;
-      const topLimitedByArticleStart = Math.max(viewportTopOffset, articleRect.top);
-      const bottomLimitedTop = articleRect.bottom - tocMaxHeight;
-
-      setFloatingTop(Math.min(topLimitedByArticleStart, bottomLimitedTop));
-    }
-
-    const requestPositionUpdate = () => updatePosition(articleElement);
-
-    requestPositionUpdate();
-    window.addEventListener('scroll', requestPositionUpdate, { passive: true });
-    window.addEventListener('resize', requestPositionUpdate);
-
-    return () => {
-      window.removeEventListener('scroll', requestPositionUpdate);
-      window.removeEventListener('resize', requestPositionUpdate);
-    };
-  }, [floating]);
-
-  useEffect(() => {
     const container = scrollContainerRef.current;
     const activeLink = activeLinkRefs.current.get(activeId);
     if (!container || !activeLink) return;
 
-    const containerRect = container.getBoundingClientRect();
-    const activeRect = activeLink.getBoundingClientRect();
-    const padding = 16;
-
-    if (activeRect.top < containerRect.top + padding || activeRect.bottom > containerRect.bottom - padding) {
-      activeLink.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-    }
+    activeLink.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
   }, [activeId]);
-
-  const floatingStyle = floating
-    ? ({
-        position: 'fixed',
-        top: `${floatingTop}px`,
-        right: 'max(24px, calc((100vw - 1280px) / 2 + 24px))',
-        width: '260px',
-        zIndex: 20,
-      } as const)
-    : undefined;
 
   if (!items.length) return null;
 
   return (
     <div
       ref={scrollContainerRef}
-      style={floatingStyle}
       className="max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl border border-border bg-card p-4 shadow-soft [scrollbar-gutter:stable]"
     >
       <button

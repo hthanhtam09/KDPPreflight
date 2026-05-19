@@ -17,6 +17,17 @@ export type BlogFAQ = {
   answer: string;
 };
 
+export type BlogHowTo = {
+  name: string;
+  description: string;
+  totalTime?: string;
+  steps: {
+    name: string;
+    text: string;
+    url?: string;
+  }[];
+};
+
 export type BlogPost = {
   slug: string;
   title: string;
@@ -47,6 +58,7 @@ export type BlogPost = {
   faqs: BlogFAQ[];
   summary: string[];
   checklist: string[];
+  howTo?: BlogHowTo;
   diagrams: ArticleDiagramType[];
   content: string;
 };

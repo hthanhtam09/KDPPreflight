@@ -11,10 +11,7 @@ export type BlogSitemapEntry = {
 };
 
 export function getBlogSitemapEntries(now = new Date().toISOString()): BlogSitemapEntry[] {
-  // Mirror getFeaturedPost() logic exactly: prefer featured flag, fall back to first post
-  const featuredPost = blogPosts.find((p) => p.featured) ?? blogPosts[0];
-  const gridPosts = featuredPost ? blogPosts.filter((p) => p.slug !== featuredPost.slug) : blogPosts;
-  const blogTotalPages = getBlogPageCount(gridPosts.length);
+  const blogTotalPages = getBlogPageCount(blogPosts.length);
 
   const blogListingPages: BlogSitemapEntry[] = [
     { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: 'weekly', priority: 0.75 },
@@ -56,4 +53,3 @@ export function getBlogSitemapEntries(now = new Date().toISOString()): BlogSitem
 
   return [...blogListingPages, ...categoryPages, ...articlePages];
 }
-

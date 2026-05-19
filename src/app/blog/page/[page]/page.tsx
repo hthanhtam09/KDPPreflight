@@ -6,7 +6,7 @@ import { BlogCTA } from '@/components/blog/BlogCTA';
 import { BlogIndexExperience } from '@/components/blog/BlogIndexExperience';
 import { BlogPagination } from '@/components/blog/BlogPagination';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { blogCategories, blogPosts, getFeaturedPost, topicClusters } from '@/lib/blog';
+import { blogCategories, blogPosts, topicClusters } from '@/lib/blog';
 import { getBlogPageCount, paginateItems } from '@/lib/blog/pagination';
 import { generatePageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, itemListSchema, SITE_URL } from '@/lib/schema';
@@ -17,22 +17,15 @@ interface Props {
 
 export const dynamicParams = false;
 
-function getGridPosts() {
-  const featuredPost = getFeaturedPost();
-  return featuredPost ? blogPosts.filter((post) => post.slug !== featuredPost.slug) : blogPosts;
-}
-
 export function generateStaticParams() {
-  const allGridPosts = getGridPosts();
-  const totalPages = getBlogPageCount(allGridPosts.length);
+  const totalPages = getBlogPageCount(blogPosts.length);
   return Array.from({ length: Math.max(0, totalPages - 1) }, (_, i) => ({ page: String(i + 2) }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { page } = await params;
   const pageNum = parseInt(page, 10);
-  const allGridPosts = getGridPosts();
-  const totalPages = getBlogPageCount(allGridPosts.length);
+  const totalPages = getBlogPageCount(blogPosts.length);
 
   return generatePageMetadata({
     title: `KDP Preflight Blog — Page ${pageNum} of ${totalPages} | KDP Cover & Formatting Guides`,
@@ -46,8 +39,7 @@ export default async function BlogPaginatedPage({ params }: Props) {
   const { page } = await params;
   const pageNum = parseInt(page, 10);
 
-  const allGridPosts = getGridPosts();
-  const { items: gridPosts, totalPages, currentPage } = paginateItems(allGridPosts, pageNum);
+  const { items: gridPosts, totalPages, currentPage } = paginateItems(blogPosts, pageNum);
 
   if (isNaN(pageNum) || pageNum < 2 || pageNum > totalPages) notFound();
 

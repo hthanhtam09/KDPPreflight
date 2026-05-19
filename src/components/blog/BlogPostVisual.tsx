@@ -11,6 +11,7 @@ export function BlogPostVisual({ postSlug, variant = 'card' }: BlogPostVisualPro
   const isCard = variant === 'card';
   const isArticle = variant === 'article';
   const isFeatured = variant === 'featured';
+  const visualSlug = sharedVisualBySlug[postSlug] ?? postSlug;
 
   return (
     <div
@@ -28,47 +29,48 @@ export function BlogPostVisual({ postSlug, variant = 'card' }: BlogPostVisualPro
           </filter>
         </defs>
         <rect width="800" height="450" fill="transparent" />
-        {postSlug === 'kdp-cover-uploaded-successfully-but-looks-cropped' ? (
+        {visualSlug === 'kdp-cover-uploaded-successfully-but-looks-cropped' ? (
           <CroppedCoverVisual compact={isCard} />
-        ) : postSlug === 'fix-barcode-area-contains-text-kdp' ? (
+        ) : visualSlug === 'fix-barcode-area-contains-text-kdp' ? (
           <BarcodeAreaVisual compact={isCard} />
-        ) : postSlug === 'why-your-kdp-cover-looks-blurry-after-upload' ? (
+        ) : visualSlug === 'why-your-kdp-cover-looks-blurry-after-upload' ? (
           <BlurryCoverVisual compact={isCard} />
-        ) : postSlug === 'kdp-cover-colors-look-different-after-printing' ? (
+        ) : visualSlug === 'kdp-cover-colors-look-different-after-printing' ? (
           <ColorShiftVisual compact={isCard} />
-        ) : postSlug === 'fix-kdp-spine-text-off-center' ? (
+        ) : visualSlug === 'fix-kdp-spine-text-off-center' ? (
           <SpineTextOffCenterVisual compact={isCard} />
-        ) : postSlug === 'interior-and-cover-file-dont-match-kdp' ? (
+        ) : visualSlug === 'interior-and-cover-file-dont-match-kdp' ? (
           <FileMismatchVisual compact={isCard} />
-        ) : postSlug === 'what-happens-if-you-forget-bleed-on-kdp' ? (
+        ) : visualSlug === 'what-happens-if-you-forget-bleed-on-kdp' ? (
           <ForgotBleedVisual compact={isCard} />
-        ) : postSlug === 'kdp-bleed-vs-no-bleed' ? (
+        ) : visualSlug === 'kdp-bleed-vs-no-bleed' ? (
           <BleedVsNoBleedVisual compact={isCard} />
-        ) : postSlug === 'how-far-should-text-be-from-edge-kdp-cover' ? (
+        ) : visualSlug === 'how-far-should-text-be-from-edge-kdp-cover' ? (
           <SafeMarginCoverVisual compact={isCard} />
-        ) : postSlug === 'how-to-check-safe-area-before-exporting-kdp-cover' ? (
+        ) : visualSlug === 'how-to-check-safe-area-before-exporting-kdp-cover' ? (
           <SafeAreaCheckerVisual compact={isCard} />
-        ) : postSlug === 'why-background-colors-must-extend-past-trim-size' ? (
+        ) : visualSlug === 'why-background-colors-must-extend-past-trim-size' ? (
           <BackgroundBleedVisual compact={isCard} />
-        ) : postSlug === 'fix-text-outside-safe-area-kdp' ? (
+        ) : visualSlug === 'fix-text-outside-safe-area-kdp' ? (
           <SafeAreaFixVisual compact={isCard} />
+        ) : visualSlug === 'kdp-pdf-upload-takes-forever' ? (
+          <SlowUploadVisual compact={isCard} />
+        ) : visualSlug === 'kdp-previewer-not-loading' ? (
+          <PreviewerFrozenVisual compact={isCard} />
         ) : (
           <g filter={`url(#sketch-${postSlug}-${variant})`}>
-            {postSlug === 'kdp-cover-size-does-not-match-interior' ? <CoverInteriorMismatchVisual compact={isCard} /> : <GenericCoverVisual />}
+            {visualSlug === 'kdp-cover-size-does-not-match-interior' ? <CoverInteriorMismatchVisual compact={isCard} /> : <GenericCoverVisual />}
           </g>
         )}
-        {postSlug === 'kdp-cover-size-does-not-match-interior' && <CoverInteriorMismatchSharpOverlay compact={isCard} />}
+        {visualSlug === 'kdp-cover-size-does-not-match-interior' && <CoverInteriorMismatchSharpOverlay compact={isCard} />}
       </svg>
-      {(isFeatured || isArticle) && (
-        <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-4 rounded-xl border border-border bg-card/78 px-4 py-3 text-xs font-bold text-muted-foreground backdrop-blur">
-          <span>KDP cover guide</span>
-          <span className="h-px flex-1 bg-border" />
-          <span>KDP preflight visual</span>
-        </div>
-      )}
     </div>
   );
 }
+
+const sharedVisualBySlug: Record<string, string> = {
+  'fix-low-resolution-images-kdp': 'why-your-kdp-cover-looks-blurry-after-upload',
+};
 
 function SpineTextOffCenterVisual({ compact = false }: { compact?: boolean }) {
   return (
@@ -461,6 +463,95 @@ function CroppedCoverVisual({ compact = false }: { compact?: boolean }) {
           <text x="170" y="56" fill="var(--foreground)" fontSize="22" fontWeight="900">bleed / trim / safe area mismatch</text>
           <text x="492" y="374" fill="var(--muted-foreground)" fontSize="16" fontWeight="800">Previewer crop simulation</text>
         </>
+      )}
+    </g>
+  );
+}
+
+function SlowUploadVisual({ compact = false }: { compact?: boolean }) {
+  return (
+    <g transform={compact ? 'translate(0 18)' : undefined}>
+      {/* Heavy PDF document — left */}
+      <rect x="76" y="80" width="152" height="198" rx="14" fill="var(--card)" stroke="var(--border)" strokeWidth="3" />
+      <path d="M196 80l32 32h-32Z" fill="color-mix(in srgb, var(--muted) 60%, transparent)" stroke="var(--border)" strokeWidth="2" />
+      <rect x="96" y="132" width="92" height="8" rx="4" fill="var(--foreground)" opacity=".15" />
+      <rect x="96" y="148" width="76" height="8" rx="4" fill="var(--foreground)" opacity=".11" />
+      <rect x="96" y="164" width="86" height="8" rx="4" fill="var(--foreground)" opacity=".11" />
+      <rect x="96" y="180" width="64" height="8" rx="4" fill="var(--foreground)" opacity=".11" />
+      <rect x="96" y="200" width="60" height="22" rx="6" fill="color-mix(in srgb, var(--danger) 14%, transparent)" stroke="var(--danger)" strokeWidth="2" />
+      <text x="126" y="216" textAnchor="middle" fill="var(--danger)" fontSize="12" fontWeight="900">PDF</text>
+      {/* File size badge */}
+      <rect x="76" y="296" width="152" height="34" rx="10" fill="color-mix(in srgb, var(--danger) 10%, transparent)" stroke="var(--danger)" strokeWidth="2.5" />
+      <text x="152" y="319" textAnchor="middle" fill="var(--danger)" fontSize="16" fontWeight="900">320 MB</text>
+
+      {/* Upload arrow */}
+      <path d="M256 178h82" stroke="var(--border)" strokeWidth="3.5" strokeDasharray="8 6" />
+      <path d="M320 161l18 17-18 17" fill="none" stroke="var(--primary)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Progress panel — right */}
+      <rect x="358" y="84" width="368" height="248" rx="18" fill="var(--card)" stroke="var(--border)" strokeWidth="3" />
+      <text x="542" y="122" textAnchor="middle" fill="var(--foreground)" fontSize="14" fontWeight="850">KDP manuscript processing</text>
+      {/* Progress bar track */}
+      <rect x="382" y="140" width="320" height="18" rx="9" fill="var(--muted)" opacity=".45" />
+      {/* Progress bar fill — stuck at ~76% */}
+      <rect x="382" y="140" width="244" height="18" rx="9" fill="var(--primary)" opacity=".55" />
+      {/* Stuck marker */}
+      <circle cx="626" cy="149" r="11" fill="var(--card)" stroke="var(--danger)" strokeWidth="3" />
+      <rect x="622" y="141" width="7" height="11" rx="3.5" fill="var(--danger)" />
+      <circle cx="626" cy="156" r="3.5" fill="var(--danger)" />
+      {/* Progress label */}
+      <text x="542" y="178" textAnchor="middle" fill="var(--muted-foreground)" fontSize="12" fontWeight="750">76% · still processing…</text>
+      {/* Stuck warning box */}
+      <rect x="382" y="196" width="320" height="114" rx="14" fill="color-mix(in srgb, var(--danger) 7%, transparent)" stroke="var(--danger)" strokeDasharray="8 5" strokeWidth="2.5" />
+      <text x="542" y="230" textAnchor="middle" fill="var(--danger)" fontSize="14" fontWeight="900">upload stuck</text>
+      <text x="542" y="252" textAnchor="middle" fill="var(--muted-foreground)" fontSize="12">compress images · flatten PDF</text>
+      <text x="542" y="272" textAnchor="middle" fill="var(--muted-foreground)" fontSize="12">re-export · split-test manuscript</text>
+      {/* Warning circle top right */}
+      <circle cx="694" cy="102" r="22" fill="var(--card)" stroke="var(--danger)" strokeWidth="3.5" />
+      <rect x="690" y="88" width="8" height="17" rx="4" fill="var(--danger)" />
+      <circle cx="694" cy="113" r="4.5" fill="var(--danger)" />
+      {!compact && (
+        <text x="168" y="62" fill="var(--foreground)" fontSize="20" fontWeight="900">KDP upload stuck processing</text>
+      )}
+    </g>
+  );
+}
+
+function PreviewerFrozenVisual({ compact = false }: { compact?: boolean }) {
+  return (
+    <g transform={compact ? 'translate(0 18)' : undefined}>
+      {/* Browser chrome */}
+      <rect x="82" y="72" width="636" height="316" rx="18" fill="var(--card)" stroke="var(--border)" strokeWidth="3" />
+      {/* Browser top bar */}
+      <rect x="82" y="72" width="636" height="44" rx="18" fill="color-mix(in srgb, var(--muted) 45%, transparent)" />
+      <rect x="82" y="95" width="636" height="21" fill="color-mix(in srgb, var(--muted) 45%, transparent)" />
+      {/* Traffic lights */}
+      <circle cx="110" cy="94" r="7" fill="var(--danger)" opacity=".65" />
+      <circle cx="130" cy="94" r="7" fill="color-mix(in srgb, var(--primary) 75%, transparent)" opacity=".65" />
+      <circle cx="150" cy="94" r="7" fill="var(--success)" opacity=".65" />
+      {/* URL bar */}
+      <rect x="198" y="82" width="424" height="24" rx="7" fill="var(--card)" stroke="var(--border)" strokeWidth="1.5" />
+      <text x="410" y="98" textAnchor="middle" fill="var(--muted-foreground)" fontSize="11">kdp.amazon.com · launching preview…</text>
+      {/* KDP content area */}
+      <rect x="98" y="132" width="604" height="240" rx="10" fill="color-mix(in srgb, var(--muted) 15%, transparent)" />
+      {/* Launch Preview button — greyed out */}
+      <rect x="312" y="144" width="176" height="36" rx="10" fill="color-mix(in srgb, var(--muted) 50%, transparent)" stroke="var(--border)" strokeWidth="2" />
+      <text x="400" y="167" textAnchor="middle" fill="var(--muted-foreground)" fontSize="14" fontWeight="800">Launch Preview</text>
+      {/* Preview pane */}
+      <rect x="172" y="194" width="456" height="162" rx="14" fill="var(--card)" stroke="var(--border)" strokeWidth="2.5" />
+      {/* Spinner track */}
+      <circle cx="400" cy="252" r="42" fill="none" stroke="var(--muted)" strokeWidth="7" opacity=".4" />
+      {/* Spinner arc — 3/4 clockwise from 12 to 9 o'clock */}
+      <path d="M400 210 a42 42 0 1 1 -42 42" fill="none" stroke="var(--primary)" strokeWidth="7" strokeLinecap="round" opacity=".7" />
+      {/* Frozen label */}
+      <rect x="312" y="320" width="176" height="26" rx="8" fill="color-mix(in srgb, var(--danger) 10%, transparent)" stroke="var(--danger)" strokeWidth="2" />
+      <text x="400" y="337" textAnchor="middle" fill="var(--danger)" fontSize="12" fontWeight="850">Preview not loading</text>
+      {/* Warning badge */}
+      <circle cx="676" cy="152" r="22" fill="var(--card)" stroke="var(--danger)" strokeWidth="3.5" />
+      <rect x="672" y="138" width="8" height="17" rx="4" fill="var(--danger)" />
+      <circle cx="676" cy="162" r="4.5" fill="var(--danger)" />
+      {!compact && (
+        <text x="192" y="54" fill="var(--foreground)" fontSize="20" fontWeight="900">KDP Previewer frozen</text>
       )}
     </g>
   );

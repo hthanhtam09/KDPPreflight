@@ -29,8 +29,7 @@ export const metadata: Metadata = generatePageMetadata({
 
 export default function BlogIndexPage() {
   const featuredPost = getFeaturedPost();
-  const allGridPosts = featuredPost ? blogPosts.filter((post) => post.slug !== featuredPost.slug) : blogPosts;
-  const { items: gridPosts, totalPages } = paginateItems(allGridPosts, 1);
+  const { items: gridPosts, totalPages } = paginateItems(blogPosts, 1);
 
   return (
     <>

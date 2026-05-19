@@ -42,6 +42,15 @@ function requireStringArray(source: Record<string, unknown>, key: string, filePa
   return value;
 }
 
+function requireMarkdownContent(source: Record<string, unknown>, key: string, filePath: string): string {
+  const value = source[key];
+  if (typeof value === 'string' && value.trim()) return value;
+  if (Array.isArray(value) && value.every((item) => typeof item === 'string' && item.trim())) {
+    return value.join('\n\n');
+  }
+  throw new Error(`Blog content validation failed in ${filePath}: missing required string or string array "${key}"`);
+}
+
 export function validateBlogSource(raw: unknown, expectedSlug: string, filePath: string): BlogPostSource {
   if (!isRecord(raw)) throw new Error(`Blog content validation failed in ${filePath}: content must be an object`);
 
@@ -74,6 +83,20 @@ export function validateBlogSource(raw: unknown, expectedSlug: string, filePath:
     }
   }
 
+  if (source.howTo) {
+    if (!source.howTo.name?.trim() || !source.howTo.description?.trim()) {
+      throw new Error(`Blog content validation failed in ${filePath}: howTo must include name and description`);
+    }
+    if (!Array.isArray(source.howTo.steps) || source.howTo.steps.length === 0) {
+      throw new Error(`Blog content validation failed in ${filePath}: howTo.steps must include at least one step`);
+    }
+    for (const step of source.howTo.steps) {
+      if (!step.name?.trim() || !step.text?.trim()) {
+        throw new Error(`Blog content validation failed in ${filePath}: howTo steps must include name and text`);
+      }
+    }
+  }
+
   return {
     ...source,
     title,
@@ -89,7 +112,7 @@ export function validateBlogSource(raw: unknown, expectedSlug: string, filePath:
     shortAnswer: requireString(raw, 'shortAnswer', filePath),
     summary: requireStringArray(raw, 'summary', filePath),
     checklist: requireStringArray(raw, 'checklist', filePath),
-    content: requireString(raw, 'content', filePath),
+    content: requireMarkdownContent(raw, 'content', filePath),
     faqs,
     diagrams: source.diagrams ?? [],
     relatedGuides: source.relatedGuides ?? [],

@@ -40,7 +40,7 @@ export function getAllBlogSlugs(): string[] {
 }
 
 export function getFeaturedPost(): BlogPost | undefined {
-  return blogPosts.find((post) => post.featured) ?? blogPosts[0];
+  return blogPosts[0];
 }
 
 export function getPostsByCategory(category: BlogCategorySlug): BlogPost[] {
