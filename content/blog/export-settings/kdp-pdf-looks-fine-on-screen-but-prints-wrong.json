@@ -1,0 +1,294 @@
+{
+  "title": "Why Your KDP PDF Looks Fine on Screen but Prints Wrong",
+  "slug": "kdp-pdf-looks-fine-on-screen-but-prints-wrong",
+  "description": "A practical troubleshooting guide for KDP proof copies that print dull, blurry, gray, shifted, cropped, or different from the digital PDF preview.",
+  "metaTitle": "KDP PDF Looks Fine on Screen but Prints Wrong? Fix It",
+  "metaDescription": "Why does your KDP PDF look perfect on screen but print wrong? Learn how bleed, colors, trim shifts, export settings, and proof-copy issues work.",
+  "ogTitle": "KDP PDF Looks Fine on Screen but Prints Wrong",
+  "ogDescription": "Learn why KDP proof copies print differently from PDF previews, including dull colors, gray blacks, blurry images, trim shifts, white edges, and Canva export problems.",
+  "ogImageAlt": "Comparison of a KDP PDF preview on screen and a printed proof copy showing color, trim, bleed, and resolution differences.",
+  "excerpt": "A KDP PDF can look perfect on screen and still print dull, blurry, gray, shifted, or uneven because screens, PDFs, paper, ink, trim, and print-on-demand production behave differently.",
+  "category": "export-settings",
+  "tags": [
+    "KDP proof copy",
+    "print quality",
+    "Canva export",
+    "RGB vs print",
+    "trim shift"
+  ],
+  "keywords": [
+    "KDP PDF looks fine on screen but prints wrong",
+    "KDP print looks different",
+    "Canva print colors wrong",
+    "KDP proof copy blurry",
+    "black prints gray KDP",
+    "KDP print quality issues",
+    "PDF looks different after printing",
+    "KDP color printing problems",
+    "KDP blurry proof copy",
+    "KDP trim shift printing",
+    "RGB vs print",
+    "bleed",
+    "trim tolerance",
+    "matte vs glossy",
+    "print rendering",
+    "CMYK expectations",
+    "paper absorption",
+    "safe area",
+    "print contrast",
+    "export quality",
+    "rasterization",
+    "print-production workflow"
+  ],
+  "publishedAt": "2026-05-20",
+  "updatedAt": "2026-05-20",
+  "sortPriority": 24,
+  "featured": true,
+  "author": "KDP Preflight Editorial",
+  "shortAnswer": "Your KDP PDF can look perfect on screen but print wrong because screens emit light while paper reflects ink, printers have a smaller color range than bright displays, matte finishes reduce contrast, physical trimming has tolerance, and low-resolution or compressed assets become more visible in print. Treat KDP Previewer as a technical check, then validate bleed, trim safety, resolution, export settings, and proof copies before publishing.",
+  "relatedToolKeys": [
+    "checker",
+    "bleedChecker",
+    "trimCalculator",
+    "validator"
+  ],
+  "relatedGuides": [
+    {
+      "label": "KDP Cover Checker",
+      "href": "/tools/kdp-cover-checker"
+    },
+    {
+      "label": "KDP Bleed Checker",
+      "href": "/tools/kdp-bleed-checker"
+    },
+    {
+      "label": "KDP Trim Size Calculator",
+      "href": "/tools/kdp-trim-size-calculator"
+    },
+    {
+      "label": "KDP safe area glossary",
+      "href": "/glossary/safe-area"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Why do KDP prints look different from screens?",
+      "answer": "Screens emit light, while printed books reflect light from ink on paper. Printers also have different color limits, paper absorbs ink, and physical trimming introduces small movement."
+    },
+    {
+      "question": "Why does black print gray on Amazon KDP?",
+      "answer": "Black can print gray when the design relies on screen brightness, the finish is matte, the black is not rich enough for print, or the file uses low-contrast dark tones that lose depth on paper."
+    },
+    {
+      "question": "Does matte paper reduce contrast?",
+      "answer": "Yes. Matte finishes usually make colors look softer and blacks less deep than glossy finishes because they scatter light and absorb ink differently."
+    },
+    {
+      "question": "Can Canva exports cause print issues?",
+      "answer": "Yes. Canva files can print poorly when exported as standard PDF, built from low-resolution images, filled with transparent effects, resized after export, or downloaded with incorrect bleed settings."
+    },
+    {
+      "question": "Why do KDP proof copies look blurry?",
+      "answer": "Proof copies look blurry when images are below 300 DPI at print size, screenshots were used, assets were upscaled, or the PDF export compressed images too aggressively."
+    },
+    {
+      "question": "Does KDP Previewer show real print colors?",
+      "answer": "No. KDP Previewer is useful for layout, bleed, and margin checks, but it cannot accurately simulate ink absorption, paper texture, finish, or exact color output."
+    },
+    {
+      "question": "Why do borders shift slightly after printing?",
+      "answer": "Borders shift because books are physically trimmed after printing. Small trim tolerance is normal, and thin borders near the edge make that movement obvious."
+    },
+    {
+      "question": "Should I brighten dark designs before export?",
+      "answer": "Often yes. Dark designs usually print darker or flatter than they appear on a backlit screen, so slightly lifting shadows and increasing contrast can improve proof copies."
+    },
+    {
+      "question": "Is glossy better for coloring books?",
+      "answer": "Glossy can make covers look more saturated, but coloring book interiors are separate from cover finish. For interiors, focus on paper type, line clarity, margins, and resolution."
+    },
+    {
+      "question": "Why does print quality look softer than my PDF?",
+      "answer": "Printed output is affected by paper texture, ink spread, rasterization, image resolution, compression, and finish. A PDF viewer can hide problems that become visible on paper."
+    }
+  ],
+  "summary": [
+    "Digital previews are not physical proofs: screens emit light, paper reflects ink, and print-on-demand production introduces trim and color variation.",
+    "The most common surprises are dull colors, gray blacks, blurry images, shifted borders, white edges, and designs that looked correct in Canva but exported poorly.",
+    "The safest workflow is to validate technical setup, export a high-quality PDF, inspect resolution and bleed, then order physical proof copies before publishing."
+  ],
+  "checklist": [
+    "Dark covers are tested with lifted shadows and enough contrast.",
+    "Images are true 300 DPI at their final print size.",
+    "Screenshots and low-resolution web images are avoided.",
+    "Bleed is included when artwork reaches the edge.",
+    "Important content stays inside safe margins.",
+    "Thin borders near trim are avoided or moved inward.",
+    "Canva exports use PDF Print rather than standard PDF.",
+    "Photoshop files are built at exact size and 300 DPI.",
+    "The final PDF dimensions are checked before upload.",
+    "A physical proof copy is ordered before publishing."
+  ],
+  "howTo": {
+    "name": "How to make a KDP PDF print closer to the screen preview",
+    "description": "A proof-copy workflow for reducing common KDP print surprises such as dull color, gray blacks, blurry images, trim shifts, and white edges.",
+    "totalTime": "PT35M",
+    "steps": [
+      {
+        "name": "Check the design for print-risk areas",
+        "text": "Review dark colors, thin borders, edge artwork, small text, gradients, and low-contrast details before export."
+      },
+      {
+        "name": "Validate resolution and export settings",
+        "text": "Use real 300 DPI assets, export a print-quality PDF, preserve dimensions, and avoid post-export resizing."
+      },
+      {
+        "name": "Confirm bleed, trim, and safe area",
+        "text": "Make sure edge artwork extends into bleed and important text, borders, and focal details stay safely away from trim."
+      },
+      {
+        "name": "Upload and review KDP Previewer",
+        "text": "Use Previewer to catch layout, bleed, margin, and trim problems, but do not rely on it for final color accuracy."
+      },
+      {
+        "name": "Order and evaluate a proof copy",
+        "text": "Inspect the printed proof under normal lighting, then adjust contrast, color, resolution, borders, or bleed before publishing."
+      }
+    ]
+  },
+  "diagrams": [
+    "screen-vs-print-comparison",
+    "rgb-vs-print-output",
+    "matte-glossy-finish",
+    "black-print-comparison",
+    "dpi-72-vs-300",
+    "trim-tolerance-shift",
+    "white-edge-simulation",
+    "canva-export-quality",
+    "color-proof-workflow"
+  ],
+  "content": [
+    "You order a KDP proof copy, open the package, and immediately feel confused. The PDF looked perfect. The colors looked rich on screen. The black cover looked deep. The images looked sharp. The alignment looked centered.",
+    "But the printed book tells a different story. Colors look dull. Images look softer. Blacks print gray. Borders shift. Trim looks uneven. A thin white edge appears where the background should reach the paper edge. A cover made in Canva looked fine digitally, but the proof copy feels less polished.",
+    "Digital previews are not identical to physical printing. A PDF viewer, Canva canvas, and KDP Previewer are useful, but they are not a substitute for ink on paper.",
+    "This is one of the most common KDP publishing surprises — and most issues are preventable once you understand how print production works.",
+    "This guide explains why KDP prints behave differently from screens, which problems are normal print behavior, which problems are fixable file issues, and how to make your next proof copy look closer to what you intended.",
+    "## Why Screen Previews and Printed Books Are Never Identical",
+    "A screen emits light. A printed book reflects light. That difference is the root of many KDP print surprises.",
+    "When you view a PDF on a laptop or phone, the artwork is being displayed by illuminated pixels. Bright colors are pushed toward your eyes by the screen. Blacks can look extremely deep because the display can reduce light output in dark areas. Contrast is easy for a screen to exaggerate.",
+    "A printed book works differently. Ink sits on paper. Light from the room hits the paper, reflects back, and passes through the ink. The paper color, ink density, finish, and lighting all affect what you see. Even a technically good print will usually look less luminous than the same file on a bright display.",
+    "Printers also interpret color differently. Your design may be built in RGB, while physical printing uses ink behavior closer to CMYK expectations. Some colors that screens show easily are difficult or impossible to reproduce with print inks. Neon greens, electric blues, bright purples, saturated reds, and deep shadow gradients often change the most.",
+    "KDP's official [paperback cover requirements](https://kdp.amazon.com/en_US/help/topic/G201953020) emphasize image color, size, and quality for print covers, and Amazon's [print publishing guidelines PDF](https://images-na.ssl-images-amazon.com/images/G/01/15/29/43/46/94/45/15294346944509.pdf) states that images should be at least 300 DPI for optimal printing. Adobe's [color management documentation](https://helpx.adobe.com/photoshop/using/color-settings.html) also explains why color settings affect how colors are interpreted across devices and output conditions.",
+    "Physical trimming adds another difference. Paperbacks are printed, bound, and trimmed. The cut is not mathematically identical on every copy. Small trim tolerance is normal. If a design depends on a border being exactly 0.10 inches from every edge, the printed book may look shifted even when the PDF was centered.",
+    "Digital perfection is not physical perfection. The PDF can be technically centered, color-rich, and sharp on screen while the proof copy reveals print-production realities.",
+    "## The Most Common Reasons KDP Prints Look Different",
+    "Most print differences come from a few predictable causes: color conversion, paper finish, trim tolerance, resolution, and export settings.",
+    "### RGB Colors Print Duller Than Expected",
+    "RGB color is built for screens. It uses red, green, and blue light. Print uses ink on paper, and ink cannot reproduce every luminous screen color.",
+    "This is why a bright teal, neon green, or glowing purple can look exciting in Canva but flatter in print. Your screen may also be set to high brightness, making the design look more vivid than it really is. When the file is printed, the same color has to exist as ink sitting on paper under room lighting.",
+    "Dark tones are another common problem. A screen can show a deep black background with subtle navy or charcoal detail. On matte paper, those subtle values may collapse into muddy gray or lose separation. A black cover may print less deep than it looked digitally.",
+    "Blacks often print grayish for three reasons. First, the screen made the black look deeper than ink can reproduce. Second, the finish and paper reduce contrast. Third, the design may rely on very subtle dark-on-dark differences that are visible on a backlit display but weak on paper.",
+    "A realistic example: a thriller cover uses near-black background texture, dark red title text, and a subtle smoke overlay. On screen, the title feels dramatic. In print, the smoke becomes muddy, the black looks soft, and the red loses contrast. The fix is not only making the file darker. Often the fix is increasing separation: lift highlights, simplify dark textures, and make important text more contrasty.",
+    "For a color-focused companion guide, see [why KDP cover colors look different after printing](/blog/kdp-cover-colors-look-different-after-printing).",
+    "### Matte Paper Absorbs Ink Differently",
+    "Matte finishes usually make designs look softer than glossy finishes. Matte surfaces scatter light and reduce perceived contrast. Glossy finishes reflect more light directly, which can make colors feel richer and blacks deeper.",
+    "This does not mean glossy is always better. Matte can look elegant and professional. It is common for novels, nonfiction, journals, and premium-feeling covers. But matte is less forgiving for designs that rely on deep black, neon saturation, tiny low-contrast details, or subtle gradients.",
+    "A black matte cover can look charcoal. A dark blue matte cover can lose depth. A warm beige cover can print slightly duller than expected. If your proof copy feels washed out, finish choice may be part of the reason.",
+    "For interiors, paper absorption matters too. Standard color and premium color behave differently. White paper, cream paper, and color interiors can change perceived brightness. A grayscale image that looks crisp on screen may soften when printed on paper with visible texture.",
+    "The practical fix is to design with print contrast, not screen contrast. Use stronger value separation. Avoid relying on barely visible texture. Test dark covers with proof copies before publishing.",
+    "### Trim Tolerance Changes Alignment Slightly",
+    "KDP books are physically trimmed after printing. The final cut can vary slightly. This is normal for print-on-demand production.",
+    "Most layouts tolerate this well. A centered title with generous margins still looks centered. A full background with correct bleed still reaches the edge. But thin borders, frames, edge stripes, and text near trim make small movement obvious.",
+    "If your proof copy has a border that looks thicker on one side, the border was probably too close to the trim or too visually strict for print tolerance. If a dark cover shows a white sliver, the background likely did not extend far enough into bleed. If spine text looks slightly shifted, the spine may be narrow, the fold may vary, or the cover was built from stale spine dimensions.",
+    "Use safe margins for important elements. Move borders inward or remove them. Extend backgrounds into bleed. The [white edge printing issue guide](/blog/white-lines-on-kdp-cover) explains why edge backgrounds need bleed, and the [safe area guide](/blog/how-to-check-safe-area-before-exporting-kdp-cover) shows how to keep important content away from trim risk.",
+    "### Low-Resolution Assets Become Obvious in Print",
+    "A PDF viewer can make low-resolution images look acceptable. Printing is less forgiving.",
+    "Screens often display content around 72 to 144 pixels per inch depending on device density and zoom. Print needs much more real image data. KDP's print guidelines recommend 300 DPI for optimal printing. If an image is 800 pixels wide but printed 6 inches wide, its effective resolution is about 133 DPI. It may look fine on screen and blurry on paper.",
+    "Screenshots are a major source of blurry proof copies. So are web images, social media downloads, tiny AI images, and PNG decorations stretched far beyond their native size. Upscaling can help in some cases, but fake enlargement does not recreate real detail that was never there.",
+    "The key is effective DPI at final print size. A 300 DPI document does not magically make every placed image 300 DPI. Each raster image needs enough pixels for the size it occupies. For deeper troubleshooting, see [why your KDP cover looks blurry after upload](/blog/why-your-kdp-cover-looks-blurry-after-upload) and [fix low-resolution images for KDP](/blog/fix-low-resolution-images-kdp).",
+    "### Canva Export Settings Cause Hidden Problems",
+    "Canva can look perfect digitally while hiding print problems. The canvas may display crisp text and rich colors, but the exported PDF is what KDP prints.",
+    "Common Canva problems include exporting as standard PDF instead of PDF Print, using low-resolution uploaded images, placing screenshots as design elements, stacking transparent effects, adding large PNG overlays, and downloading a file that is later resized or compressed by another tool.",
+    "Transparency and effects can create subtle print artifacts. Shadows, glows, semi-transparent textures, and blend effects may rasterize during export. If they rasterize at insufficient resolution or compress aggressively, the proof can show soft edges, banding, or blocky dark areas.",
+    "Export scaling is another trap. A design may be built at the right dimensions, then opened in another app and printed to PDF with fit-to-page enabled. That final PDF may be technically different from the source file. For KDP, always inspect the exported PDF itself.",
+    "If your Canva file is image-heavy and KDP Previewer struggles to load, review the [KDP PDF upload processing guide](/blog/kdp-pdf-upload-takes-forever).",
+    "## What KDP Previewer Shows vs What It DOESN’T Show",
+    "KDP Previewer is useful, but it is not a physical proof copy.",
+    "Previewer can catch many technical problems. It can show bleed issues, trim warnings, margin risks, cover sizing problems, barcode conflicts, and obvious layout problems. It helps confirm whether your PDF is structurally acceptable for KDP's system.",
+    "Previewer does not accurately simulate ink absorption. It cannot show exactly how matte laminate will soften black. It cannot reproduce paper texture, room lighting, finish, or the exact density of a specific print run. It cannot guarantee that a thin border will look perfectly even after trimming.",
+    "Previewer also renders your file in a browser-like environment. Browser zoom, anti-aliasing, and display calibration affect what you see. A proof copy is the only way to evaluate the physical result.",
+    "Treat Previewer as a gatekeeper for technical layout, not as final color proofing. If Previewer flags bleed or trim, fix the file. If Previewer looks good, still order a proof before publishing when color, darkness, image sharpness, or edge alignment matters.",
+    "This is especially important for covers with dark backgrounds, image-heavy interiors, coloring books, books with thin borders, and any design where the brand depends on precise color.",
+    "## How to Make Your Printed KDP Books Look Better",
+    "The goal is not to make print identical to screen. The goal is to prepare files that survive print well.",
+    "### Use Slightly Brighter Colors Than You Think",
+    "Dark designs often need adjustment for print. If your cover looks perfect on a bright monitor, it may print darker, flatter, or less separated.",
+    "Lift shadows slightly so dark areas keep detail. Increase contrast between text and background. Avoid placing dark red text on black, navy text on charcoal, or gray text on muted backgrounds unless proof copies confirm it works.",
+    "For vibrant colors, avoid relying on neon saturation. Use strong value contrast and clear hierarchy. A color that cannot print as bright can still work if the composition has enough contrast.",
+    "A useful test is to dim your monitor and view the cover smaller. If important text or image detail disappears immediately, the proof copy may struggle too.",
+    "### Avoid Ultra-Thin Borders Near Trim",
+    "Thin borders near trim are one of the easiest ways to make a print look wrong. The PDF may be perfectly centered, but a slight trim shift makes one side look tighter than the other.",
+    "Move borders inward. Make them thicker and more forgiving. Use backgrounds that extend to bleed instead of precision frames. If the border is decorative rather than necessary, remove it.",
+    "This matters for covers, journals, coloring books, puzzle books, and planners. Any layout with a visible edge frame is asking the trim to be perfect, and physical trimming is not perfect.",
+    "### Export Properly from Canva or Photoshop",
+    "For Canva, use PDF Print. Use the correct cover or interior dimensions. Enable bleed when your artwork reaches the edge. Extend edge backgrounds past the bleed guides. Keep crop marks off unless you specifically understand how they affect the final file. Avoid exporting as JPG for print covers when a print-quality PDF is expected.",
+    "If the design uses many transparent overlays, shadows, or large PNGs, simplify or flatten a copy before export. Keep an editable master, but upload a clean print PDF.",
+    "For Photoshop, build the document at exact physical dimensions and 300 DPI. Use high-resolution source assets. Flatten a copy if live effects are complex. Export with a high-quality print PDF preset. Do not use fit-to-page, shrink-to-page, or browser print workflows.",
+    "After exporting, open the PDF properties and confirm dimensions. Then inspect the PDF at high zoom for soft images, jagged text, or compression artifacts.",
+    "If the cover dimensions themselves are being rejected, use the [KDP cover dimension mismatch guide](/blog/kdp-cover-dimensions-not-matching-template).",
+    "### Use Real 300 DPI Assets",
+    "Real resolution means the image has enough pixels at the size it prints. A 300 DPI label in a file dialog is not enough.",
+    "Example: an illustration is 1200 pixels wide. If it prints 4 inches wide, it has 300 effective DPI. If it prints 8 inches wide, it has 150 effective DPI. The same source file can be acceptable in one layout and blurry in another.",
+    "Avoid screenshots for covers and interiors. Avoid stretching small AI outputs to full-page size without a proper upscaling and review process. Avoid downloading images from social media, which often compresses them heavily.",
+    "Vector text and vector shapes stay crisp more reliably than rasterized text. If your title or subtitle is a screenshot, rebuild it as real text or vector paths.",
+    "### Order Physical Proof Copies Before Publishing",
+    "Never trust the digital preview alone for a print book. Order a proof copy before publishing, especially for color books, dark covers, coloring books, image-heavy books, and books with edge-to-edge art.",
+    "Inspect the proof under normal reading light, not only direct sunlight or a phone flashlight. Check front cover color, black density, image sharpness, spine alignment, trim edges, back cover text, interior line clarity, and any full-bleed pages.",
+    "Make notes directly: colors too dull, black too gray, border too close, image soft, background not extended enough, spine text too tight. Then return to the source file, adjust, export a new PDF, and order another proof if the changes are significant.",
+    "A proof copy is not wasted time. It is the print-production step that reveals what the screen cannot.",
+    "## Real Example: Why a “Perfect” Black Cover Printed Gray",
+    "A common proof-copy problem starts with a black cover. On screen, the design looks dramatic: deep black background, subtle charcoal texture, dark silver title, and a matte finish selected for a premium feel.",
+    "The proof copy arrives looking flat. The black is closer to dark gray. The charcoal texture is barely visible in some areas and muddy in others. The silver title has less contrast than expected. The author thinks KDP printed it wrong, but the file is also fragile for print.",
+    "The first issue is screen brightness. The monitor made the black look deeper than ink on matte paper could reproduce. The second issue is finish. Matte softened the contrast. The third issue is value separation. The design used several dark tones too close together.",
+    "The fix is to rebuild the dark range. The background stays dark, but the texture is simplified and lifted slightly. The title becomes lighter and more contrasty. The deepest shadows are reserved for larger areas, not subtle details. The author tests glossy finish as well, because glossy can make blacks appear richer.",
+    "The second proof looks stronger. It is still not identical to the screen, but it has better contrast, clearer title readability, and less muddy texture. That is the right goal: not identical, but intentionally prepared for print.",
+    "## Designs Most Likely to Print Differently",
+    "Ultra-dark covers are risky because screens exaggerate depth. Use stronger contrast and proof the finish.",
+    "Edge-to-edge borders are risky because trim movement makes them look uneven. Move borders inward or replace them with forgiving full-bleed backgrounds.",
+    "Neon colors are risky because print cannot reproduce every bright RGB color. Use contrast and composition instead of relying only on saturation.",
+    "Tiny details are risky because paper texture, ink spread, and rasterization soften them. Increase size, simplify, or use vector shapes.",
+    "Subtle gradients are risky because compression and print rendering can create banding. Use smoother source files, reduce compression, and avoid gradients that are only barely visible on screen.",
+    "Low-contrast typography is risky. If text is important, make it readable under imperfect print conditions. A buyer will not compare the book to your PDF; they will judge the physical copy in normal light.",
+    "Full black backgrounds near edges are risky without bleed. If the background stops at trim, white paper can appear after cutting. For interior coloring books and covers, review [KDP bleed vs no bleed for coloring books](/blog/kdp-bleed-vs-no-bleed-coloring-books) and [KDP bleed vs no bleed](/blog/kdp-bleed-vs-no-bleed).",
+    "Spines are risky because alignment is narrow and binding can vary. If spine text looks shifted, compare your setup with [KDP spine width wrong](/blog/kdp-spine-width-wrong).",
+    "## How KDPPreflight Helps Prevent Print Surprises",
+    "KDPPreflight cannot replace a physical proof copy, but it can catch many of the technical problems that make proof copies disappointing.",
+    "It helps validate bleed, show trim safety overlays, detect unsafe margins, check resolution risks, verify export dimensions, and flag elements that sit too close to the edge. Those are the problems that often create white edges, cut-off borders, blurry assets, and layout shifts.",
+    "Use it before upload and before ordering proofs. A cleaner technical file gives the proof copy a better chance of matching your intent.",
+    "## FAQ",
+    "### Why do KDP prints look different from screens?",
+    "Screens emit light, while printed books reflect light from ink and paper. Color range, finish, paper texture, and trimming all change the physical result.",
+    "### Why does black print gray on Amazon KDP?",
+    "Black often prints gray when the design relies on screen brightness, matte finish softens contrast, or dark tones are too close together.",
+    "### Does matte paper reduce contrast?",
+    "Yes. Matte finishes usually make blacks softer and colors less saturated than glossy finishes.",
+    "### Can Canva exports cause print issues?",
+    "Yes. Standard PDF export, low-resolution images, transparent effects, compression, wrong dimensions, and post-export resizing can all cause print problems.",
+    "### Why do proof copies look blurry?",
+    "Blurry proof copies usually come from low-resolution assets, screenshots, upscaled images, or aggressive PDF compression.",
+    "### Does KDP Previewer show real print colors?",
+    "No. Previewer helps with layout and technical checks, but it cannot accurately simulate ink, paper, finish, or exact color output.",
+    "### Why do borders shift slightly after printing?",
+    "Books are physically trimmed after printing. Small trim movement is normal, and borders near the edge make it visible.",
+    "### Should I brighten dark designs before export?",
+    "Often yes. Slightly brighter shadows, clearer highlights, and stronger contrast help dark designs survive print better.",
+    "### Is glossy better for coloring books?",
+    "Glossy may improve cover saturation, but it does not determine coloring book interior quality. For interiors, prioritize line clarity, margins, bleed setup, and resolution.",
+    "### Why does print quality look softer than my PDF?",
+    "Paper texture, ink spread, rasterization, compression, and finish make printed output softer than a backlit digital preview.",
+    "## Final Proof-Copy Advice",
+    "A KDP PDF looking perfect on screen is only the first checkpoint. The real test is whether the file survives ink, paper, trimming, finish, and normal reading light.",
+    "Before publishing, check resolution, bleed, trim safety, safe areas, export quality, and PDF dimensions. Then order a proof copy and adjust the source file based on the physical result.",
+    "Run your exported PDF through [KDPPreflight](/tools/kdp-cover-checker) to catch bleed, trim, safe-area, resolution, and export risks before you spend time waiting for another proof."
+  ]
+}

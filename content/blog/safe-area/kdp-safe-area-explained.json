@@ -1,0 +1,267 @@
+{
+  "title": "KDP Safe Area Explained: How to Prevent Text from Getting Cut Off",
+  "slug": "kdp-safe-area-explained",
+  "description": "Learn how Amazon KDP safe areas really work. Prevent text from getting cut off, avoid border alignment problems, and build safer paperback layouts.",
+  "metaTitle": "KDP Safe Area Explained (Prevent Text From Getting Cut Off)",
+  "metaDescription": "Learn how Amazon KDP safe areas really work. Prevent text from getting cut off, avoid border alignment problems, and build safer paperback layouts.",
+  "ogTitle": "KDP Safe Area Explained",
+  "ogDescription": "A practical guide to KDP safe margins, trim tolerance, cover text placement, Canva setup, border risks, and proof-copy validation.",
+  "ogImageAlt": "Diagram explaining Amazon KDP safe area, trim line, bleed zones, and unsafe text placement risks.",
+  "excerpt": "Text getting trimmed, subtitles sitting too low, uneven borders, and Canva layouts that looked centered can all come from the same print-production issue: unsafe placement near the trim edge.",
+  "category": "safe-area",
+  "tags": [
+    "KDP safe area",
+    "safe margins",
+    "trim safety",
+    "text cut off",
+    "Canva KDP cover"
+  ],
+  "keywords": [
+    "KDP safe area explained",
+    "KDP safe margins",
+    "text outside safe area KDP",
+    "KDP trim safety",
+    "KDP text cut off",
+    "Canva safe area KDP",
+    "KDP cover margin guide",
+    "KDP border alignment",
+    "KDP trim tolerance",
+    "safe area for paperback covers",
+    "bleed",
+    "trim line",
+    "print tolerance",
+    "edge safety",
+    "cover layout",
+    "safe margins",
+    "paperback formatting",
+    "spine alignment",
+    "full bleed cover",
+    "border risks",
+    "print-production workflow"
+  ],
+  "publishedAt": "2026-05-20",
+  "updatedAt": "2026-05-20",
+  "sortPriority": 31,
+  "featured": true,
+  "author": "KDP Preflight Editorial",
+  "shortAnswer": "The KDP safe area is the protected zone inside the trim line where important text, logos, subtitles, borders, and spine elements should stay. Use at least 0.25 inches of clear space from trim for important cover content, more for small text, bottom-edge elements, borders, and anything that must look precisely centered after physical trimming.",
+  "relatedToolKeys": [
+    "checker",
+    "bleedChecker",
+    "trimCalculator",
+    "spineCalculator",
+    "validator"
+  ],
+  "relatedGuides": [
+    {
+      "label": "KDP Cover Checker",
+      "href": "/tools/kdp-cover-checker"
+    },
+    {
+      "label": "KDP Bleed Checker",
+      "href": "/tools/kdp-bleed-checker"
+    },
+    {
+      "label": "KDP Spine Width Calculator",
+      "href": "/tools/kdp-spine-width-calculator"
+    },
+    {
+      "label": "KDP safe area glossary",
+      "href": "/glossary/safe-area"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What is the KDP safe area?",
+      "answer": "The KDP safe area is the protected zone inside the trim line where important content should stay. It keeps titles, subtitles, author names, logos, and readable graphics away from normal cutting movement."
+    },
+    {
+      "question": "How far should text be from the edge on KDP covers?",
+      "answer": "Keep important cover text at least 0.25 inches inside the trim line. Use more space for small subtitles, author names, logos, borders, bottom-edge text, and dark full-bleed covers."
+    },
+    {
+      "question": "Why did my title print off-center?",
+      "answer": "A title can print off-center when the cover is trimmed or bound slightly differently than the digital file. Tight borders, symmetrical frames, and incorrect Canva or template setup make the shift more visible."
+    },
+    {
+      "question": "Are borders risky on KDP covers?",
+      "answer": "Yes. Thin borders near the edge make normal trim movement obvious. A border that is perfectly centered in the PDF can still look uneven on a physical proof copy."
+    },
+    {
+      "question": "Can Canva cause safe-area problems?",
+      "answer": "Canva can create safe KDP covers, but its snap lines and visual centering do not guarantee print-safe placement. Always use the KDP template, safe guides, PDF Print export, and a final PDF check."
+    },
+    {
+      "question": "Does bleed affect safe margins?",
+      "answer": "Yes, but bleed and safe margins do opposite jobs. Bleed extends background artwork outward beyond trim, while safe margins move important content inward away from trim."
+    },
+    {
+      "question": "Why do KDP proof copies shift slightly?",
+      "answer": "Paperback covers are printed, stacked, cut, and bound by physical equipment. Small trim and binding variation is normal, so professional layouts leave safe margins instead of depending on a perfect cut."
+    },
+    {
+      "question": "Should text stay inside the trim line?",
+      "answer": "Yes. Text should stay inside the trim line and inside the safe area. Only expendable background artwork should extend past trim into bleed."
+    },
+    {
+      "question": "Can KDP Previewer detect safe-area issues?",
+      "answer": "KDP Previewer can show warnings and overlays, but it should not be your only check. Inspect the exported PDF, use template guides, run a preflight check, and order a physical proof copy."
+    },
+    {
+      "question": "What is the safest layout strategy for KDP?",
+      "answer": "Use the correct KDP template, extend only backgrounds into bleed, keep all important content at least 0.25 inches from trim, avoid thin edge borders, and verify the exported PDF before upload."
+    }
+  ],
+  "summary": [
+    "KDP safe areas exist because paperback covers and interiors are physically trimmed, and small cutting or binding variation is normal.",
+    "The safest cover workflow is to push backgrounds outward into bleed while keeping titles, subtitles, author names, logos, borders, and spine text inward inside the safe area.",
+    "Canva centering, thin borders, minimalist edge layouts, and full-bleed artwork can all look correct on screen while still producing unsafe or uneven proof copies."
+  ],
+  "checklist": [
+    "The cover was built from the correct KDP template or cover calculator dimensions.",
+    "Background artwork extends into bleed when it reaches the edge.",
+    "Title, subtitle, author name, logos, badges, and readable graphics sit at least 0.25 inches inside trim.",
+    "Small text and bottom-edge text have more than the minimum safety margin.",
+    "Thin borders are removed, softened, thickened, or moved well inward.",
+    "Spine text stays inside the spine safe area and away from fold edges.",
+    "Interior pages include appropriate outer, top, bottom, and gutter margins.",
+    "The exported PDF was checked at 100% zoom, not only in the design app.",
+    "KDP Previewer warnings were reviewed slowly before approval.",
+    "A physical proof copy was ordered before publishing or running ads."
+  ],
+  "howTo": {
+    "name": "How to avoid KDP safe area problems before upload",
+    "description": "A production workflow for keeping KDP cover and interior text away from trim-risk zones.",
+    "totalTime": "PT30M",
+    "steps": [
+      {
+        "name": "Start with the correct template",
+        "text": "Generate the KDP cover template or cover calculator dimensions from the exact trim size, paper type, page count, and bleed setting."
+      },
+      {
+        "name": "Keep critical text away from edges",
+        "text": "Place titles, subtitles, logos, author names, and back-cover copy at least 0.25 inches inside trim, with extra space for small text."
+      },
+      {
+        "name": "Avoid thin borders near trim",
+        "text": "Move borders inward, make them intentionally forgiving, or remove them if they depend on perfect trimming."
+      },
+      {
+        "name": "Preview at 100 percent zoom before export",
+        "text": "Inspect every edge, corner, border, subtitle, barcode-adjacent area, and spine area at full size before exporting the final PDF."
+      },
+      {
+        "name": "Order a physical proof copy",
+        "text": "Use the proof copy to validate trim, binding, border alignment, text spacing, color, and real-world readability before publication."
+      }
+    ]
+  },
+  "diagrams": [
+    "trim-safe-zone-anatomy",
+    "unsafe-text-placement-examples",
+    "margin-recommendation-layout",
+    "border-trim-shift-comparison",
+    "canva-safe-margin-steps",
+    "safe-area-mistakes-grid",
+    "professional-guide-setup",
+    "spine-alignment-anatomy"
+  ],
+  "content": [
+    "You upload a KDP cover, open Previewer, and the design that looked clean in Canva suddenly feels wrong. The subtitle is too close to the bottom. The author name looks like it may be trimmed. A thin border that was perfectly centered on screen prints heavier on one side. The proof copy arrives and the title looks slightly uneven even though the PDF looked fine.",
+    "Safe-area mistakes are one of the most common Amazon KDP print issues because they sit between design and manufacturing. The file can be the correct size and still be fragile. A Canva layout can look centered and still place text too close to the trim line. A full-bleed cover can upload successfully and still expose a border alignment problem after the book is cut.",
+    "Most safe-area problems are easy to prevent once you understand how physical trimming works. KDP safe margins are not arbitrary warnings. They are production buffers that protect important content from normal trim movement, cover wrap variation, and proof-copy surprises.",
+    "This guide explains KDP safe area from a print-production point of view: what the trim line means, why bleed is not a text zone, how much margin to leave, why borders are risky, how Canva creates false confidence, and how to build a practical workflow that survives real paperback printing.",
+    "## What the KDP Safe Area Actually Means",
+    "The KDP safe area is the part of your cover or interior page where important content should stay. Important content includes the book title, subtitle, author name, series name, logo, back-cover blurb, review quote, QR code, barcode-adjacent text, spine text, and any decorative element that would look broken if it were cut, shifted, or pushed against the edge.",
+    "To understand safe area, separate four print terms that often get mixed together.",
+    "**Trim line** is the intended final edge of the book. If you publish a 6 x 9 inch paperback, the finished front cover is intended to be 6 x 9 inches after trimming. The trim line is not the outer edge of the uploaded cover PDF when bleed is included. It is the target cut line.",
+    "**Bleed** is extra artwork outside the trim line. For KDP covers and bleed interiors, Amazon commonly expects artwork that reaches the edge to extend 0.125 inches beyond trim. Bleed is sacrificial. It exists so a background color, photo, texture, or illustration still reaches the physical edge even if the cut moves slightly.",
+    "**Safe area** is inside the trim line. This is where important content belongs. If bleed moves artwork outward, safe area moves text inward. The easiest rule is: background outward, important content inward.",
+    "**Print tolerance** is the normal variation that happens when physical books are printed, cut, stacked, and bound. A digital rectangle can be exact. A printed paperback is manufactured. Printers cannot cut every book perfectly identically because paper moves, stacks compress, blades have tolerances, and binding introduces small variation from copy to copy.",
+    "That tolerance is why safe areas exist. They do not mean your design is bad. They mean a real book is not a static screen preview. If a subtitle only has room when the trim lands perfectly, the layout is not production-safe.",
+    "The first diagram on this page uses the following image specification for teams that maintain static assets: `kdp-safe-area-diagram.webp`, 1600 x 900, lazy-loaded, alt text \"Diagram explaining Amazon KDP safe area, trim line, and bleed zones.\" In this site build, the diagram is rendered as a responsive SVG component so it stays sharp in light and dark mode without a blurry export.",
+    "Amazon's own print guidance and cover tooling are the best authoritative references for the production zones. Use the [Amazon KDP cover calculator](https://kdp.amazon.com/cover-calculator) when building a full-wrap cover, and compare your setup with the [Amazon KDP print options and formatting help](https://kdp.amazon.com/en_US/help/topic/G201857950). Adobe's print-layout guidance for [margins and guides](https://helpx.adobe.com/indesign/using/setting-margins-columns-guides.html) is also useful if you are working in professional layout software.",
+    "## Why Text Gets Cut Off on KDP Covers",
+    "Text gets cut off on KDP covers when readable content is placed too close to trim, too close to a fold, or inside a zone that should only contain expendable artwork. Sometimes KDP flags this before upload approval. Sometimes it passes Previewer but looks poor on the proof copy.",
+    "The confusing part is that the same file may look acceptable in the design app. Canva, Photoshop, Illustrator, Affinity, and KDP Previewer all display a flat digital representation. The finished paperback is a printed object with cover wrap, lamination, binding, and cutting. Safe area turns that manufacturing reality into a design rule.",
+    "### Text Too Close to the Trim Line",
+    "The most direct problem is simple: the title, subtitle, author name, or logo is too close to the intended cut edge.",
+    "A title can be large and still unsafe if it stretches nearly to the left and right edges. A subtitle can be small and sit low enough that a small trim movement makes the lower line feel clipped. An author name can look elegant at the bottom of the cover but appear uncomfortable in KDP Previewer because it lacks enough clear space below it.",
+    "Realistic examples look like this: a cookbook title spans almost the full width of a 6 x 9 cover; a journal subtitle sits 0.12 inches above the bottom trim; a romance pen name is tucked into a decorative footer; a badge in the upper-right corner is close to two trim edges at once. These are all fragile layouts because they depend on a precise cut.",
+    "When evaluating cover text, do not only ask whether the letters are technically inside the trim line. Ask whether the layout would still look intentional if the trim moved slightly up, down, left, or right. If the answer is no, the content needs more safety space.",
+    "### Borders Make Trim Problems Worse",
+    "Borders are one of the fastest ways to turn normal trim tolerance into a visible defect. A thin rectangular border near the cover edge behaves like a ruler. If the cut shifts by even a small amount, one side of the border looks thicker than the other.",
+    "This is why many KDP border alignment complaints are not really file-centering problems. The PDF may be centered. The Canva design may be centered. The issue is that a symmetrical frame near trim makes physical variation obvious.",
+    "Thin borders are especially risky on journals, planners, puzzle books, minimalist nonfiction covers, and dark full-bleed designs. A 0.03 inch line close to the edge can look premium in a mockup and cheap in print. If your cover has a white sliver or uneven trim against a dark background, the related [white lines on KDP cover guide](/blog/white-lines-on-kdp-cover) explains the bleed side of the same manufacturing problem.",
+    "Safer alternatives are to move the border well inward, make the frame thicker, use an intentionally irregular border, use a soft background field instead of a hard line, or remove the border completely. If a border must look mathematically equal on all four sides, it is usually too delicate for edge placement.",
+    "### Canva Alignment Creates False Confidence",
+    "Canva is useful for KDP covers, but Canva alignment is visual alignment. KDP safety is production alignment.",
+    "Snap lines may center a text box on the canvas, on a group, on an imported template image, or on a nearby object. That does not always mean the text is centered within the real front cover panel or safely inside the trim boundary. If the KDP template image was scaled by hand, even a small scaling error turns the guide into a decoration rather than a production reference.",
+    "Canva also encourages zoomed-out review. At thumbnail size, a subtitle near the edge can look balanced. At print size, it may be obviously too low. Export settings can add another layer of confusion: the Canva canvas can look correct, but the exported PDF is what KDP validates. If you are using Canva, follow a print-first export process such as the [Canva to KDP export settings guide](/blog/canva-to-kdp-export-settings).",
+    "The practical fix is to use guides deliberately. Build the Canva file at the exact KDP dimensions, import the official template only as a locked reference, keep safe-area guides visible while placing text, export as PDF Print, and inspect the final PDF before upload.",
+    "### Full-Bleed Covers Increase Risk",
+    "Full bleed is not dangerous by itself. A full-bleed cover is correct when the background artwork, image, color, or texture needs to reach the physical edge of the book. The risk appears when designers treat edge-to-edge artwork as permission to move important content outward too.",
+    "Bleed protects backgrounds from white edges. It does not protect text. If a cover has a photo extending past trim, that is fine. If the subtitle or author name also sits near trim, that content is still at risk.",
+    "Full-bleed covers also make trim movement easier to notice because the finished edge has no white margin to hide variation. Dark covers, solid-color covers, and covers with thin frames need extra caution. For the broader bleed decision, compare this guide with [KDP bleed vs no bleed](/blog/kdp-bleed-vs-no-bleed) and [what happens if you forget bleed on KDP](/blog/what-happens-if-you-forget-bleed-on-kdp).",
+    "## Recommended Safe Margins for KDP Covers",
+    "For most KDP paperback and hardcover covers, use 0.25 inches inside the trim line as the minimum practical safety margin for important content. Treat that as a floor, not as a design target. More space is usually better for small text, bottom-edge text, logos, borders, and anything that would look wrong if slightly shifted.",
+    "KDP templates show safety zones, but a practical margin system helps you make design decisions faster. The following recommendations are intentionally conservative for self-publishers who want fewer proof-copy surprises.",
+    "| Element | Practical safe spacing from trim | Why it needs that space |",
+    "| --- | --- | --- |",
+    "| Main title | 0.25 in minimum; 0.35 in+ preferred on sides | Large type can still feel crowded when it nearly touches the edge. |",
+    "| Subtitle | 0.30-0.45 in, especially near bottom | Small type loses clarity quickly when trim shifts. |",
+    "| Author name | 0.30-0.50 in from bottom trim | Author names are often small and placed low. |",
+    "| Logo or badge | 0.30 in+ from both nearby edges | Corners are risky because two trim edges are involved. |",
+    "| Decorative element | 0.20-0.30 in if important; can bleed if expendable | Important decoration should not look accidentally clipped. |",
+    "| Thin border | Prefer 0.35-0.50 in inward, or avoid | Borders reveal trim shifts immediately. |",
+    "| Back-cover blurb | 0.35 in+ from trim and clear of barcode | Dense text looks cramped faster than display type. |",
+    "| Spine text | Keep inside spine safe zone with generous fold padding | Binding variation makes narrow areas visually sensitive. |",
+    "The safest visual spec for this section is `safe-vs-unsafe-kdp-layout.webp`, 1600 x 900, lazy-loaded, alt text \"Comparison between safe and unsafe text placement on Amazon KDP covers.\" In the current implementation, the same comparison is rendered as responsive SVG diagrams for sharpness and theme compatibility.",
+    "A realistic safe front-cover layout might place a nonfiction title 0.45 inches from the left and right trim, a two-line subtitle 0.55 inches above the author name, and the author name 0.50 inches above the bottom trim. A risky version might use the same typography but push the subtitle to 0.16 inches from the bottom and wrap the whole cover in a hairline frame.",
+    "Safe margins are not wasted space. They are part of the composition. Professional covers often feel calmer because they allow the title hierarchy to breathe inside the printed object instead of fighting the cut edge.",
+    "If you are unsure whether a layout is safe, use a quick stress test. Temporarily draw four narrow strips over the design, each one 0.125 inches inside the trim line, then imagine the finished book losing that much visual space on any edge. The cover should still read clearly. The title should still feel centered. The subtitle should not look trapped. The author name should not feel like it is sliding off the page. This does not mean the printer will cut away that exact amount; it is a practical way to reveal fragile spacing before the file leaves your design app.",
+    "The same stress test helps with series design. If book one has a subtitle 0.50 inches above the bottom trim and book two has a subtitle 0.18 inches above trim, the series may look inconsistent after printing even if both covers pass upload. A repeatable safe-margin system makes a catalog look more professional and reduces the chance that one volume becomes the problem proof.",
+    "## How Safe Areas Work Differently for Interiors vs Covers",
+    "Covers and interiors both need safe spacing, but they fail in different ways.",
+    "Interior safe margins protect body text, page numbers, headers, footers, worksheets, illustrations, and writing areas. The inside edge also has a gutter margin because part of the page disappears into the binding. A page can have enough outer margin and still be uncomfortable near the gutter if the book is thick.",
+    "For interiors, the most important question is usually readability across hundreds of pages. Body text should not drift close to the outside edge. Page numbers should not sit so low that they feel trimmed. Activity-book lines, borders, and coloring-book art need special care because repeated page elements make small trim variation more noticeable. If the interior and cover setup disagree, the [interior and cover file mismatch guide](/blog/interior-and-cover-file-dont-match-kdp) helps diagnose the broader setup problem.",
+    "Cover safe areas are more visually sensitive because a cover is judged as one finished object. A front-cover title that is slightly low can make the entire book feel unprofessional. A back-cover blurb that crowds the trim looks amateur. A spine title that sits close to one fold can look off-center from across the room.",
+    "Covers also combine more production zones: outside bleed, trim line, front panel, back panel, spine width, spine fold areas, barcode area, and safe zones. Page count affects spine width. Paper type affects spine width. Lamination and binding can affect the way the finished wrap reads. That is why a correct cover workflow should also check the [KDP spine width guide](/blog/kdp-spine-width-wrong) and the [cover dimension mismatch guide](/blog/kdp-cover-dimensions-not-matching-template) when something feels off.",
+    "## Step-by-Step Workflow to Avoid Safe Area Problems",
+    "Safe-area checking works best when it happens before export, after export, and after physical proofing. Do not save it for the final KDP Previewer screen.",
+    "### Step 1: Start with the Correct Template",
+    "Begin with the exact trim size, paper type, page count, and bleed setting for the book you are actually uploading. For covers, use the [official Amazon KDP cover calculator](https://kdp.amazon.com/cover-calculator). The cover is a full wrap: back cover, spine, front cover, and bleed. It is not just a front-cover image.",
+    "If the manuscript page count changes, regenerate the cover template. If you switch white paper to cream paper, regenerate the template. If you change trim size, rebuild the cover dimensions. A stale template can make safe-area placement look correct while the real KDP project expects different geometry.",
+    "### Step 2: Keep Critical Text Away from Edges",
+    "Place all critical text inside the safe area with measurement, not hope. For a 6 x 9 cover, a title that sits 0.40 inches from side trim is usually calmer than one that sits 0.18 inches from side trim. A subtitle 0.45 inches above bottom trim is much safer than one at 0.15 inches.",
+    "Check the top, bottom, left, right, and corners. Corners need extra caution because trim can affect two directions. Logos, badges, award seals, and series labels should not be tucked into corners unless they are intentionally expendable decoration.",
+    "### Step 3: Avoid Thin Borders Near Trim",
+    "If the design uses a thin border, test it aggressively. Imagine the trim moving slightly left, right, up, and down. If the border would look uneven, either move it inward or remove it. This is especially important on minimalist covers where the border is one of the only visual elements.",
+    "For notebooks and journals, consider replacing a hard rectangular frame with a larger interior panel, a textured background, or a border that is intentionally imperfect. A forgiving design prints better than a delicate design that requires impossible precision.",
+    "### Step 4: Preview at 100% Zoom Before Export",
+    "Zoomed-out previews hide spacing problems. Before export, inspect the cover at 100% zoom and pan around every edge. Check the bottom of the subtitle, the author name, the upper corners, the back-cover blurb, barcode-adjacent content, border spacing, and the spine.",
+    "After export, open the final PDF and check it again. Do not only trust the source file. KDP validates the exported PDF. If KDP Previewer is slow or difficult to load while you are repeating checks, the [KDP Previewer loading guide](/blog/kdp-previewer-not-loading) explains common file and browser causes.",
+    "### Step 5: Order Physical Proof Copies",
+    "Never trust a digital preview alone for a production-sensitive cover. KDP Previewer is useful, but it cannot fully predict the feel of a trimmed, laminated, bound paperback in your hand.",
+    "Order a proof copy and inspect it like a printer: cover edge spacing, subtitle height, title centering, border evenness, spine alignment, back-cover readability, barcode zone, interior margins, and whether the design still looks intentional after physical manufacturing. If you plan to run ads or order author copies in volume, proofing is not optional.",
+    "## Real Example: Why a “Centered” Canva Cover Printed Off-Center",
+    "A self-publisher creates a 6 x 9 paperback cover in Canva for a guided journal. The front cover is minimalist: centered title, small subtitle, author name at the bottom, and a thin rectangular border 0.18 inches from the trim edge. Canva snap lines show the title group centered. The exported PDF uploads to KDP without a dimension error.",
+    "The proof copy arrives. The title is readable, but the cover feels off. The left border looks slightly wider than the right. The author name feels low. The subtitle is not cut off, but it sits close enough to the edge that the whole design feels tense.",
+    "The problem is not that Canva randomly moved the design. The problem is that the layout depended on perfect trimming. The border acted as a measuring device. A tiny physical shift made the frame look uneven, and because the text was aligned to that frame, the whole cover appeared off-center.",
+    "The fix was not a one-pixel nudge. The publisher rebuilt the layout with safer production assumptions: the border was removed, the title group stayed centered inside the safe area rather than inside the border, the subtitle moved upward, and the author name gained extra bottom margin. The second proof looked more professional because the design no longer required perfect trim to succeed.",
+    "That is the mental shift behind KDP safe area. You are not trying to make the digital file look perfect in isolation. You are making a file that still looks intentional after ordinary print tolerance.",
+    "## Design Styles Most Likely to Cause Safe Area Problems",
+    "Some design styles are more vulnerable than others. They can still work, but they need more careful spacing.",
+    "**Ultra-thin borders** create immediate alignment risk. If the border is close to trim, every proof copy becomes a trim accuracy test.",
+    "**Edge-hugging text** looks dramatic on mockups but fails quickly in print. Large title letters that nearly touch the side edge may survive technically while still feeling crowded.",
+    "**Symmetrical frames** depend on equal spacing on all sides. Physical trimming makes that hard to guarantee, especially on dark covers.",
+    "**Minimalist layouts with tight spacing** have no visual noise to hide small movement. When the design contains only a title, border, and background, every millimeter matters.",
+    "**Spine-heavy typography** is risky because the spine is narrow and affected by page count, paper type, fold position, and binding variation. If your spine text looks shifted, compare the issue with the [spine text off-center guide](/blog/fix-kdp-spine-text-off-center).",
+    "The safest alternatives are not boring. Use larger internal margins, let the title hierarchy breathe, keep borders away from trim, use background texture instead of hard edge frames, and design the spine with generous fold padding. The visual spec for this risk section is `high-risk-safe-area-layouts.webp`, 1600 x 900, lazy-loaded, alt text \"Examples of Amazon KDP cover layouts most likely to create safe-area problems.\"",
+    "## How KDPPreflight Helps Detect Safe Area Risks",
+    "KDPPreflight is designed for the moment before upload, when the design looks finished but you want to catch production risks before Amazon or a proof copy catches them for you.",
+    "It helps by showing trim safety overlays, validating safe-area placement, checking bleed setup, detecting border-risk patterns, comparing cover dimensions to expected KDP geometry, and flagging layout issues that are easy to miss in Canva or a zoomed-out PDF preview.",
+    "The tool does not replace judgment or physical proofing. It gives you a cleaner preflight step so you can fix unsafe margins, bleed mistakes, trim mismatch, and border risks before you spend time uploading, waiting for Previewer, or ordering a proof that reveals a preventable problem.",
+    "A strong KDP workflow is simple: build from the correct template, keep important content inside safe margins, export a clean PDF, run a preflight check, review KDP Previewer, then order a physical proof. That process prevents the safe-area problem readers complain about most: \"It looked right on screen, but the printed book cut it too close.\""
+  ]
+}

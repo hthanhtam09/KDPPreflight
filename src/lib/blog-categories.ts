@@ -17,6 +17,7 @@ export type BlogCategorySlug =
   | 'spine-width'
   | 'safe-area'
   | 'export-settings'
+  | 'print-quality'
   | 'canva-photoshop'
   | 'trim-size'
   | 'beginner-guides'
@@ -70,6 +71,14 @@ export const blogCategories: BlogCategory[] = [
     seoIntro:
       'PDF export settings for Amazon KDP covers, including resolution, compression, transparency, fonts, color expectations, and final preflight checks.',
     icon: FileCheck2,
+  },
+  {
+    slug: 'print-quality',
+    label: 'Print Quality',
+    description: 'Troubleshoot proof copies, dull colors, blurry print, trim shifts, and amateur-looking KDP books.',
+    seoIntro:
+      'Print-quality troubleshooting guides for Amazon KDP proof copies, including dull color, blurry exports, uneven borders, trim movement, paper feel, cover finish, and professional proofing workflows.',
+    icon: ScanLine,
   },
   {
     slug: 'canva-photoshop',

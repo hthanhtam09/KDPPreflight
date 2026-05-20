@@ -1,0 +1,303 @@
+{
+  "title": "Canva to KDP Export Settings: The Correct Print-Ready Workflow",
+  "slug": "canva-to-kdp-export-settings",
+  "description": "A practical guide to exporting Canva designs for Amazon KDP without blurry prints, wrong dimensions, bleed mistakes, huge PDFs, spine shifts, or upload failures.",
+  "metaTitle": "Canva to KDP Export Settings (Print-Ready PDF Guide)",
+  "metaDescription": "Learn the correct Canva export settings for Amazon KDP. Fix blurry prints, bleed mistakes, wrong dimensions, oversized PDFs, and low-resolution upload problems.",
+  "ogTitle": "Canva to KDP Export Settings",
+  "ogDescription": "Learn the correct Canva PDF Print workflow for Amazon KDP covers and interiors, including bleed, crop marks, dimensions, 300 DPI assets, file size, and export checks.",
+  "ogImageAlt": "Canva export settings workflow showing PDF Print, bleed, crop marks off, dimensions, and KDP upload validation.",
+  "excerpt": "Most Canva-to-KDP problems come from export setup: wrong canvas size, Standard PDF exports, missing bleed, crop marks, oversized PNGs, low-resolution assets, or PDFs resized after download.",
+  "category": "export-settings",
+  "tags": [
+    "Canva KDP",
+    "PDF Print",
+    "export settings",
+    "KDP bleed",
+    "print-ready PDF"
+  ],
+  "keywords": [
+    "Canva to KDP export settings",
+    "Canva PDF export for KDP",
+    "Canva KDP settings",
+    "export print-ready PDF Canva",
+    "Canva bleed setup KDP",
+    "Canva blurry print KDP",
+    "Canva KDP dimensions",
+    "Canva PDF too large",
+    "Canva KDP cover export",
+    "Canva KDP upload issues",
+    "PDF Print",
+    "bleed",
+    "trim size",
+    "300 DPI",
+    "print-ready PDF",
+    "export scaling",
+    "spine width",
+    "safe area",
+    "crop marks",
+    "flatten transparency",
+    "print-production workflow",
+    "paperback formatting"
+  ],
+  "publishedAt": "2026-05-20",
+  "updatedAt": "2026-05-20",
+  "sortPriority": 26,
+  "featured": true,
+  "author": "KDP Preflight Editorial",
+  "shortAnswer": "For KDP, export Canva files as PDF Print, not Standard PDF. Build the Canva document at the exact KDP dimensions before designing, use bleed only when artwork reaches the edge, keep crop marks off for normal KDP uploads, use real high-resolution assets, flatten complex effects when needed, and verify the exported PDF dimensions before uploading.",
+  "relatedToolKeys": [
+    "checker",
+    "bleedChecker",
+    "trimCalculator",
+    "spineCalculator",
+    "validator"
+  ],
+  "relatedGuides": [
+    {
+      "label": "KDP Cover Checker",
+      "href": "/tools/kdp-cover-checker"
+    },
+    {
+      "label": "KDP Bleed Checker",
+      "href": "/tools/kdp-bleed-checker"
+    },
+    {
+      "label": "KDP Trim Size Calculator",
+      "href": "/tools/kdp-trim-size-calculator"
+    },
+    {
+      "label": "KDP Spine Width Calculator",
+      "href": "/tools/kdp-spine-width-calculator"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What Canva export setting should I use for KDP?",
+      "answer": "Use PDF Print for KDP print books. PDF Print is intended for printing and preserves higher quality than Standard PDF."
+    },
+    {
+      "question": "Should I export Canva books as PDF Print?",
+      "answer": "Yes. PDF Print is the safest Canva export format for KDP paperback covers and print interiors because it is higher quality and built for print output."
+    },
+    {
+      "question": "Should bleed be enabled in Canva?",
+      "answer": "Enable and use bleed when artwork reaches the page or cover edge. If your design has intentional white margins and no edge artwork, no bleed may be safer."
+    },
+    {
+      "question": "Why does my Canva PDF look blurry on KDP?",
+      "answer": "It usually looks blurry because the file was exported as Standard PDF, contains low-resolution or stretched images, uses screenshots, or was compressed after export."
+    },
+    {
+      "question": "Can Canva export incorrect KDP dimensions?",
+      "answer": "Yes. Canva exports the canvas size you built. If the canvas is wrong, the exported PDF will be wrong even if the design looks visually correct."
+    },
+    {
+      "question": "Why is my Canva PDF so large?",
+      "answer": "Huge Canva PDFs often come from oversized PNGs, repeated full-page images, transparent effects, stacked layers, and unflattened artwork."
+    },
+    {
+      "question": "Should crop marks be enabled for KDP?",
+      "answer": "Usually no. KDP does not need crop marks in ordinary cover or interior uploads, and crop marks can create confusion if they change or obscure the final page box."
+    },
+    {
+      "question": "Does Canva support CMYK?",
+      "answer": "Canva is generally simpler than professional prepress tools. For KDP, focus on PDF Print, correct dimensions, strong contrast, and proof copies rather than assuming screen colors will print identically."
+    },
+    {
+      "question": "Why does my proof copy look different from Canva?",
+      "answer": "Screens emit light while printed books reflect ink on paper. Color, contrast, trim, resolution, and finish can all differ from Canva's digital preview."
+    },
+    {
+      "question": "What is the safest Canva workflow for KDP?",
+      "answer": "Set the exact KDP dimensions first, design with safe margins, use bleed only when needed, export PDF Print with crop marks off, then inspect dimensions and upload to KDP Previewer."
+    }
+  ],
+  "summary": [
+    "Canva can work well for KDP, but only when the canvas size, bleed setup, image quality, and PDF Print export are handled deliberately.",
+    "The biggest Canva-to-KDP mistakes are Standard PDF exports, missing bleed, crop marks, wrong dimensions, oversized image-heavy PDFs, and low-resolution assets.",
+    "The exported PDF is what KDP judges, so always inspect the final file before uploading."
+  ],
+  "checklist": [
+    "Canva canvas was created at the exact KDP size before designing.",
+    "Cover files include back cover, spine, front cover, and bleed as one full wrap.",
+    "Interior files use the correct trim size and bleed setting.",
+    "Important text stays inside safe areas.",
+    "Edge artwork extends through bleed when bleed is required.",
+    "Export format is PDF Print, not Standard PDF.",
+    "Crop marks are off for ordinary KDP uploads.",
+    "Images are high resolution at their final print size.",
+    "Large transparent effects and unnecessary PNG stacks are reduced or flattened.",
+    "Exported PDF dimensions are checked before upload."
+  ],
+  "howTo": {
+    "name": "How to export a print-ready Canva PDF for Amazon KDP",
+    "description": "A practical Canva-to-KDP workflow for preventing blurry prints, bleed mistakes, wrong dimensions, giant PDFs, and upload failures.",
+    "totalTime": "PT25M",
+    "steps": [
+      {
+        "name": "Set exact KDP dimensions first",
+        "text": "Create the Canva design at the correct trim, bleed, cover-wrap, or interior page size before adding artwork."
+      },
+      {
+        "name": "Design inside safe areas",
+        "text": "Keep titles, text, borders, and important illustration details away from trim and fold risk zones."
+      },
+      {
+        "name": "Prepare bleed correctly",
+        "text": "If artwork reaches the edge, enable bleed guides and extend backgrounds past the trim line."
+      },
+      {
+        "name": "Export as PDF Print",
+        "text": "Download the final design as PDF Print. Keep crop marks off for ordinary KDP uploads and avoid Standard PDF for print quality."
+      },
+      {
+        "name": "Verify the exported PDF",
+        "text": "Open the final PDF, inspect image quality, confirm dimensions, check bleed, and review spine or trim alignment before uploading."
+      },
+      {
+        "name": "Upload and review in KDP Previewer",
+        "text": "Use KDP Previewer to catch layout, bleed, margin, and upload-processing issues before ordering a proof copy."
+      }
+    ]
+  },
+  "diagrams": [
+    "canva-export-flow",
+    "canva-export-quality",
+    "canva-correct-wraparound",
+    "canva-wrong-setup",
+    "canva-bleed-workflow",
+    "canva-bloat-explained",
+    "transparency-flatten-workflow",
+    "pdf-dimension-check",
+    "kdp-preview-troubleshooting-flow"
+  ],
+  "content": [
+    "Canva is one of the easiest tools for creating KDP covers, coloring books, journals, planners, and low-content interiors. It is also one of the easiest tools to export incorrectly.",
+    "A design can look polished inside Canva and still fail on KDP. The proof copy may print blurry. Bleed may be missing. The PDF dimensions may be wrong. The file may be huge. KDP Previewer may take forever. Spine alignment may shift. The final print may look worse than the Canva canvas.",
+    "Most Canva-to-KDP problems come from export settings — not from your actual design.",
+    "This guide explains why Canva exports often fail, which settings matter, and the correct workflow for exporting print-ready PDFs for Amazon KDP.",
+    "## Why Canva Exports Often Cause KDP Problems",
+    "Canva is built for a wide range of design work: social posts, presentations, flyers, posters, digital downloads, simple print products, and PDF sharing. KDP is a print-production workflow. Those two worlds overlap, but they are not the same.",
+    "KDP requires precision. A paperback cover must be a single PDF page containing back cover, spine, front cover, and bleed. An interior PDF must match the trim size and bleed setting selected in KDP. Images should be high enough resolution for print. Text and important artwork must stay away from trim and fold risk zones.",
+    "Canva can export files that look visually correct while still being technically wrong for KDP. The canvas may be the wrong size. The template image may be stretched. The file may be exported as Standard PDF. Bleed may be visible in Canva but missing in the final PDF. Transparent effects may rasterize. Oversized PNGs may create giant files that slow down KDP processing.",
+    "This is why “looks fine on screen” is not enough. A screen preview shows appearance. KDP evaluates production details: page size, bleed, image quality, spine width, margins, and PDF processing behavior.",
+    "The official [Amazon KDP paperback cover requirements](https://kdp.amazon.com/en_US/help/topic/G201953020) say a print cover must be one PDF file containing back cover, spine, and front cover, and that images should be flattened and at least 300 DPI. KDP's [paperback submission guidelines](https://kdp.amazon.com/en_US/help/topic/G201857950) also emphasize PDF setup and 300 DPI images for print. Canva's own documentation explains that PDF Print is intended for printing and higher quality than PDF Standard.",
+    "The core lesson: Canva can make KDP-ready files, but only when the design is built at the right size and exported as a print production file.",
+    "## The Most Common Canva-to-KDP Export Mistakes",
+    "Most Canva KDP upload issues come from a handful of repeated mistakes. Fix these first before redesigning the whole book.",
+    "### Exporting as “Standard PDF” Instead of “PDF Print”",
+    "Standard PDF is meant for digital sharing, email, mobile viewing, and smaller file sizes. PDF Print is meant for printing. Canva describes PDF Print as the better option for print because it uses higher resolution and supports print features such as crop marks and bleed.",
+    "For KDP, PDF Print is the safer choice. Standard PDF can compress images more heavily, flatten artwork in ways that reduce quality, and produce a file that looks acceptable on screen but prints softer.",
+    "Example: a coloring book cover uses a large AI illustration, texture overlay, and title text. In Canva it looks sharp. Exported as Standard PDF, the file is smaller, but KDP Previewer looks slightly soft and the proof copy prints blurry. Exported as PDF Print from the same source design, the image has better detail and cleaner edges.",
+    "The rule is simple: use PDF Print for KDP print files.",
+    "### Forgetting to Enable Bleed",
+    "Bleed matters when artwork reaches the page or cover edge. If background color, image, pattern, or full-page art stops exactly at the trim line, trimming movement can reveal white edges.",
+    "In Canva, showing bleed guides is not the same as actually extending artwork into the bleed area. You need to drag background art beyond the trim line. If the design only touches the visible page edge, it may still be short of the bleed area.",
+    "For coloring books and full-page interiors, compare your setup with [KDP bleed vs no bleed for coloring books](/blog/kdp-bleed-vs-no-bleed-coloring-books). For general bleed choices, read [KDP bleed vs no bleed](/blog/kdp-bleed-vs-no-bleed). If you already printed white slivers, the [white edge article](/blog/white-lines-on-kdp-cover) explains the underlying trim issue.",
+    "### Exporting With Crop Marks Enabled",
+    "Crop marks are useful in some print workflows, but they are usually not needed for KDP uploads. KDP expects the PDF page itself to be the correct size. It does not need printer marks telling it where to cut.",
+    "Crop marks can confuse creators because they add visual marks outside or near the artwork. If a file is later opened, resized, or converted by another tool, those marks can become part of the PDF page box or create unexpected dimension problems.",
+    "For normal KDP cover and interior uploads, export PDF Print with crop marks off. Include bleed when needed by building the file correctly, not by relying on crop marks.",
+    "### Using Incorrect Canva Canvas Dimensions",
+    "Canva exports the canvas you create. If the canvas is wrong, the PDF is wrong.",
+    "A common cover mistake is creating a 6 x 9 Canva design for a 6 x 9 paperback. That is only the front panel size. A KDP paperback cover must include the back cover, spine, front cover, and bleed in one full-wrap file. The spine depends on page count and paper type, so the full width changes from book to book.",
+    "A common interior mistake is starting with a letter-size page when the KDP trim is 8.5 x 11 with bleed, or using no-bleed dimensions for pages that actually need bleed. This creates KDP trim size mismatch warnings and upload frustration.",
+    "Do not resize after designing unless you carefully check every element. Canva resizing can introduce layout shifts, stretched images, and guide mismatches. Set the correct dimensions first.",
+    "For full-cover sizing, see [KDP cover dimensions not matching template](/blog/kdp-cover-dimensions-not-matching-template). For spine-specific issues, see [KDP spine width wrong](/blog/kdp-spine-width-wrong).",
+    "### Oversized Images Creating Huge PDFs",
+    "Bigger is not always better. Canva PDFs can become enormous when a design uses giant PNGs, repeated full-page images, background remover cutouts, transparent textures, or stacked effects on every page.",
+    "KDP has to upload, process, rasterize, and preview those files. A huge PDF can slow down processing or cause Previewer to freeze. This is common in coloring books, photo books, and journals with repeated full-page backgrounds.",
+    "Use images large enough for 300 DPI at print size, but not absurdly larger than needed. Flatten complex artwork when appropriate. Remove hidden template layers before export. Reuse simple vector shapes instead of repeated high-resolution PNGs when possible.",
+    "If KDP Previewer keeps loading or the upload stalls, use the [KDP PDF upload takes forever guide](/blog/kdp-pdf-upload-takes-forever).",
+    "## The Correct Canva Export Settings for KDP",
+    "The best Canva-to-KDP workflow starts before export. Export settings cannot fix a document that was built at the wrong size.",
+    "### Step 1: Set the Correct Canvas Size FIRST",
+    "Start with the final KDP dimensions. For interiors, that means the selected trim size and bleed setting. For covers, it means the full paperback wrap: back cover, spine, front cover, and bleed.",
+    "For a no-bleed 8.5 x 11 journal interior, the page size is 8.5 x 11 inches. For an 8.5 x 11 interior with bleed, the PDF page needs extra bleed area. For a 6 x 9 cover, the full cover is not 6 x 9. It is 0.125 inch bleed + back cover + calculated spine + front cover + 0.125 inch bleed, with 0.125 inch bleed added top and bottom.",
+    "Coloring books often need a special decision. If pages are centered illustrations with white margins, no bleed is safer. If artwork reaches the page edge, build for bleed from the start.",
+    "Journals and planners usually work best with no bleed unless background art intentionally reaches the edge. Text-heavy books should prioritize readable margins, correct trim, and embedded fonts over decorative edge art.",
+    "For covers, use the official KDP cover calculator or KDPPreflight's calculators to get exact dimensions before opening Canva.",
+    "### Step 2: Keep Important Content Inside Safe Areas",
+    "Canva makes it easy to drag text close to the edge. Print production does not reward that.",
+    "Keep titles, subtitles, author names, page numbers, borders, instructions, and important illustration details inside safe areas. Normal trimming can move slightly. If a subtitle sits too close to the bottom edge, it may look cramped or clipped. If a border sits near trim, one side may print thicker than the other.",
+    "The same applies to spine text. Do not center spine text by eye on the whole canvas. Use the spine area from the KDP template and keep text away from fold edges.",
+    "For practical spacing guidance, read the [KDP safe area guide](/blog/how-to-check-safe-area-before-exporting-kdp-cover).",
+    "### Step 3: Export as PDF Print",
+    "When the file is ready, use Share, Download, and choose PDF Print. Avoid Standard PDF for print books.",
+    "Use bleed when your design requires it. If backgrounds or artwork reach the edge, make sure the artwork extends beyond the trim line before export. If the design has intentional white margins and no edge artwork, no bleed may be correct.",
+    "Keep crop marks off for ordinary KDP uploads. KDP needs the correct PDF size, not crop marks. Crop marks can create confusion and are not part of the final book design.",
+    "RGB can be acceptable in many KDP workflows, but do not expect screen colors to print identically. Use strong contrast, avoid neon-dependent designs, and order proof copies for color-sensitive books. For more on this, see [why KDP PDFs look fine on screen but print wrong](/blog/kdp-pdf-looks-fine-on-screen-but-prints-wrong).",
+    "If Canva offers flattening for your PDF, consider flattening complex files with many transparent effects, shadows, or layered PNGs. Canva's official flatten PDF feature is designed to preserve placement and simplify the document for printing and sharing. Keep an editable master separately.",
+    "### Step 4: Check the Export Before Uploading",
+    "Open the exported PDF, not only the Canva design. KDP judges the PDF.",
+    "Check dimensions. On macOS Preview, Adobe Acrobat, or another PDF viewer, inspect document properties and confirm page size. For covers, compare the width and height against the KDP template. For interiors, compare against the trim and bleed setting.",
+    "Check image quality. Zoom to 200 or 300 percent on detailed images, titles, and line art. If the exported PDF looks pixelated there, the proof copy may print blurry. For deeper resolution repair, use [fix low-resolution images for KDP](/blog/fix-low-resolution-images-kdp).",
+    "Check bleed. If the artwork should reach the edge, confirm it extends into the bleed area. Check safe areas. Confirm no text, borders, or essential details sit too close to trim.",
+    "Check spine alignment. If the cover is a paperback wrap, confirm the spine text sits between the actual fold lines and matches the final page count.",
+    "Check file weight. A print-quality Canva PDF will often be larger than a Standard PDF, but it should not be wildly oversized for the type of book. A simple journal interior should not behave like a photo book. If a low-content PDF is hundreds of megabytes, inspect repeated backgrounds, transparent PNGs, and hidden guide layers before upload.",
+    "Check the latest export only. Many creators accidentally upload an older download from their computer because Canva filenames can look similar. Rename your final export clearly with the trim size, page count, and date. This small habit prevents uploading the wrong version after you have already fixed dimensions or bleed.",
+    "### Step 5: Test Upload Using KDP Previewer",
+    "Upload the PDF and review KDP Previewer carefully. Previewer catches many layout problems: bleed errors, margin warnings, cover sizing problems, trim risks, and obvious file issues.",
+    "Previewer does not guarantee color accuracy, exact print contrast, or physical trim perfection. It is a technical screen check, not a proof copy. If Previewer is slow or stuck, the file may be too heavy or complex. See the [KDP Previewer not loading guide](/blog/kdp-previewer-not-loading).",
+    "After Previewer passes, order a proof copy for any book where print quality matters. This is especially important for covers, coloring books, image-heavy books, and dark designs.",
+    "When reviewing Previewer, zoom into the practical danger zones: bottom text, page numbers, barcode area, spine folds, full-bleed backgrounds, and repeated borders. Do not only scan the front cover at full-page view. The mistakes that cause rejection usually live at the edges.",
+    "Also remember what Previewer cannot prove. It will not tell you that a dark Canva gradient will print muddy, that a transparent shadow will look soft on matte cover stock, or that a low-contrast subtitle will be hard to read in normal room light. For those questions, order a proof copy.",
+    "## Canva Settings for Coloring Books vs Journals vs Text Books",
+    "Different book types need different Canva export priorities.",
+    "| Book type | Bleed recommendation | Export risks | Recommended setup |",
+    "| --- | --- | --- | --- |",
+    "| Coloring books | Bleed only for edge-to-edge art | Large PDFs, low-res line art, white edges | PDF Print, correct bleed, 300 DPI art, simple layers |",
+    "| Journals | Usually no bleed | Border trim shifts, wrong trim size | No bleed, generous margins, PDF Print |",
+    "| Planners | Usually no bleed unless full-page backgrounds | Tiny text, edge boxes, repeated backgrounds | Safe margins, simplified pages, PDF Print |",
+    "| Low-content books | Usually no bleed | Reused templates, wrong dimensions | Exact trim size, no crop marks, verify PDF size |",
+    "| Text-heavy books | Usually no bleed | Font issues, margin problems | Export clean PDF, readable margins, minimal effects |",
+    "The safest export setup depends on the page design. If content stays inside margins, no bleed is simpler. If artwork reaches the edge, bleed must be intentional and correctly exported.",
+    "## Real Example: Why a Canva PDF Looked Perfect but Printed Blurry",
+    "A creator designs a children's activity book cover in Canva. The cover uses a cute illustrated background, a large title, several sticker-like PNG elements, and a soft shadow behind the main character. The Canva preview looks crisp.",
+    "The creator downloads Standard PDF because the file is smaller and uploads it to KDP. Previewer accepts the file, but the proof copy looks soft. The background is slightly blurry, the character edges are not crisp, and the title shadow looks muddy.",
+    "The problem is not that Canva cannot work for KDP. The problem is the export workflow. Standard PDF compressed the design too much. Some placed PNGs were lower resolution than they appeared on screen. The shadow effects rasterized softly.",
+    "The creator fixes the source file by replacing small PNGs with higher-resolution versions, simplifying the shadows, checking the cover dimensions against the KDP template, and exporting as PDF Print. Crop marks stay off. The final PDF is inspected at high zoom before upload.",
+    "The second proof is much sharper. It still looks like print, not a glowing screen, but the line edges are cleaner and the cover feels professional.",
+    "## Canva Features That Commonly Break KDP Uploads",
+    "Shadows can rasterize and print muddy, especially on dark backgrounds. Use them sparingly and inspect the exported PDF.",
+    "Transparent gradients can create banding, file bloat, or unexpected flattening artifacts. If a gradient is subtle on screen, it may look uneven in print.",
+    "Ultra-large PNGs create huge PDFs. A 5000-pixel transparent sticker repeated on 120 pages can make KDP processing painfully slow.",
+    "Background remover artifacts can appear as rough halos around cutout images. On screen they may be hidden by zoom level. In print they can look like fuzzy edges.",
+    "Layered effects multiply complexity. A page with background texture, transparent overlay, shadow, glow, and multiple cutouts may export as a heavy rasterized page. That can be fine if prepared correctly, but risky when repeated across a full book.",
+    "Hidden template layers are another problem. If you forget to remove or hide the KDP template guide before export, it may print or add clutter to the PDF. Always inspect the final export page by page.",
+    "The safer workflow is to simplify. Use fewer live effects, high-quality source images, clear vector text, and a final PDF check.",
+    "Be careful with Canva elements that were designed for digital layouts. Stickers, frames, glow effects, texture overlays, and social-media graphics may look polished at screen size but contain raster artwork that is too small for a paperback cover or full-page interior. If an element becomes soft when enlarged, replace it rather than sharpening it after export.",
+    "Repeated backgrounds deserve special attention. A single high-resolution paper texture may be fine on one page, but repeating it across 120 journal pages can create a bloated PDF that slows KDP processing. For low-content books, use simple vector lines, clean shapes, and solid backgrounds wherever possible.",
+    "If you use Canva's background remover, inspect the cutout at high zoom. Faint halos around hair, animals, objects, or decorative PNGs can become visible in print. A white halo on a dark cover and a dark halo on a pale cover both make the proof look less professional.",
+    "## How KDPPreflight Helps Validate Canva Exports",
+    "KDPPreflight is useful after Canva export because it checks the file KDP will actually evaluate.",
+    "It can help validate trim size, verify bleed, check spine width, detect export dimension problems, flag resolution risks, and show safe-area or edge-risk overlays. This catches issues that are easy to miss inside Canva.",
+    "Use it as a pre-upload checkpoint: export from Canva, inspect the PDF, run KDPPreflight, then upload to KDP Previewer. That workflow catches most Canva KDP upload issues before Amazon does.",
+    "## FAQ",
+    "### What Canva export setting should I use for KDP?",
+    "Use PDF Print for KDP print books. It is intended for printing and preserves higher quality than Standard PDF.",
+    "### Should I export as PDF Print?",
+    "Yes. PDF Print is the safest Canva export option for KDP covers and interiors.",
+    "### Should bleed be enabled in Canva?",
+    "Use bleed when artwork reaches the edge. If your design has white margins and no edge artwork, no bleed may be correct.",
+    "### Why does my Canva PDF look blurry on KDP?",
+    "The file may have been exported as Standard PDF, built with low-resolution assets, compressed after export, or designed with effects that rasterized poorly.",
+    "### Can Canva export incorrect dimensions?",
+    "Yes. If your Canva canvas size is wrong, the exported PDF dimensions will also be wrong.",
+    "### Why is my Canva PDF so large?",
+    "Large Canva PDFs usually come from oversized PNGs, repeated backgrounds, transparent effects, and complex stacked layers.",
+    "### Should crop marks be enabled?",
+    "Usually no. KDP does not need crop marks for ordinary uploads. Use correct PDF dimensions instead.",
+    "### Does Canva support CMYK?",
+    "Canva is not a full professional prepress tool. For KDP, prioritize PDF Print, strong contrast, correct dimensions, and proof copies.",
+    "### Why does my proof copy look different?",
+    "Screens emit light, while printed books reflect ink on paper. Color, contrast, finish, and trim can differ from Canva's preview.",
+    "### What is the safest Canva workflow for KDP?",
+    "Set exact dimensions first, design inside safe areas, use bleed only when needed, export as PDF Print with crop marks off, then verify the PDF before upload.",
+    "## Final Export Checklist",
+    "Before uploading your Canva file to KDP, check the production basics. The canvas size must match the KDP requirement. The design must respect trim, bleed, spine, and safe areas. The export must be PDF Print. Crop marks should be off. The final PDF must be inspected before upload.",
+    "A clean Canva export is not about secret settings. It is about treating the design as a print-production file from the beginning.",
+    "Run your exported Canva PDF through [KDPPreflight](/tools/kdp-cover-checker) to check trim size, bleed, safe areas, spine width, resolution risks, and export dimensions before uploading to Amazon KDP."
+  ]
+}
