@@ -2947,3 +2947,97 @@ export function WhiteLinesVisual({ compact = false }: { compact?: boolean }) {
     </g>
   )
 }
+
+export function KdpBordersPrintUnevenlyVisual({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    const bx = 275, by = 72, bw = 250, bh = 310;
+    const gapL = 8, gapR = 50;
+
+    return (
+      <g>
+        <rect x={bx} y={by} width={bw} height={bh} rx={10}
+          fill="color-mix(in srgb, var(--foreground) 84%, transparent)" />
+        <rect x={bx + gapL} y={by + 22} width={bw - gapL - gapR} height={bh - 44}
+          rx={3} fill="none" stroke="rgba(255,255,255,0.76)" strokeWidth={2.5} />
+        <line x1={bx - 2} y1={by + bh / 2} x2={bx + gapL} y2={by + bh / 2}
+          stroke="var(--danger)" strokeWidth={1.5} strokeDasharray="2 1" />
+        <rect x={bx - 44} y={by + bh / 2 - 13} width={42} height={26} rx={6}
+          fill="var(--card)" stroke="var(--danger)" strokeWidth={1.5} />
+        <text x={bx - 23} y={by + bh / 2 + 6} textAnchor="middle"
+          fill="var(--danger)" fontSize={12} fontWeight={900}>8 px</text>
+        <line x1={bx + bw - gapR} y1={by + bh / 2} x2={bx + bw + 2} y2={by + bh / 2}
+          stroke="var(--muted-foreground)" strokeWidth={1.5} strokeDasharray="2 1" />
+        <rect x={bx + bw + 4} y={by + bh / 2 - 13} width={44} height={26} rx={6}
+          fill="var(--card)" stroke="var(--muted-foreground)" strokeWidth={1.5} />
+        <text x={bx + bw + 26} y={by + bh / 2 + 6} textAnchor="middle"
+          fill="var(--muted-foreground)" fontSize={12} fontWeight={900}>50 px</text>
+        <circle cx={bx + bw - 18} cy={by + 18} r={14}
+          fill="color-mix(in srgb, var(--danger) 18%, transparent)" stroke="var(--danger)" strokeWidth={2} />
+        <text x={bx + bw - 18} y={by + 24} textAnchor="middle"
+          fill="var(--danger)" fontSize={15} fontWeight={950}>!</text>
+      </g>
+    );
+  }
+
+  const bw = 216, bh = 258;
+
+  return (
+    <g>
+      <rect x={100} y={46} width={194} height={36} rx={18}
+        fill="var(--card)" stroke="color-mix(in srgb, var(--danger) 45%, var(--border))" strokeWidth={2} />
+      <text x={197} y={70} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={950} letterSpacing={1.6}>BORDER SHIFT</text>
+      <rect x={314} y={46} width={268} height={36} rx={18}
+        fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+      <text x={448} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>trim moves · border looks wrong</text>
+
+      <text x={62 + bw / 2} y={96} textAnchor="middle" fill="var(--muted-foreground)" fontSize={11} fontWeight={800}>PDF file</text>
+      <rect x={62} y={104} width={bw} height={bh} rx={10}
+        fill="color-mix(in srgb, var(--foreground) 84%, transparent)" />
+      <rect x={62 + 18} y={104 + 18} width={bw - 36} height={bh - 36}
+        rx={3} fill="none" stroke="rgba(255,255,255,0.72)" strokeWidth={2.5} />
+      <line x1={62 - 2} y1={104 + bh / 2} x2={62 + 18} y2={104 + bh / 2}
+        stroke="var(--success)" strokeWidth={1.5} strokeDasharray="2 1" />
+      <rect x={20} y={104 + bh / 2 - 11} width={42} height={22} rx={5}
+        fill="var(--card)" stroke="var(--success)" strokeWidth={1.5} />
+      <text x={41} y={104 + bh / 2 + 5} textAnchor="middle" fill="var(--success)" fontSize={11} fontWeight={900}>18 px</text>
+      <line x1={62 + bw - 18} y1={104 + bh / 2} x2={62 + bw + 2} y2={104 + bh / 2}
+        stroke="var(--success)" strokeWidth={1.5} strokeDasharray="2 1" />
+      <rect x={62 + bw + 4} y={104 + bh / 2 - 11} width={42} height={22} rx={5}
+        fill="var(--card)" stroke="var(--success)" strokeWidth={1.5} />
+      <text x={62 + bw + 25} y={104 + bh / 2 + 5} textAnchor="middle" fill="var(--success)" fontSize={11} fontWeight={900}>18 px</text>
+      <circle cx={62 + bw / 2} cy={104 + bh + 26} r={13}
+        fill="color-mix(in srgb, var(--success) 16%, transparent)" stroke="var(--success)" strokeWidth={2} />
+      <path d={`M${62 + bw / 2 - 7} ${104 + bh + 26} l4 5 10-9`}
+        fill="none" stroke="var(--success)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+
+      <text x={398} y={174} textAnchor="middle" fill="var(--muted-foreground)" fontSize={10} fontWeight={800}>print</text>
+      <text x={398} y={188} textAnchor="middle" fill="var(--muted-foreground)" fontSize={10} fontWeight={800}>&amp; cut</text>
+      <path d="M348 180 h100" stroke="var(--primary)" strokeWidth={2.5} strokeLinecap="round" />
+      <path d="M438 172 l10 8 -10 8" fill="none" stroke="var(--primary)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+
+      <text x={476 + bw / 2} y={96} textAnchor="middle" fill="var(--muted-foreground)" fontSize={11} fontWeight={800}>Printed copy</text>
+      <rect x={476} y={104} width={bw} height={bh} rx={10}
+        fill="color-mix(in srgb, var(--foreground) 84%, transparent)" />
+      <rect x={476 + 6} y={104 + 18} width={bw - 36} height={bh - 36}
+        rx={3} fill="none" stroke="rgba(255,255,255,0.72)" strokeWidth={2.5} />
+      <line x1={476 - 2} y1={104 + bh / 2} x2={476 + 6} y2={104 + bh / 2}
+        stroke="var(--danger)" strokeWidth={1.5} strokeDasharray="2 1" />
+      <rect x={434} y={104 + bh / 2 - 11} width={40} height={22} rx={5}
+        fill="var(--card)" stroke="var(--danger)" strokeWidth={1.5} />
+      <text x={454} y={104 + bh / 2 + 5} textAnchor="middle" fill="var(--danger)" fontSize={11} fontWeight={900}>6 px</text>
+      <line x1={476 + bw - 30} y1={104 + bh / 2} x2={476 + bw + 2} y2={104 + bh / 2}
+        stroke="var(--muted-foreground)" strokeWidth={1.5} strokeDasharray="2 1" />
+      <rect x={476 + bw + 4} y={104 + bh / 2 - 11} width={42} height={22} rx={5}
+        fill="var(--card)" stroke="var(--muted-foreground)" strokeWidth={1.5} />
+      <text x={476 + bw + 25} y={104 + bh / 2 + 5} textAnchor="middle" fill="var(--muted-foreground)" fontSize={11} fontWeight={900}>30 px</text>
+      <circle cx={476 + bw / 2} cy={104 + bh + 26} r={13}
+        fill="color-mix(in srgb, var(--danger) 16%, transparent)" stroke="var(--danger)" strokeWidth={2} />
+      <text x={476 + bw / 2} y={104 + bh + 32} textAnchor="middle"
+        fill="var(--danger)" fontSize={14} fontWeight={950}>!</text>
+
+      <rect x={148} y={418} width={504} height={26} rx={10}
+        fill="color-mix(in srgb, var(--danger) 9%, var(--card))" stroke="var(--danger)" strokeWidth={1.5} />
+      <text x={400} y={435} textAnchor="middle" fill="var(--danger)" fontSize={12} fontWeight={850}>border is unchanged — the cut position moved</text>
+    </g>
+  );
+}

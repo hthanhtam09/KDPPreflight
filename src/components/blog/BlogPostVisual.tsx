@@ -16,6 +16,7 @@ import {
   FileMismatchVisual,
   ForgotBleedVisual,
   GenericCoverVisual,
+  KdpBordersPrintUnevenlyVisual,
   KdpSpineWidthWrongVisual,
   LowContentBookVisual,
   PreviewerFrozenVisual,
@@ -65,6 +66,7 @@ const visualBySlug: Record<string, ComponentType<BlogVisualProps>> = {
   'kdp-pdf-upload-takes-forever': SlowUploadVisual,
   'kdp-previewer-not-loading': PreviewerFrozenVisual,
   'white-lines-on-kdp-cover': WhiteLinesVisual,
+  'kdp-borders-print-unevenly': KdpBordersPrintUnevenlyVisual,
 };
 
 export function BlogPostVisual({ postSlug, variant = 'card' }: BlogPostVisualProps) {
