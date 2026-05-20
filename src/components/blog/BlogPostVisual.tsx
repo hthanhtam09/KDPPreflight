@@ -39,6 +39,8 @@ export function BlogPostVisual({ postSlug, variant = 'card' }: BlogPostVisualPro
           <ColorShiftVisual compact={isCard} />
         ) : visualSlug === 'fix-kdp-spine-text-off-center' ? (
           <SpineTextOffCenterVisual compact={isCard} />
+        ) : visualSlug === 'kdp-spine-width-wrong' ? (
+          <KdpSpineWidthWrongVisual compact={isCard} />
         ) : visualSlug === 'interior-and-cover-file-dont-match-kdp' ? (
           <FileMismatchVisual compact={isCard} />
         ) : visualSlug === 'what-happens-if-you-forget-bleed-on-kdp' ? (
@@ -73,6 +75,88 @@ export function BlogPostVisual({ postSlug, variant = 'card' }: BlogPostVisualPro
 const sharedVisualBySlug: Record<string, string> = {
   'fix-low-resolution-images-kdp': 'why-your-kdp-cover-looks-blurry-after-upload',
 };
+
+function KdpSpineWidthWrongVisual({ compact = false }: { compact?: boolean }) {
+  return (
+    <g transform={compact ? 'translate(0 18)' : undefined}>
+      {!compact && (
+        <g>
+          <rect x={116} y={46} width={184} height={36} rx={18} fill="var(--card)" stroke="color-mix(in srgb, var(--primary) 45%, var(--border))" strokeWidth={2} />
+          <text x={208} y={70} textAnchor="middle" fill="var(--primary)" fontSize={13} fontWeight={950} letterSpacing={2.2}>SPINE CHECK</text>
+          <rect x={322} y={46} width={204} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={424} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>page count + paper</text>
+        </g>
+      )}
+
+      {/* Bleed area */}
+      <rect
+        x={82}
+        y={132}
+        width={636}
+        height={184}
+        rx={28}
+        fill="color-mix(in srgb, var(--danger) 5%, transparent)"
+        stroke="var(--danger)"
+        strokeWidth={2.5}
+        strokeDasharray="10 10"
+        opacity={0.88}
+      />
+
+      {/* Full cover */}
+      <rect x={112} y={164} width={576} height={122} rx={22} fill="var(--card)" stroke="var(--border)" strokeWidth={2.5} />
+      <path d="M134 164h222v122H134a22 22 0 0 1-22-22v-78a22 22 0 0 1 22-22Z" fill="color-mix(in srgb, var(--muted) 60%, transparent)" />
+      <rect x={356} y={164} width={88} height={122} fill="color-mix(in srgb, var(--primary) 15%, transparent)" stroke="color-mix(in srgb, var(--primary) 70%, var(--border))" strokeWidth={2.5} />
+      <path d="M444 164h222a22 22 0 0 1 22 22v78a22 22 0 0 1-22 22H444Z" fill="color-mix(in srgb, var(--card) 92%, transparent)" />
+
+      {/* Safe area */}
+      <rect x={142} y={188} width={186} height={74} rx={14} fill="color-mix(in srgb, var(--success) 7%, transparent)" stroke="var(--success)" strokeWidth={2.4} strokeDasharray="8 8" />
+      <rect x={472} y={188} width={186} height={74} rx={14} fill="color-mix(in srgb, var(--success) 7%, transparent)" stroke="var(--success)" strokeWidth={2.4} strokeDasharray="8 8" />
+      <rect x={378} y={190} width={44} height={70} rx={12} fill="color-mix(in srgb, var(--success) 6%, transparent)" stroke="var(--success)" strokeWidth={2.2} strokeDasharray="6 7" />
+
+      {/* Fold + center guides */}
+      <path d="M356 160v130M444 160v130" stroke="color-mix(in srgb, var(--primary) 75%, var(--border))" strokeWidth={2.2} strokeDasharray="7 7" />
+      <path d="M400 164v122" stroke="var(--success)" strokeWidth={3} />
+
+      {/* Labels in solid containers */}
+      <rect x={200} y={210} width={70} height={30} rx={11} fill="var(--card)" stroke="var(--border)" strokeWidth={1.5} />
+      <text x={235} y={231} textAnchor="middle" fill="var(--foreground)" fontSize={15} fontWeight={900}>back</text>
+      <rect x={368} y={210} width={64} height={30} rx={11} fill="var(--card)" stroke="color-mix(in srgb, var(--primary) 52%, var(--border))" strokeWidth={1.5} />
+      <text x={400} y={231} textAnchor="middle" fill="var(--primary)" fontSize={15} fontWeight={950}>spine</text>
+      <rect x={530} y={210} width={70} height={30} rx={11} fill="var(--card)" stroke="var(--border)" strokeWidth={1.5} />
+      <text x={565} y={231} textAnchor="middle" fill="var(--foreground)" fontSize={15} fontWeight={900}>front</text>
+
+      {/* Spine measurement bracket */}
+      <path d="M356 136v18M444 136v18M356 145h88" stroke="var(--primary)" strokeWidth={2.8} strokeLinecap="round" />
+      <rect x={324} y={94} width={152} height={30} rx={12} fill="var(--card)" stroke="color-mix(in srgb, var(--primary) 45%, var(--border))" strokeWidth={2} />
+      <text x={400} y={114} textAnchor="middle" fill="var(--primary)" fontSize={12} fontWeight={950}>spine width</text>
+
+      {/* Bottom workflow cards */}
+      <g transform="translate(96 342)">
+        {[
+          { x: 0, label: 'page count', tone: 'var(--primary)' },
+          { x: 206, label: 'paper type', tone: 'var(--warning)' },
+          { x: 412, label: 'full PDF size', tone: 'var(--success)' },
+        ].map((item, index) => (
+          <g key={item.label}>
+            <rect x={item.x} y={0} width={154} height={44} rx={14} fill="var(--card)" stroke="var(--border)" strokeWidth={1.8} />
+            <circle cx={item.x + 24} cy={22} r={8} fill={item.tone} opacity={0.9} />
+            <text x={item.x + 46} y={27} fill="var(--foreground)" fontSize={12.5} fontWeight={850}>{item.label}</text>
+            {index < 2 && (
+              <>
+                <path d={`M${item.x + 166} 22h24`} stroke="var(--muted-foreground)" strokeWidth={2.2} strokeLinecap="round" opacity={0.7} />
+                <path d={`M${item.x + 184} 15l8 7-8 7`} fill="none" stroke="var(--muted-foreground)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" opacity={0.7} />
+              </>
+            )}
+          </g>
+        ))}
+      </g>
+
+      {!compact && (
+        <text x={400} y={420} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={800}>cover width = bleed + back + spine + front + bleed</text>
+      )}
+    </g>
+  );
+}
 
 function SpineTextOffCenterVisual({ compact = false }: { compact?: boolean }) {
   return (

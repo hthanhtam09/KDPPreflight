@@ -22,7 +22,7 @@ import {
   slugifyHeading,
 } from '@/lib/blog'
 import { getBlogPostMetadata } from '@/lib/blog/metadata'
-import { blogPostingSchema, breadcrumbSchema, faqSchema, howToSchema, SITE_URL } from '@/lib/schema'
+import { articleSchema, blogPostingSchema, breadcrumbSchema, faqSchema, howToSchema, SITE_URL } from '@/lib/schema'
 import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, ExternalLink } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -72,6 +72,14 @@ export default async function BlogPostPage({ params }: Props) {
             modifiedAt: post.updatedAt,
             keywords: post.keywords,
             authorName: post.author,
+          }),
+          articleSchema({
+            title: post.title,
+            description: post.description,
+            slug: post.slug,
+            publishedAt: post.publishedAt,
+            modifiedAt: post.updatedAt,
+            keywords: post.keywords,
           }),
           breadcrumbSchema([
             { name: 'Home', url: SITE_URL },
@@ -190,7 +198,7 @@ export default async function BlogPostPage({ params }: Props) {
             ))}
 
             <div className="blog-article">
-              <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
+              {renderMarkdownWithTables(post.content)}
             </div>
 
             {post.diagrams.slice(2).map((diagram) => (
@@ -287,6 +295,151 @@ const markdownComponents = {
     }
     return <Link href={url}>{children}</Link>
   },
+}
+
+function renderMarkdownWithTables(content: string): React.ReactNode[] {
+  return splitMarkdownTables(content).map((segment, index) => {
+    if (segment.type === 'table') return <MarkdownTable key={`table-${index}`} value={segment.value} />
+    return (
+      <ReactMarkdown key={`markdown-${index}`} components={markdownComponents}>
+        {segment.value}
+      </ReactMarkdown>
+    )
+  })
+}
+
+type MarkdownSegment = {
+  type: 'markdown' | 'table'
+  value: string
+}
+
+function splitMarkdownTables(content: string): MarkdownSegment[] {
+  const lines = content.split('\n')
+  const segments: MarkdownSegment[] = []
+  let markdownBuffer: string[] = []
+  let index = 0
+
+  while (index < lines.length) {
+    const tableMatch = getMarkdownTableAt(lines, index)
+    if (tableMatch) {
+      if (markdownBuffer.length) {
+        segments.push({ type: 'markdown', value: markdownBuffer.join('\n') })
+        markdownBuffer = []
+      }
+
+      segments.push({ type: 'table', value: tableMatch.lines.join('\n') })
+      index = tableMatch.nextIndex
+      continue
+    }
+
+    markdownBuffer.push(lines[index])
+    index += 1
+  }
+
+  if (markdownBuffer.length) segments.push({ type: 'markdown', value: markdownBuffer.join('\n') })
+  return segments
+}
+
+function getMarkdownTableAt(lines: string[], index: number): { lines: string[]; nextIndex: number } | null {
+  const header = lines[index]
+  if (!header || !isMarkdownTableRow(header)) return null
+
+  const separatorIndex = nextNonBlankLineIndex(lines, index + 1)
+  const separator = lines[separatorIndex]
+  if (separatorIndex === -1 || !separator || !isMarkdownTableSeparator(separator)) return null
+
+  const tableLines = [header, separator]
+  let cursor = separatorIndex + 1
+
+  while (cursor < lines.length) {
+    const nextIndex = nextNonBlankLineIndex(lines, cursor)
+    const row = lines[nextIndex]
+
+    if (nextIndex === -1 || !row || !isMarkdownTableRow(row)) break
+    tableLines.push(row)
+    cursor = nextIndex + 1
+  }
+
+  return { lines: tableLines, nextIndex: cursor }
+}
+
+function nextNonBlankLineIndex(lines: string[], startIndex: number): number {
+  for (let index = startIndex; index < lines.length; index += 1) {
+    if (lines[index].trim()) return index
+  }
+  return -1
+}
+
+function isMarkdownTableRow(line: string): boolean {
+  const trimmed = line.trim()
+  return trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.split('|').length >= 4
+}
+
+function isMarkdownTableSeparator(line: string): boolean {
+  return /^\s*\|?(?:\s*:?-{3,}:?\s*\|){2,}\s*:?-{3,}:?\s*\|?\s*$/.test(line)
+}
+
+function MarkdownTable({ value }: { value: string }) {
+  const rows = value
+    .trim()
+    .split('\n')
+    .filter((line) => !isMarkdownTableSeparator(line))
+    .map(parseMarkdownTableRow)
+
+  const [headers, ...bodyRows] = rows
+  if (!headers?.length) return null
+
+  return (
+    <div className="my-8 overflow-hidden rounded-xl border border-border bg-card shadow-soft">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[680px] border-collapse text-left text-sm leading-6">
+        <thead className="border-b border-border bg-surface/70 text-foreground">
+          <tr>
+            {headers.map((header, index) => (
+              <th
+                key={header}
+                scope="col"
+                className={`px-4 py-3 text-[0.78rem] font-extrabold uppercase tracking-[0.08em] text-foreground sm:px-5 ${
+                  index === 1 ? 'w-[32%]' : ''
+                }`}
+              >
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border/80">
+          {bodyRows.map((row, rowIndex) => (
+            <tr
+              key={`${row.join('-')}-${rowIndex}`}
+              className="text-muted-foreground transition-colors odd:bg-background/35 hover:bg-primary/5"
+            >
+              {headers.map((_, cellIndex) => (
+                <td
+                  key={`${rowIndex}-${cellIndex}`}
+                  className={`px-4 py-4 align-middle text-[0.95rem] sm:px-5 ${
+                    cellIndex === 0 ? 'font-semibold text-foreground/85' : ''
+                  } ${cellIndex === 1 ? 'font-mono text-[0.9rem] text-foreground/75' : ''}`}
+                >
+                  {row[cellIndex] ?? ''}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  )
+}
+
+function parseMarkdownTableRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim())
 }
 
 function childrenToText(children: React.ReactNode): string {

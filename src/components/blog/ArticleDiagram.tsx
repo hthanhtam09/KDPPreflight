@@ -997,17 +997,54 @@ function TrimComparison() {
 function CoverAnatomy() {
   return (
     <g>
-      <rect x="95" y="92" width="610" height="260" rx="18" fill="color-mix(in srgb, var(--danger) 8%, transparent)" stroke="var(--danger)" strokeDasharray="8 8" strokeWidth="3" />
-      <rect x="120" y="117" width="560" height="210" rx="14" fill="var(--card)" stroke="var(--border)" strokeWidth="3" />
-      <rect x="120" y="117" width="246" height="210" rx="14" fill="color-mix(in srgb, var(--muted) 70%, transparent)" />
-      <rect x="366" y="117" width="68" height="210" fill="color-mix(in srgb, var(--primary) 20%, transparent)" stroke="var(--primary)" strokeWidth="3" />
-      <rect x="434" y="117" width="246" height="210" rx="14" fill="transparent" />
-      <rect x="150" y="150" width="180" height="140" rx="10" fill="transparent" stroke="var(--success)" strokeDasharray="7 7" strokeWidth="3" />
-      <rect x="470" y="150" width="175" height="140" rx="10" fill="transparent" stroke="var(--success)" strokeDasharray="7 7" strokeWidth="3" />
-      <Label x={190} y={230}>back</Label>
-      <Label x={383} y={230}>spine</Label>
-      <Label x={525} y={230}>front</Label>
-      <MutedLabel x={262} y={382}>full cover anatomy</MutedLabel>
+      <text x={400} y={48} textAnchor="middle" fill="var(--foreground)" fontSize={22} fontWeight={950}>Full KDP cover anatomy</text>
+
+      {/* Bleed boundary */}
+      <rect
+        x={72}
+        y={86}
+        width={656}
+        height={266}
+        rx={28}
+        fill="color-mix(in srgb, var(--danger) 5%, transparent)"
+        stroke="var(--danger)"
+        strokeWidth={2.5}
+        strokeDasharray="10 10"
+        opacity={0.9}
+      />
+
+      {/* Trimmed cover */}
+      <rect x={104} y={118} width={592} height={202} rx={22} fill="var(--card)" stroke="var(--border)" strokeWidth={2.5} />
+      <path d="M126 118h238v202H126a22 22 0 0 1-22-22V140a22 22 0 0 1 22-22Z" fill="color-mix(in srgb, var(--muted) 58%, transparent)" />
+      <rect x={364} y={118} width={72} height={202} fill="color-mix(in srgb, var(--primary) 18%, transparent)" stroke="color-mix(in srgb, var(--primary) 74%, var(--border))" strokeWidth={2.5} />
+      <path d="M436 118h238a22 22 0 0 1 22 22v158a22 22 0 0 1-22 22H436Z" fill="color-mix(in srgb, var(--card) 92%, transparent)" />
+
+      {/* Fold lines */}
+      <path d="M364 118v202M436 118v202" stroke="color-mix(in srgb, var(--primary) 72%, var(--border))" strokeWidth={2} strokeDasharray="7 7" />
+
+      {/* Safe areas */}
+      <rect x={132} y={148} width={204} height={142} rx={14} fill="color-mix(in srgb, var(--success) 8%, transparent)" stroke="var(--success)" strokeDasharray="8 8" strokeWidth={2.5} />
+      <rect x={464} y={148} width={204} height={142} rx={14} fill="color-mix(in srgb, var(--success) 8%, transparent)" stroke="var(--success)" strokeDasharray="8 8" strokeWidth={2.5} />
+      <rect x={378} y={150} width={44} height={138} rx={12} fill="color-mix(in srgb, var(--success) 7%, transparent)" stroke="var(--success)" strokeDasharray="6 7" strokeWidth={2.2} />
+
+      {/* Panel labels */}
+      <rect x={194} y={206} width={80} height={36} rx={12} fill="var(--card)" stroke="var(--border)" strokeWidth={1.5} />
+      <text x={234} y={230} textAnchor="middle" fill="var(--foreground)" fontSize={18} fontWeight={900}>back</text>
+      <rect x={366} y={206} width={68} height={36} rx={12} fill="var(--card)" stroke="color-mix(in srgb, var(--primary) 55%, var(--border))" strokeWidth={1.5} />
+      <text x={400} y={230} textAnchor="middle" fill="var(--primary)" fontSize={17} fontWeight={950}>spine</text>
+      <rect x={526} y={206} width={80} height={36} rx={12} fill="var(--card)" stroke="var(--border)" strokeWidth={1.5} />
+      <text x={566} y={230} textAnchor="middle" fill="var(--foreground)" fontSize={18} fontWeight={900}>front</text>
+
+      {/* Legend */}
+      <g transform="translate(112 374)">
+        <rect x={0} y={0} width={576} height={44} rx={14} fill="var(--card)" stroke="var(--border)" strokeWidth={1.8} />
+        <line x1={24} y1={22} x2={64} y2={22} stroke="var(--danger)" strokeWidth={2.5} strokeDasharray="8 7" />
+        <text x={76} y={27} fill="var(--muted-foreground)" fontSize={13} fontWeight={800}>bleed edge</text>
+        <line x1={202} y1={22} x2={242} y2={22} stroke="var(--border)" strokeWidth={3} />
+        <text x={254} y={27} fill="var(--muted-foreground)" fontSize={13} fontWeight={800}>trimmed cover</text>
+        <line x1={404} y1={22} x2={444} y2={22} stroke="var(--success)" strokeWidth={2.5} strokeDasharray="8 7" />
+        <text x={456} y={27} fill="var(--muted-foreground)" fontSize={13} fontWeight={800}>safe area</text>
+      </g>
     </g>
   );
 }

@@ -1,0 +1,301 @@
+{
+  "title": "KDP Spine Width Wrong? Here’s How to Fix It Properly",
+  "slug": "kdp-spine-width-wrong",
+  "description": "A practical guide to fixing KDP spine width mismatch errors, off-center spine text, Canva alignment problems, wrong full-cover dimensions, and thin paperback spines.",
+  "metaTitle": "KDP Spine Width Wrong? Fix Spine Size & Alignment Fast",
+  "metaDescription": "KDP spine width incorrect or text off-center? Learn how Amazon calculates spine size, why Canva covers fail, and how to fix paperback spine alignment properly.",
+  "ogTitle": "KDP Spine Width Wrong? Fix Spine Size and Alignment",
+  "ogDescription": "Learn how Amazon KDP calculates paperback spine width, why spine text shifts after upload, and how to repair full-cover dimensions correctly.",
+  "ogImageAlt": "Amazon KDP paperback cover layout diagram showing spine width, bleed, safe area, and alignment checks.",
+  "excerpt": "If your KDP spine width is wrong, the cause is usually stale page-count math, the wrong paper type, bleed setup mistakes, Canva alignment drift, or a cover export that no longer matches the official template.",
+  "category": "spine-width",
+  "tags": [
+    "KDP spine width",
+    "paperback spine",
+    "Canva KDP cover",
+    "cover dimensions",
+    "spine alignment"
+  ],
+  "keywords": [
+    "KDP spine width wrong",
+    "KDP spine width calculator",
+    "KDP spine text off center",
+    "KDP spine mismatch",
+    "KDP full cover dimensions",
+    "spine width calculation KDP",
+    "paperback spine width",
+    "KDP cover dimensions wrong",
+    "Canva spine alignment KDP",
+    "KDP spine too thin",
+    "page count",
+    "bleed settings",
+    "trim size",
+    "cover template",
+    "print tolerance",
+    "full wrap cover",
+    "spine safe area",
+    "cover export settings",
+    "spine margin",
+    "paperback specifications",
+    "PDF dimensions"
+  ],
+  "publishedAt": "2026-05-20",
+  "updatedAt": "2026-05-20",
+  "sortPriority": 18,
+  "featured": true,
+  "author": "KDP Preflight Editorial",
+  "shortAnswer": "KDP spine width is wrong when the cover PDF was built from different production settings than the book in KDP. Confirm the final interior page count, paper type, trim size, and bleed setup, then calculate the spine from Amazon's current formula or download a fresh KDP cover template. Rebuild the full wrap cover at the exact PDF dimensions, center spine text between the real fold lines, keep at least 0.0625 inch of padding from each spine edge, and remove spine text entirely when the spine is too thin.",
+  "relatedToolKeys": [
+    "spineCalculator",
+    "checker",
+    "trimCalculator",
+    "bleedChecker",
+    "validator"
+  ],
+  "relatedGuides": [
+    {
+      "label": "KDP Spine Width Calculator",
+      "href": "/tools/kdp-spine-width-calculator"
+    },
+    {
+      "label": "KDP Cover Checker",
+      "href": "/tools/kdp-cover-checker"
+    },
+    {
+      "label": "KDP Bleed Checker",
+      "href": "/tools/kdp-bleed-checker"
+    },
+    {
+      "label": "KDP Trim Size Calculator",
+      "href": "/tools/kdp-trim-size-calculator"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How does KDP calculate spine width?",
+      "answer": "KDP calculates paperback spine width from the final page count and paper or ink type. Amazon's current paperback formulas include white paper at page count x 0.002252 inches, cream paper at page count x 0.0025 inches, premium color at page count x 0.002347 inches, and standard color at page count x 0.002252 inches."
+    },
+    {
+      "question": "Why is my KDP spine text off-center?",
+      "answer": "Spine text is usually off-center because the cover used the wrong page count, paper type, trim size, bleed setup, or PDF dimensions. It can also look off-center when text is mathematically centered but visually unbalanced by font weight, fold shadows, or print tolerance."
+    },
+    {
+      "question": "Does bleed affect KDP spine width?",
+      "answer": "Bleed does not change the spine thickness formula, but it changes the total full-cover PDF dimensions. A cover with missing or extra bleed can make the whole wrap the wrong size even when the spine calculation itself is correct."
+    },
+    {
+      "question": "Can Canva cause spine alignment issues on KDP?",
+      "answer": "Yes. Canva can center text on the canvas, a group, or an imported template image instead of the exact KDP spine center. Imported templates can also shift or scale slightly, and PDF export settings can change the final dimensions."
+    },
+    {
+      "question": "Why did my spine change after updating the manuscript?",
+      "answer": "The spine changed because KDP spine width depends on the final PDF page count. Adding blank pages, deleting pages, changing margins, or exporting the manuscript differently can alter the page count and move the spine folds."
+    },
+    {
+      "question": "What happens if the KDP spine is too thin?",
+      "answer": "If the spine is too thin, spine text may be rejected, wrap onto the front or back cover, or print unreadably. For low-page books, the professional fix is often to remove spine text and use a clean continuous background."
+    },
+    {
+      "question": "Should I include spine text on low-page books?",
+      "answer": "Usually no. Amazon requires enough pages for spine text, and even books that barely qualify may not have room for readable text plus safe padding. Thin journals, coloring books, and short workbooks often look better with a blank spine."
+    },
+    {
+      "question": "Why does KDP reject my cover dimensions?",
+      "answer": "KDP rejects cover dimensions when the uploaded PDF page size does not match the expected full wrap size for the selected trim size, page count, paper type, bleed, and binding format."
+    },
+    {
+      "question": "Can KDP Previewer misalign spine text?",
+      "answer": "KDP Previewer can make a correctly measured spine look slightly shifted because it simulates folds, browser rendering, anti-aliasing, and perspective. But if the source PDF dimensions or spine guides are wrong, the file still needs repair."
+    },
+    {
+      "question": "What is the minimum spine width for text on KDP?",
+      "answer": "Amazon says paperback spine text requires at least 79 pages, and the text needs at least 0.0625 inch of space on each side of the spine. In practice, many books near the minimum page count still look better without spine text."
+    }
+  ],
+  "summary": [
+    "KDP spine width problems are usually caused by stale page count, wrong paper type, mismatched bleed, incorrect full-cover dimensions, or design-app alignment mistakes.",
+    "The spine is part of a full wrap cover, so fixing it requires checking the entire PDF size, not only nudging text left or right.",
+    "A spine is correct when the cover template, exported PDF dimensions, fold guides, spine safe area, and KDP book settings all describe the same physical book."
+  ],
+  "checklist": [
+    "Interior PDF is finalized before cover design begins.",
+    "Final page count is taken from the exported manuscript PDF, not estimated from the editor.",
+    "Trim size matches the book setup in KDP.",
+    "Paper and ink type match the KDP cover template.",
+    "Bleed is included correctly on outside cover edges.",
+    "Full cover PDF width equals bleed + back cover + spine + front cover + bleed.",
+    "Spine text is centered between the real fold lines, not the whole canvas.",
+    "Spine text has at least 0.0625 inch of padding from each spine edge.",
+    "Thin books remove spine text instead of forcing tiny typography.",
+    "Exported PDF dimensions are checked before upload."
+  ],
+  "howTo": {
+    "name": "How to calculate and fix KDP spine width correctly",
+    "description": "A production workflow for repairing KDP spine width mismatch errors, shifted spine text, and incorrect full-cover dimensions before uploading a paperback cover.",
+    "totalTime": "PT25M",
+    "steps": [
+      {
+        "name": "Finalize the interior PDF",
+        "text": "Export the final manuscript and confirm its exact page count before designing or rebuilding the cover spine."
+      },
+      {
+        "name": "Confirm KDP print settings",
+        "text": "Match trim size, binding type, ink type, paper type, reading direction, and bleed settings between the manuscript, cover file, and KDP setup."
+      },
+      {
+        "name": "Download a fresh KDP template",
+        "text": "Use Amazon's cover calculator and template generator with the final settings so the spine folds and full wrap dimensions are current.",
+        "url": "https://kdp.amazon.com/en_US/cover-templates"
+      },
+      {
+        "name": "Build the full wrap at exact dimensions",
+        "text": "Set the cover PDF size to bleed plus back cover plus spine plus front cover plus bleed, and set height to bleed plus trim height plus bleed."
+      },
+      {
+        "name": "Center spine text inside the safe area",
+        "text": "Place the spine text halfway between the fold lines and keep clear padding from both spine edges so binding variation does not push text onto the front or back cover."
+      },
+      {
+        "name": "Export and verify the PDF",
+        "text": "Export as a print-quality PDF without scaling, then inspect the exported PDF page dimensions before uploading to KDP."
+      }
+    ]
+  },
+  "diagrams": [
+    "spine-width",
+    "cover-anatomy",
+    "spine-mismatch",
+    "bleed-mismatch-overlay",
+    "canva-spine-alignment",
+    "spine-center-workflow",
+    "preview-illusion-print",
+    "spine-common-mistakes",
+    "good-vs-bad-spine"
+  ],
+  "content": [
+    "You upload your paperback cover to Amazon KDP, open Previewer, and the spine suddenly looks wrong. The title is shifted. The spine text is off-center. The full cover dimensions may be rejected. Sometimes the text appears to spill into the front or back cover even though it looked perfectly centered in Canva.",
+    "That moment is frustrating because spine problems usually appear late, after the manuscript feels finished and the cover design looks complete. They are also extremely common. A small page-count change, a wrong bleed setup, a Canva alignment mistake, an incorrect full-cover size, or a very thin spine can all trigger a KDP spine mismatch.",
+    "Most KDP spine problems are caused by calculation or export mistakes - not by your actual design.",
+    "This guide explains how Amazon calculates spine width, why KDP cover dimensions go wrong, how to fix Canva spine alignment, and when the best answer is to remove spine text entirely. The goal is not to tell you to blindly use a KDP spine width calculator and hope. The goal is to help you understand the production geometry well enough to repair the file calmly.",
+    "## How Amazon KDP Calculates Spine Width",
+    "A KDP paperback cover is a single wraparound PDF. It includes the back cover, spine, front cover, and bleed. The spine is not an independent strip you can size by eye. Amazon calculates it from the final page count and the paper or ink type selected in your KDP print options.",
+    "The official [Amazon KDP paperback cover requirements](https://kdp.amazon.com/en_US/help/topic/G201953020) explain the full cover equation this way: cover width equals bleed plus back cover width plus spine width plus front cover width plus bleed. Cover height equals bleed plus trim height plus bleed. The [KDP cover calculator and template generator](https://kdp.amazon.com/en_US/cover-templates) uses those same inputs to produce the template dimensions.",
+    "For current paperback spine calculations, Amazon lists these page-count multipliers: white paper uses page count x 0.002252 inches, cream paper uses page count x 0.0025 inches, premium color uses page count x 0.002347 inches, and standard color uses page count x 0.002252 inches. Those numbers look tiny, but they compound across the whole book. A 300-page cream paperback spine is 0.75 inches. The same page count on white paper is about 0.676 inches. That difference is large enough to move fold lines, shift the spine center, and break text alignment.",
+    "The main inputs are simple, but they must be final:",
+    "| Input | Why it matters | What goes wrong |",
+    "| --- | --- | --- |",
+    "| Page count | More pages make the spine thicker | A cover made for 220 pages fails when the final PDF has 236 pages |",
+    "| Paper type | White, cream, premium color, and standard color use different thickness assumptions | The spine is calculated from the wrong stock |",
+    "| Trim size | Front and back panel dimensions depend on trim width and height | Full-cover width is wrong even if spine math is right |",
+    "| Bleed | KDP covers require bleed around outside edges | Missing bleed makes the PDF too small |",
+    "| Binding format | Paperback and hardcover wraps use different construction rules | A paperback cover cannot be reused as a hardcover cover |",
+    "Small page-count changes matter because the spine is proportional. Add 12 pages to a cream paperback and the spine grows by 12 x 0.0025 inches, or 0.03 inches. That sounds harmless until you remember the spine text is usually sitting inside a narrow safe area. A 0.03-inch shift can make a title look visibly off-center or push it closer to one fold.",
+    "Trim size does not usually change the spine thickness formula, but it changes the full-cover canvas. A 6 x 9 cover and a 5.5 x 8.5 cover with the same page count may have the same spine width, but the front and back panels are different. If you use the wrong trim template, KDP will reject the full cover dimensions or show the spine in the wrong place.",
+    "Bleed creates another layer of confusion. Bleed does not make the spine physically thicker, but it does affect total cover width and height. For KDP paperback covers, background art must extend 0.125 inch beyond the top, bottom, and outside edges. If your cover was designed at trim size only, the spine may appear close while the overall PDF still fails. For a deeper primer, see the [KDP bleed vs no bleed guide](/blog/kdp-bleed-vs-no-bleed).",
+    "Hardcover books are different because case laminate and dust jacket files include additional wrap or flap behavior. Do not assume a paperback spine width or paperback template can be repurposed for hardcover. If the binding format changes, generate a new template.",
+    "## The Most Common Causes of Incorrect KDP Spine Width",
+    "Most spine problems come from a mismatch between the cover file and the book setup. KDP is not asking whether the cover looks centered on your screen. It is checking whether the uploaded PDF matches the expected physical paperback.",
+    "### Wrong Page Count",
+    "Wrong page count is the most common cause of a KDP spine width wrong error. Authors often create the cover while the manuscript is still changing. Then they add a copyright page, remove a blank page, change chapter starts, adjust margins, or export through a different PDF setting. The final PDF page count no longer matches the cover template.",
+    "Example: you generate a template for a 210-page white paper book. Later, after adding acknowledgments and a blank verso page, the interior becomes 218 pages. The new spine is 218 x 0.002252 inches, not 210 x 0.002252 inches. The difference is only about 0.018 inches, but the spine center moves and the full cover width changes.",
+    "Another common case is front matter. A manuscript editor may show 198 pages, but the exported PDF has 202 pages because of inserted blanks, section breaks, or forced even-page chapter starts. KDP uses the uploaded interior file, not your estimate.",
+    "The fix is straightforward: export the final interior PDF first, confirm the exact page count from the PDF, then generate the cover template. If you update the manuscript later, repeat the spine calculation before uploading the cover.",
+    "### Incorrect Bleed Settings",
+    "Bleed mistakes usually show up as incorrect full-cover dimensions rather than a pure spine formula error. KDP paperback covers are full-wrap files with bleed added to the outside edges. If your design app uses a canvas that excludes bleed, the PDF will be too small. If you add bleed twice, it will be too large.",
+    "This is especially common in Canva. A designer may create a canvas for the visible front cover, then try to add a spine manually. Or they may import a KDP template image into a canvas that is not the same size as the template. The template looks close, but the PDF dimensions are wrong.",
+    "Interior bleed and cover bleed are also easy to confuse. Interior bleed controls whether inside pages have artwork extending to the page edge. Cover bleed is always part of the paperback cover layout because the full cover is trimmed after printing. If your background color reaches an edge, it must extend into cover bleed. The [white lines on KDP cover guide](/blog/white-lines-on-kdp-cover) explains why missing bleed often appears as a pale edge after trimming.",
+    "If KDP says your cover dimensions are wrong, do not start by nudging spine text. First check the exported PDF size. The full wrap must match KDP's expected width and height for that exact trim, spine, and bleed setup.",
+    "### Using the Wrong Paper Type",
+    "Paper type changes spine thickness because different paper stocks have different calipers. A cream paperback is thicker than a white paperback at the same page count. Premium color uses a different multiplier again. If you generate a cover for white paper and later switch to cream, the spine becomes wider.",
+    "| KDP paper or ink option | Current paperback spine multiplier | Practical effect |",
+    "| --- | --- | --- |",
+    "| Black and white, white paper | Page count x 0.002252 in | Thinner than cream at the same page count |",
+    "| Black and white, cream paper | Page count x 0.0025 in | Noticeably wider on medium and long books |",
+    "| Premium color | Page count x 0.002347 in | Slightly thicker than white paper |",
+    "| Standard color | Page count x 0.002252 in | Same multiplier Amazon lists for white paper |",
+    "A 400-page book makes the difference obvious. At 400 pages, white paper calculates to about 0.901 inches. Cream paper calculates to 1.0 inch. If the cover is built for the wrong one, the spine center can be off by almost 0.05 inches, which is enough to look plainly wrong.",
+    "### Canva Alignment Problems",
+    "Canva can produce valid KDP covers, but it is easy to center the spine incorrectly. Canva snapping may align the text box to the whole canvas, a group, a nearby object, or an imported template image. None of those are guaranteed to be the real spine center.",
+    "A Canva spine can look centered and still export slightly wrong for three reasons. First, the imported KDP template may have been scaled or moved by hand. Second, the spine text group may include hidden objects or extra bounding-box space. Third, the PDF export may not preserve the exact canvas dimensions you expected.",
+    "A realistic example: you upload the PNG version of the KDP template, stretch it until it appears to fill the Canva page, and lock it. The spine guides look right. But if that PNG is even a few pixels off, the guide lines are not production guides anymore. The spine text is centered to an image approximation, not to the actual PDF page geometry.",
+    "For Canva spine alignment KDP work, use exact custom dimensions, import the template at full size, lock the template layer, add guides for both folds, and verify the exported PDF dimensions after download. Canva can look centered while exporting a file that is not the size KDP expects.",
+    "### Spine Too Thin for Text",
+    "Amazon states that paperback spine text requires at least 79 pages, and spine text needs at least 0.0625 inch of space on each side so it does not wrap onto the front or back cover. That is a technical minimum, not a guarantee that the design will look good.",
+    "Low-page journals, short workbooks, thin coloring books, and brief nonfiction paperbacks may qualify poorly or not at all. If the title must be tiny, condensed, or nearly touching both fold lines, remove it. A clean blank spine is usually more professional than cramped text that looks crooked after binding.",
+    "For detailed alignment rules, see the [KDP spine text off-center guide](/blog/fix-kdp-spine-text-off-center) and the [safe area spacing guide](/blog/how-far-should-text-be-from-edge-kdp-cover).",
+    "## How to Calculate KDP Spine Width Correctly",
+    "The safest workflow is to treat the cover as a production file, not a visual collage. Every number comes from the finished book setup.",
+    "### Step 1: Finalize the Interior FIRST",
+    "Do not design the final spine before the manuscript is final. You can sketch the cover direction early, but the production spine should wait until the interior PDF is exported.",
+    "Final means the trim size is set, margins are set, front matter is complete, chapter starts are locked, blank pages are intentional, and the PDF has been exported. Open that PDF and confirm the page count. Do not rely on a Word, Google Docs, Canva, Atticus, Vellum, or InDesign page estimate unless it matches the exported PDF.",
+    "If the manuscript changes after the cover is designed, calculate again. Even small changes alter the spine immediately.",
+    "### Step 2: Confirm Trim Size & Bleed",
+    "Next, confirm the trim size in three places: the interior PDF, the KDP setup screen, and the cover source file. A cover designed for 6 x 9 will not fit a 5 x 8 interior. A full wrap designed for a custom trim size will not pass when KDP is set to a standard trim.",
+    "Then check bleed. If your cover has background color, image, or texture reaching the cover edge, it must extend into bleed. The cover PDF should include the extra bleed area, while important text stays inside safe margins. If your front cover text is also near the trim edge, review the [safe area before exporting guide](/blog/how-to-check-safe-area-before-exporting-kdp-cover).",
+    "A practical 6 x 9 example: the visible front cover is 6 inches wide and 9 inches tall. The visible back cover is also 6 x 9. The full cover width is 0.125 bleed + 6 back + calculated spine + 6 front + 0.125 bleed. The height is 0.125 + 9 + 0.125, or 9.25 inches.",
+    "### Step 3: Use KDP's Official Cover Calculator",
+    "Use the official [Amazon KDP cover calculator](https://kdp.amazon.com/en_US/cover-templates) after the interior is final. Enter binding type, interior type, paper type, reading direction, measurement units, trim size, and final page count. Then download the PDF or PNG template.",
+    "The template is more than a background image. It tells you the full cover size, front and back panel boundaries, spine fold lines, spine safe area, bleed, margins, and barcode area. When KDP rejects a cover, it is often because the file no longer matches these template dimensions.",
+    "If you build the cover manually, use the official formulas and compare your result with the calculator. If your PDF dimensions differ, trust the calculator and find the setup mismatch.",
+    "### Step 4: Build Cover Using Exact Dimensions",
+    "Your full cover file must include the back cover, spine, front cover, and bleed as one PDF. Do not upload only the front cover. Do not create separate front, spine, and back files. Do not design the spine as a decorative strip without matching the full wrap dimensions.",
+    "Think of the layout from left to right for a standard left-to-right paperback: outside bleed, back cover, spine, front cover, outside bleed. The top and bottom also include bleed. Inside the visible panels, all important text should stay in safe areas.",
+    "If KDP says the cover size does not match the interior, compare your case with the [KDP cover size mismatch guide](/blog/kdp-cover-size-does-not-match-interior), the [interior and cover mismatch guide](/blog/interior-and-cover-file-dont-match-kdp), and the [trim mismatch explanation](/blog/kdp-cover-uploaded-successfully-but-looks-cropped).",
+    "For Adobe workflows, the [Illustrator PDF options documentation](https://helpx.adobe.com/illustrator/using/pdf-options.html) explains that bleed is artwork outside the trimming boundary and that PDF export can use document bleed settings. In practical KDP terms, your source document and export settings must agree, or the PDF page box will not be what you think it is.",
+    "### Step 5: Keep Spine Text Inside Safe Area",
+    "After the full wrap is correct, place the spine text. Find the two fold lines. The true spine center is halfway between them. Center the spine text group on that center line, then check that the visible letters sit inside the spine safe area.",
+    "Keep at least 0.0625 inch of space between spine text and each spine edge. For narrow spines, use more space if possible. If a title only fits by touching the fold margins, the design is too fragile.",
+    "Use simple, readable typography. Avoid ultra-thin fonts, tight tracking, long subtitles, decorative flourishes, and vertical borders that must align perfectly with the folds. The spine is the least forgiving part of the paperback cover because a tiny binding variation can look obvious.",
+    "## Why Spine Text Looks Off-Center After Upload",
+    "A spine can be mathematically centered and still look slightly off. This is where print-production judgment matters.",
+    "KDP Previewer simulates a physical book in a browser. Fold shading, anti-aliasing, screen zoom, and perspective can make a narrow spine appear shifted. A vertical title may also look optically heavier on one side depending on the font. For example, a bold serif title with strong left-side stems can feel visually off even when its bounding box is perfectly centered.",
+    "Perfect mathematical center is not always visual center. Designers often make tiny optical adjustments for letterforms, but those adjustments should happen after the production spine is correct, not instead of correct geometry. If the spine text group is centered on the wrong template, optical centering will not save the file.",
+    "Physical binding tolerance also matters. Amazon notes that books vary slightly when bound and tells publishers to allow variance around fold lines. This is why hard vertical edges on the spine are risky. A crisp color break exactly at the fold can make normal shift look like a defect. A forgiving background that continues across the spine and panels is usually safer.",
+    "Use this diagnostic order: check PDF dimensions first, page count second, paper type third, fold guides fourth, and optical balance last. If the math is wrong, fix the math. If the math is correct but a font looks visually weighted, then make a small design adjustment while keeping the text inside the safe area.",
+    "## Real Example: Why a Canva Spine Failed on KDP",
+    "A common real-world case looks like this. An author designs a 6 x 9 paperback cover in Canva for a 184-page white paper manuscript. The spine text looks centered. The author downloads a PDF Print file and keeps working on the book.",
+    "A week later, the author adds a bonus checklist, an author bio page, and two blank pages to make chapter openings cleaner. The final interior PDF becomes 196 pages. Nothing about the cover design looks different in Canva, so the author uploads the old cover.",
+    "KDP Previewer now shows the spine title leaning toward the back cover. The full-cover dimensions warning appears because the expected spine width changed. The author tries nudging the title to the right, but the warning remains. That is the clue: the problem is not only text placement. The full wrap is stale.",
+    "The fix is to export the final manuscript, confirm 196 pages, regenerate the KDP cover template for white paper, and rebuild the Canva canvas at the new full-cover dimensions. The old template layer is removed. The new template is imported at exact size and locked. The spine fold guides are placed again. The title and author name are grouped, centered between the real fold lines, and kept inside the spine safe area.",
+    "After exporting as PDF Print, the author opens the PDF properties and confirms the page size matches the new template. The re-upload passes because the cover, manuscript, and KDP settings finally describe the same book.",
+    "The important lesson: do not compensate for a changed spine by moving text inside an old cover. Recalculate the full wrap.",
+    "## Common Spine Design Mistakes to Avoid",
+    "Spine errors are not only mathematical. Some designs are technically uploadable but visually fragile.",
+    "Avoid ultra-thin fonts. Thin strokes lose clarity on a narrow curved surface and can look weak after matte lamination. Use a sturdy readable typeface with clear letter shapes.",
+    "Avoid text too close to the spine edges. Even if Previewer accepts it, normal binding variation can push the title visually toward the front or back cover. The smaller the spine, the more conservative your padding should be.",
+    "Avoid oversized author names. Many authors try to put the same hierarchy on the spine that appears on the front cover. The spine has a different job. It needs the title and author to be readable, not decorative.",
+    "Avoid decorative borders along the spine folds. Thin rules, hard color seams, and perfectly centered vertical ornaments make small print shifts obvious. If you need decoration, use a broad texture or continuous background that can tolerate movement.",
+    "Avoid spine background seams. A dark spine between light panels can look elegant, but if the color break lands exactly on a fold, any shift becomes visible. Let background colors wrap slightly or use soft transitions when possible.",
+    "Avoid using a single exported cover as a series template without recalculating. Volume 1 and Volume 2 may share trim size and design, but different page counts mean different spines. Series consistency comes from controlled guides, not reused dimensions.",
+    "If your exported PDF takes a long time to process after repeated cover rebuilds, the problem may be file weight or transparency rather than spine width. The [KDP PDF upload takes forever guide](/blog/kdp-pdf-upload-takes-forever) explains how heavy Canva and image-based PDFs can slow Previewer.",
+    "## How KDPPreflight Helps Prevent Spine Errors",
+    "KDPPreflight is designed to catch spine and cover geometry issues before you reach the stressful upload stage. Instead of waiting for Previewer to reject the cover, you can check the exported file while the design is still easy to repair.",
+    "For spine problems, KDPPreflight helps validate spine width against page count and paper type, compare the exported PDF dimensions to expected full-wrap dimensions, flag bleed consistency issues, show safe-area overlays, and verify trim assumptions. It is especially useful when the cover was built in Canva and you need to confirm the exported PDF rather than trusting the canvas view.",
+    "Use it as a pre-upload checkpoint: final interior page count, expected spine width, full cover dimensions, bleed, safe area, and export quality. That sequence catches most KDP spine mismatch and KDP cover dimensions wrong problems before Amazon does.",
+    "## FAQ",
+    "### How does KDP calculate spine width?",
+    "KDP calculates spine width from page count and paper or ink type. Current paperback formulas include white paper at page count x 0.002252 inches, cream at page count x 0.0025 inches, premium color at page count x 0.002347 inches, and standard color at page count x 0.002252 inches.",
+    "### Why is my spine text off-center?",
+    "It is usually off-center because the cover was built with the wrong page count, paper type, trim size, bleed setup, or PDF dimensions. If those are correct, the remaining issue may be optical centering, font balance, or Previewer rendering.",
+    "### Does bleed affect spine width?",
+    "Bleed does not change spine thickness, but it changes total cover dimensions. Missing or extra bleed can make the full wrap wrong and cause KDP to show spine or cover-size errors.",
+    "### Can Canva cause spine alignment issues?",
+    "Yes. Canva can center text on the wrong object, scale an imported template, include hidden objects inside a group, or export a PDF whose dimensions are not what you expected.",
+    "### Why did my spine change after updating the manuscript?",
+    "Your page count changed. KDP spine width is proportional to the final interior PDF page count, so added or removed pages change the spine and full-cover width.",
+    "### What happens if the spine is too thin?",
+    "Text may wrap onto the front or back cover, print unreadably, or be rejected. Thin books often look more professional with no spine text.",
+    "### Should I include spine text on low-page books?",
+    "Usually no. Even when a book barely qualifies, the text may not have enough room for safe padding and readable type.",
+    "### Why does KDP reject my cover dimensions?",
+    "The PDF page size does not match the expected full wrap for the selected trim size, page count, paper type, bleed, and binding format.",
+    "### Can Previewer misalign spine text?",
+    "Previewer can make a correct spine look slightly shifted because of browser rendering and fold simulation. But Previewer cannot fix a cover built from the wrong dimensions.",
+    "### What is the minimum spine width for text?",
+    "Amazon requires enough pages for spine text and currently states that paperback spine text requires at least 79 pages, with at least 0.0625 inch of space on each side of the spine text.",
+    "## Final Pre-Upload Check",
+    "Before uploading again, stop guessing and measure the file. Confirm the final page count, paper type, trim size, bleed, full cover width, full cover height, spine fold guides, and exported PDF dimensions. Then inspect the spine text only after the cover geometry is correct.",
+    "A KDP spine width wrong error feels like a design problem, but it is usually a production setup problem. Once the cover math matches the book, the design becomes much easier to fix.",
+    "Run your finished cover through [KDPPreflight](/tools/kdp-cover-checker) to validate spine width, bleed consistency, safe-area placement, trim size, and PDF dimensions before you upload to Amazon KDP."
+  ]
+}
