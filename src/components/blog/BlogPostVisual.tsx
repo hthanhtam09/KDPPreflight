@@ -43,10 +43,14 @@ export function BlogPostVisual({ postSlug, variant = 'card' }: BlogPostVisualPro
           <KdpSpineWidthWrongVisual compact={isCard} />
         ) : visualSlug === 'interior-and-cover-file-dont-match-kdp' ? (
           <FileMismatchVisual compact={isCard} />
+        ) : visualSlug === 'kdp-cover-dimensions-not-matching-template' ? (
+          <TemplateMismatchVisual compact={isCard} />
         ) : visualSlug === 'what-happens-if-you-forget-bleed-on-kdp' ? (
           <ForgotBleedVisual compact={isCard} />
         ) : visualSlug === 'kdp-bleed-vs-no-bleed' ? (
           <BleedVsNoBleedVisual compact={isCard} />
+        ) : visualSlug === 'kdp-bleed-vs-no-bleed-coloring-books' ? (
+          <ColoringBookBleedDecisionVisual compact={isCard} />
         ) : visualSlug === 'how-far-should-text-be-from-edge-kdp-cover' ? (
           <SafeMarginCoverVisual compact={isCard} />
         ) : visualSlug === 'how-to-check-safe-area-before-exporting-kdp-cover' ? (
@@ -175,6 +179,112 @@ function SpineTextOffCenterVisual({ compact = false }: { compact?: boolean }) {
       <rect x="292" y="370" width="216" height="34" rx="11" fill="var(--card)" stroke="var(--success)" strokeWidth="2.5" />
       <text x="400" y="393" textAnchor="middle" fill="var(--success)" fontSize="14" fontWeight="950">center guide fixes alignment</text>
       {!compact && <text x="220" y="62" fill="var(--foreground)" fontSize="22" fontWeight="950">KDP spine text alignment</text>}
+    </g>
+  );
+}
+
+function TemplateMismatchVisual({ compact = false }: { compact?: boolean }) {
+  return (
+    <g transform={compact ? 'translate(0 18)' : undefined}>
+      {!compact && (
+        <g>
+          <rect x={110} y={48} width={198} height={36} rx={18} fill="var(--card)" stroke="var(--danger)" strokeWidth={2} />
+          <text x={209} y={72} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={950} letterSpacing={1.8}>TEMPLATE MISMATCH</text>
+          <rect x={326} y={48} width={188} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={420} y={72} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>PDF size check</text>
+        </g>
+      )}
+
+      {/* Expected template */}
+      <rect x={86} y={118} width={628} height={204} rx={28} fill="color-mix(in srgb, var(--success) 5%, transparent)" stroke="var(--success)" strokeDasharray="10 9" strokeWidth={2.7} />
+      <rect x={120} y={150} width={560} height={140} rx={22} fill="var(--card)" stroke="var(--border)" strokeWidth={2.5} />
+      <path d="M142 150h218v140H142a22 22 0 0 1-22-22v-96a22 22 0 0 1 22-22Z" fill="color-mix(in srgb, var(--muted) 58%, transparent)" />
+      <rect x={360} y={150} width={80} height={140} fill="color-mix(in srgb, var(--primary) 15%, transparent)" stroke="color-mix(in srgb, var(--primary) 70%, var(--border))" strokeWidth={2.5} />
+      <path d="M440 150h218a22 22 0 0 1 22 22v96a22 22 0 0 1-22 22H440Z" fill="color-mix(in srgb, var(--card) 92%, transparent)" />
+
+      {/* Wrong exported PDF overlay */}
+      <rect x={148} y={174} width={470} height={92} rx={16} fill="color-mix(in srgb, var(--danger) 9%, transparent)" stroke="var(--danger)" strokeDasharray="9 8" strokeWidth={3} />
+      <rect x={274} y={196} width={252} height={44} rx={13} fill="var(--card)" stroke="var(--danger)" strokeWidth={2} />
+      <text x={400} y={224} textAnchor="middle" fill="var(--danger)" fontSize={15} fontWeight={950}>exported PDF is smaller</text>
+
+      {/* Panel labels */}
+      <rect x={202} y={112} width={72} height={30} rx={11} fill="var(--card)" stroke="var(--border)" strokeWidth={1.5} />
+      <text x={238} y={133} textAnchor="middle" fill="var(--foreground)" fontSize={14} fontWeight={900}>back</text>
+      <rect x={368} y={112} width={64} height={30} rx={11} fill="var(--card)" stroke="color-mix(in srgb, var(--primary) 52%, var(--border))" strokeWidth={1.5} />
+      <text x={400} y={133} textAnchor="middle" fill="var(--primary)" fontSize={14} fontWeight={950}>spine</text>
+      <rect x={526} y={112} width={72} height={30} rx={11} fill="var(--card)" stroke="var(--border)" strokeWidth={1.5} />
+      <text x={562} y={133} textAnchor="middle" fill="var(--foreground)" fontSize={14} fontWeight={900}>front</text>
+
+      {/* Measurement indicators */}
+      <path d="M86 344v18M714 344v18M86 353h628" stroke="var(--success)" strokeWidth={3} strokeLinecap="round" />
+      <path d="M148 382v18M618 382v18M148 391h470" stroke="var(--danger)" strokeWidth={3} strokeLinecap="round" />
+      <rect x={248} y={332} width={304} height={32} rx={12} fill="var(--card)" stroke="color-mix(in srgb, var(--success) 45%, var(--border))" strokeWidth={2} />
+      <text x={400} y={354} textAnchor="middle" fill="var(--success)" fontSize={13} fontWeight={950}>expected full template width</text>
+      <rect x={274} y={374} width={252} height={32} rx={12} fill="var(--card)" stroke="color-mix(in srgb, var(--danger) 45%, var(--border))" strokeWidth={2} />
+      <text x={400} y={396} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={950}>actual PDF page box</text>
+
+      {!compact && (
+        <text x={400} y={432} textAnchor="middle" fill="var(--muted-foreground)" fontSize={12.5} fontWeight={800}>trim size + bleed + spine width must match the template</text>
+      )}
+    </g>
+  );
+}
+
+function ColoringBookBleedDecisionVisual({ compact = false }: { compact?: boolean }) {
+  return (
+    <g transform={compact ? 'translate(0 18)' : undefined}>
+      {!compact && (
+        <g>
+          <rect x={112} y={48} width={172} height={36} rx={18} fill="var(--card)" stroke="color-mix(in srgb, var(--primary) 45%, var(--border))" strokeWidth={2} />
+          <text x={198} y={72} textAnchor="middle" fill="var(--primary)" fontSize={13} fontWeight={950} letterSpacing={1.8}>BLEED DECISION</text>
+          <rect x={302} y={48} width={198} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={401} y={72} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>coloring book pages</text>
+        </g>
+      )}
+
+      {/* No bleed page */}
+      <g transform="translate(104 112)">
+        <rect x={0} y={0} width={248} height={270} rx={22} fill="var(--card)" stroke="var(--border)" strokeWidth={2.5} />
+        <rect x={28} y={32} width={192} height={206} rx={18} fill="color-mix(in srgb, var(--success) 7%, transparent)" stroke="var(--success)" strokeWidth={2.5} strokeDasharray="8 8" />
+        <circle cx={124} cy={132} r={52} fill="none" stroke="var(--foreground)" strokeWidth={4} opacity={0.78} />
+        <circle cx={124} cy={132} r={30} fill="none" stroke="var(--foreground)" strokeWidth={3} opacity={0.52} />
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
+          const rad = (angle * Math.PI) / 180;
+          const x1 = 124 + Math.cos(rad) * 20;
+          const y1 = 132 + Math.sin(rad) * 20;
+          const x2 = 124 + Math.cos(rad) * 62;
+          const y2 = 132 + Math.sin(rad) * 62;
+          return <path key={angle} d={`M${x1} ${y1}L${x2} ${y2}`} stroke="var(--foreground)" strokeWidth={2.2} opacity={0.5} strokeLinecap="round" />;
+        })}
+        <rect x={50} y={244} width={148} height={34} rx={13} fill="var(--card)" stroke="color-mix(in srgb, var(--success) 52%, var(--border))" strokeWidth={2} />
+        <text x={124} y={267} textAnchor="middle" fill="var(--success)" fontSize={13} fontWeight={950}>NO BLEED</text>
+      </g>
+
+      {/* Bleed page */}
+      <g transform="translate(448 94)">
+        <rect x={-22} y={0} width={292} height={306} rx={28} fill="color-mix(in srgb, var(--danger) 6%, transparent)" stroke="var(--danger)" strokeWidth={2.5} strokeDasharray="10 9" />
+        <rect x={0} y={24} width={248} height={270} rx={22} fill="color-mix(in srgb, var(--primary) 12%, var(--card))" stroke="var(--border)" strokeWidth={2.5} />
+        <path d="M0 88c42-38 75-40 119 0s87 36 129-4v210H0Z" fill="color-mix(in srgb, var(--primary) 24%, transparent)" />
+        <path d="M-10 100c46-42 88-46 134 0s88 40 134-4" fill="none" stroke="var(--foreground)" strokeWidth={4} opacity={0.52} strokeLinecap="round" />
+        <rect x={32} y={56} width={184} height={184} rx={16} fill="transparent" stroke="var(--success)" strokeDasharray="8 8" strokeWidth={2.5} />
+        <rect x={50} y={256} width={148} height={34} rx={13} fill="var(--card)" stroke="color-mix(in srgb, var(--danger) 48%, var(--border))" strokeWidth={2} />
+        <text x={124} y={279} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={950}>BLEED</text>
+      </g>
+
+      {/* Decision arrow */}
+      <path d="M376 234h48" stroke="var(--muted-foreground)" strokeWidth={3} strokeLinecap="round" opacity={0.72} />
+      <path d="M416 224l12 10-12 10" fill="none" stroke="var(--muted-foreground)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={0.72} />
+      <rect x={322} y={184} width={156} height={38} rx={14} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+      <text x={400} y={209} textAnchor="middle" fill="var(--foreground)" fontSize={13} fontWeight={900}>edge artwork?</text>
+
+      {!compact && (
+        <g transform="translate(174 414)">
+          <line x1={0} y1={0} x2={32} y2={0} stroke="var(--danger)" strokeWidth={2.5} strokeDasharray="8 7" />
+          <text x={44} y={5} fill="var(--muted-foreground)" fontSize={12.5} fontWeight={800}>bleed extension</text>
+          <line x1={208} y1={0} x2={240} y2={0} stroke="var(--success)" strokeWidth={2.5} strokeDasharray="8 7" />
+          <text x={252} y={5} fill="var(--muted-foreground)" fontSize={12.5} fontWeight={800}>safe margin</text>
+        </g>
+      )}
     </g>
   );
 }

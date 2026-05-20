@@ -1,0 +1,292 @@
+{
+  "title": "KDP Bleed vs No Bleed for Coloring Books: Which Is Better?",
+  "slug": "kdp-bleed-vs-no-bleed-coloring-books",
+  "description": "A practical guide to choosing bleed or no bleed for KDP coloring books, including trim safety, white edge risks, Canva setup, full-page artwork, and beginner-safe formatting.",
+  "metaTitle": "KDP Bleed vs No Bleed for Coloring Books (Real Print Guide)",
+  "metaDescription": "Should your KDP coloring book use bleed or no bleed? Learn the real print differences, common mistakes, white edge risks, and safest setup for Amazon KDP.",
+  "ogTitle": "KDP Bleed vs No Bleed for Coloring Books",
+  "ogDescription": "Learn when KDP coloring books need bleed, when no bleed is safer, why white edges happen, and how to set up Canva exports correctly.",
+  "ogImageAlt": "Diagram comparing bleed and no bleed layouts for Amazon KDP coloring book interiors.",
+  "excerpt": "For KDP coloring books, bleed is best when artwork reaches the page edge, while no bleed is safer when illustrations stay centered with intentional white margins.",
+  "category": "bleed-issues",
+  "tags": [
+    "KDP bleed",
+    "coloring books",
+    "Canva KDP",
+    "trim safety",
+    "white edges"
+  ],
+  "keywords": [
+    "KDP bleed vs no bleed for coloring books",
+    "coloring book bleed KDP",
+    "should coloring books use bleed",
+    "KDP bleed settings",
+    "KDP no bleed coloring book",
+    "white edges KDP",
+    "bleed setup Canva KDP",
+    "KDP trim safety",
+    "coloring book print setup",
+    "edge-to-edge coloring pages",
+    "KDP bleed explained",
+    "trim line",
+    "safe area",
+    "white margins",
+    "edge-to-edge artwork",
+    "print tolerance",
+    "bleed extension",
+    "full bleed pages",
+    "paperback formatting",
+    "print production",
+    "KDP upload settings",
+    "bleed export",
+    "PDF setup"
+  ],
+  "publishedAt": "2026-05-20",
+  "updatedAt": "2026-05-20",
+  "sortPriority": 22,
+  "featured": true,
+  "author": "KDP Preflight Editorial",
+  "shortAnswer": "Choose bleed for KDP coloring books when any page artwork, background, pattern, or border is intended to reach the physical page edge. Choose no bleed when every illustration stays safely inside a white margin. No bleed is usually safer for beginners, but bleed creates a more premium edge-to-edge look when the artwork is extended past the trim line and exported at the correct PDF size.",
+  "relatedToolKeys": [
+    "bleedChecker",
+    "checker",
+    "trimCalculator",
+    "validator"
+  ],
+  "relatedGuides": [
+    {
+      "label": "KDP Bleed Checker",
+      "href": "/tools/kdp-bleed-checker"
+    },
+    {
+      "label": "KDP Cover Checker",
+      "href": "/tools/kdp-cover-checker"
+    },
+    {
+      "label": "KDP Trim Size Calculator",
+      "href": "/tools/kdp-trim-size-calculator"
+    },
+    {
+      "label": "Safe Area Glossary",
+      "href": "/glossary/safe-area"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Should coloring books use bleed on KDP?",
+      "answer": "Use bleed if any coloring page artwork, background, pattern, or border is intended to reach the page edge. Use no bleed if all artwork stays centered inside white margins."
+    },
+    {
+      "question": "What happens if I forget bleed?",
+      "answer": "If artwork touches the trim edge but the file is set up without bleed, KDP may reject the file or the printed book may show thin white edges after trimming."
+    },
+    {
+      "question": "Is no bleed safer for beginners?",
+      "answer": "Yes. No bleed is usually safer for beginners because it keeps artwork away from the trim line and reduces the risk of cut-off details, white edges, and incorrect export dimensions."
+    },
+    {
+      "question": "Why did white edges appear after printing?",
+      "answer": "White edges usually appear when background art stops at the trim line instead of extending past it into the bleed area. Small trim movement then exposes unprinted paper."
+    },
+    {
+      "question": "Can borders cause trimming problems?",
+      "answer": "Yes. Borders close to the page edge make normal trim shifts obvious. A border can look uneven, clipped, or too close to one side after printing."
+    },
+    {
+      "question": "Does bleed make coloring books look more professional?",
+      "answer": "Bleed can look more premium for full-page designs because artwork reaches the physical edge, but only when the pages are built and exported correctly."
+    },
+    {
+      "question": "Should black background coloring pages use bleed?",
+      "answer": "Yes, if the black background is meant to reach the page edge. Dark backgrounds need bleed because any exposed white paper edge is very visible."
+    },
+    {
+      "question": "Can Canva export incorrect bleed?",
+      "answer": "Yes. Canva can export incorrectly if the canvas size is wrong, bleed is not enabled when needed, artwork is not extended past the bleed guide, or the PDF is resized after download."
+    },
+    {
+      "question": "Why does KDP ask for bleed?",
+      "answer": "KDP asks for bleed when page content appears to reach the edge. Bleed gives the printer extra artwork to trim through so the final page does not show unwanted white edges."
+    },
+    {
+      "question": "What is the safest coloring book setup?",
+      "answer": "The safest beginner setup is no bleed with centered artwork and generous white margins. Use bleed only when the design intentionally reaches the page edge and you can export the correct PDF size."
+    }
+  ],
+  "summary": [
+    "Bleed means artwork extends past the trim line; it does not mean adding an extra blank margin.",
+    "No bleed is usually safer for beginner coloring books with centered illustrations and intentional white margins.",
+    "Bleed is required when coloring pages, dark backgrounds, patterns, or illustrations are meant to print to the page edge."
+  ],
+  "checklist": [
+    "Every page has been reviewed for artwork touching the trim edge.",
+    "Edge-to-edge artwork extends past the trim line into bleed.",
+    "Centered illustrations keep generous white margins if using no bleed.",
+    "Borders are not placed tightly against the page edge.",
+    "Canva bleed guides are visible when building full-bleed pages.",
+    "The exported PDF dimensions match the selected KDP bleed setting.",
+    "Dark backgrounds extend into bleed to avoid white edge risk.",
+    "Important details stay inside the safe area.",
+    "KDP upload bleed setting matches the manuscript PDF setup.",
+    "Final PDF is checked before upload."
+  ],
+  "howTo": {
+    "name": "How to choose bleed or no bleed for a KDP coloring book",
+    "description": "A practical workflow for deciding whether a coloring book interior should use bleed or no bleed before uploading to Amazon KDP.",
+    "totalTime": "PT20M",
+    "steps": [
+      {
+        "name": "Review every page edge",
+        "text": "Check whether illustrations, backgrounds, borders, or patterns touch any page edge."
+      },
+      {
+        "name": "Choose bleed for edge-to-edge pages",
+        "text": "If any page needs artwork to reach the physical edge, set up the manuscript with bleed and extend artwork past the trim line."
+      },
+      {
+        "name": "Choose no bleed for centered art",
+        "text": "If all artwork stays inside intentional white margins, use no bleed and keep illustrations safely away from trim."
+      },
+      {
+        "name": "Set Canva or design software correctly",
+        "text": "Use the correct page dimensions for the chosen KDP bleed setting, enable bleed guides when needed, and avoid crop or scaling mistakes."
+      },
+      {
+        "name": "Export and verify the PDF",
+        "text": "Export a print-ready PDF and confirm the page dimensions before uploading to KDP."
+      }
+    ]
+  },
+  "diagrams": [
+    "bleed-choice-comparison",
+    "coloring-book-bleed-example",
+    "no-bleed-margin-page",
+    "edge-to-edge-correct",
+    "white-edge-simulation",
+    "border-trim-risk",
+    "canva-bleed-workflow",
+    "safe-area-bleed-map",
+    "trim-result-comparison"
+  ],
+  "content": [
+    "Bleed is one of the first KDP settings that confuses coloring book creators. You upload your interior, KDP asks whether the manuscript has bleed, and suddenly the choice feels bigger than it sounded: bleed or no bleed?",
+    "It matters because the wrong choice can create white edges, cut-off artwork, trim shifts, Canva export confusion, and rejected full-page coloring designs. Coloring books are especially sensitive because the pages often contain large illustrations, decorative borders, dark backgrounds, and artwork that may run close to the edge.",
+    "There is no single ‘best’ option — the correct choice depends on how your pages are designed.",
+    "This guide gives you a clear decision framework. By the end, you should know when bleed is required, when no bleed is safer, how to set up Canva correctly, and how to avoid the most common KDP coloring book formatting mistakes.",
+    "## What “Bleed” Actually Means in KDP Printing",
+    "Bleed is extra printed artwork that extends beyond the trim line. It is not an extra blank margin. It is not extra space for important content. It is a production safety area that gives the printer something to cut through.",
+    "When Amazon KDP prints a paperback, the pages are printed on larger sheets and trimmed down to the final trim size. The trim line is the intended final page edge. Because physical trimming has normal manufacturing tolerance, the cut may move slightly. That movement is small, but it matters when artwork stops exactly at the edge.",
+    "The bleed area sits outside the trim line. If your design is supposed to reach the edge, the artwork needs to continue past the trim line into this bleed area. Then, even if the cut shifts slightly, the page edge still lands on printed artwork instead of blank paper.",
+    "The safe area is the opposite. Important details, text, page numbers, and delicate line art should stay inside the trim line, away from the edge. Bleed sends expendable background outward. Safe area keeps important content inward.",
+    "KDP's official [trim size, bleed, and margins documentation](https://kdp.amazon.com/en_US/help/topic/GVBQ3CMEQW3W2VL6/) explains that paperback files with bleed must be sized larger than the selected trim size, and that correct bleed helps prevent a white border at the edge after trimming. KDP's [paperback submission guidelines](https://kdp.amazon.com/en_US/help/topic/G201857950) also separate no-bleed manuscripts from PDF files that require bleed.",
+    "For a common 8.5 x 11 coloring book, a no-bleed interior page is 8.5 x 11 inches. A bleed interior page is larger because bleed is added to the top, bottom, and outside edge. The artwork that reaches the page edge must extend into that extra area.",
+    "The key idea is simple: bleed is for artwork that will be cut. Safe area is for artwork you cannot afford to lose.",
+    "## The Real Difference Between Bleed and No Bleed",
+    "Bleed and no bleed do not mean good and bad. They are two different production setups for two different page designs.",
+    "### How Bleed Pages Print",
+    "Bleed pages print edge to edge. If a mandala background, black frame, pattern, or full-page illustration is designed to reach the physical edge of the page, the source artwork must extend past the trim line.",
+    "In a coloring book, bleed can create a more immersive page. A full-page jungle scene can run to the edge. A geometric pattern can continue off the paper. A black-background mosaic can feel premium because the dark ink reaches every side.",
+    "The tradeoff is trim movement risk. Anything near the edge may be cut slightly differently from copy to copy. That is fine for expendable background texture. It is not fine for a character's face, a thin border, or a small instruction line.",
+    "A good bleed page is designed with this reality in mind. The background extends outward. Important line art stays inward. Edge details are allowed to be cropped slightly without harming the page.",
+    "### How No Bleed Pages Print",
+    "No bleed pages print with a safety margin. The page design stays inside the trim size, leaving white space around the artwork. Nothing important is expected to reach the physical edge.",
+    "This is often the safest setup for beginner coloring books. A centered illustration with a generous white margin is easier to export correctly, easier for KDP to validate, and less vulnerable to trim variation. The white margin also gives users room to color without ink disappearing into the spine or off the edge.",
+    "Many low-content creators choose no bleed because it reduces production risk. Journals, planners, simple activity books, and beginner coloring books often work well with no bleed when the design language includes clean white margins.",
+    "No bleed is not less professional by default. A well-centered illustration with intentional white margins can look calmer and more usable than an edge-to-edge page that clips important artwork.",
+    "### Why Coloring Books Behave Differently from Text Books",
+    "Coloring books behave differently because the artwork is the product. In a text book, most important content sits safely inside margins. In a coloring book, the illustration may fill most of the page, include decorative borders, or use black backgrounds that make white edges obvious.",
+    "Large illustrations amplify trim problems. A tiny shift that would be invisible in a text-only book can make a circular mandala look off-center. A border close to the edge can look uneven. A full black page can reveal a thin white strip immediately.",
+    "Coloring pages are also edge-sensitive because buyers interact with the page. If line art is cut off awkwardly, the page feels broken. If the design disappears into the binding side, the user may have trouble coloring it. If heavy ink reaches the edge without proper bleed, the printed result can look unfinished.",
+    "That is why the bleed decision should come from page design, not habit. Coloring books need a deliberate print setup.",
+    "## When You SHOULD Use Bleed",
+    "Use bleed when the design intentionally reaches the physical page edge. This is the clearest rule.",
+    "Choose bleed if artwork touches any page edge. A full-page animal scene that continues to the paper edge needs bleed. A floral pattern that runs off the page needs bleed. A coloring background that fills the entire page needs bleed.",
+    "Choose bleed if black backgrounds extend full page. Dark ink makes white edge problems obvious. If a black-background coloring page stops exactly at trim, even a tiny cut shift can expose a white sliver. For this issue, see the [white edges on KDP cover guide](/blog/white-lines-on-kdp-cover); the same print principle applies to interiors with dark edge art.",
+    "Choose bleed if patterns reach the trim edge. Repeating patterns, mosaics, wallpapers, maze backgrounds, and geometric grids often look best when they continue beyond the final page.",
+    "Choose bleed if you want a premium edge-to-edge look. Some coloring books are designed like art books, with immersive spreads and full-page compositions. Bleed is the correct production setup for that style.",
+    "Choose bleed if the illustration fills the page and edge cropping is acceptable. The key phrase is acceptable. If cropping a few millimeters ruins the image, the artwork is too close to the edge. Move important details inward and let only background or nonessential line art extend into bleed.",
+    "Examples that typically require bleed include full-page mandalas touching the edge, black-background mosaics, floral frames that run off the page, scenic coloring pages with full-page skies or water, and abstract pattern books without white margins.",
+    "If even one page in your interior truly requires bleed, your manuscript setup should be built for bleed consistently. Mixing assumptions page by page is where many KDP upload mistakes begin.",
+    "## When You SHOULD NOT Use Bleed",
+    "Use no bleed when the artwork is centered and white margins are intentional. This is the safest and most common choice for simple coloring books.",
+    "Choose no bleed if every illustration stays comfortably away from the page edge. A centered dinosaur, flower, vehicle, animal, or simple character drawing with a clean white border does not need bleed.",
+    "Choose no bleed if white margins are part of the layout. Many coloring books look better with breathing room around the artwork. Margins make the page easier to color, reduce cutting risk, and prevent line art from disappearing into the binding side.",
+    "Choose no bleed for beginner-friendly layouts. If this is your first KDP coloring book, no bleed reduces the number of technical mistakes you can make. You still need correct trim size and margins, but you do not need to extend artwork into a bleed area.",
+    "Choose no bleed for journals, planners, and simple interiors where content does not reach the edge. A journal page with lines, prompts, or small decorative icons should usually stay safely inside the trim.",
+    "Choose no bleed when trim safety matters more than edge-to-edge appearance. For children's coloring books, workbook-style pages, educational activity books, and simple line-art collections, readability and usability often matter more than full-bleed drama.",
+    "No bleed does not mean placing art randomly in the middle. It means designing with intentional margins and keeping all important content safely away from the trim line. If text or line art is near the edge even in a no-bleed file, KDP can still warn you about trim risk.",
+    "## The Biggest Mistakes Coloring Book Creators Make",
+    "### Forgetting to Extend Artwork Beyond Trim",
+    "The classic bleed mistake is making artwork stop exactly at the trim line. On screen, the page looks full. In print, a tiny trim shift reveals a white edge because there is no extra artwork beyond the cut.",
+    "This happens often with Canva backgrounds. A creator drags a black rectangle or illustration to the page edge but not beyond the bleed guide. The design looks full-page in Canva, but the exported PDF does not contain enough artwork for trimming.",
+    "The fix is to extend expendable background art past the trim line into the bleed area. Do not move important line art outward. Extend backgrounds, textures, and nonessential image areas. For a closely related print problem, see the [white edge printing issue guide](/blog/white-lines-on-kdp-cover).",
+    "### Using Borders Too Close to the Edge",
+    "Borders are risky in coloring books because they make trim variation visible. A border that sits close to the page edge may print wider on one side and narrower on the other. It may also be clipped slightly.",
+    "This can make a page look poorly aligned even when the PDF was technically accepted. Thin black borders, mandala frames, page-edge boxes, and decorative rule lines are especially sensitive.",
+    "If you want borders, keep them well inside the safe area. Avoid borders that depend on the trim being perfect. If the border is supposed to run off the page, treat it as bleed artwork and make sure it extends beyond trim.",
+    "### Mixing Bleed & No Bleed Incorrectly",
+    "Many KDP rejections happen because the interior file and KDP upload setting do not agree. A file may contain edge-to-edge pages, but the creator selects no bleed. Or the creator selects bleed, but the PDF page size is still no-bleed trim size.",
+    "Cover bleed and interior bleed are also different. A paperback cover always has full-wrap bleed requirements, while the manuscript interior can be set up as bleed or no bleed depending on the pages. Do not assume a no-bleed interior means the cover can ignore bleed. For cover sizing issues, read [KDP cover dimensions not matching template](/blog/kdp-cover-dimensions-not-matching-template).",
+    "Canva adds another trap. The visible page may look correct, but if the document was started at the wrong dimensions or exported through the wrong setting, KDP sees a PDF setup mismatch. Always check the exported PDF dimensions, not only the Canva canvas.",
+    "### Exporting the Wrong PDF Size",
+    "Bleed changes the required PDF page size. If the page is supposed to include bleed, the exported PDF must be larger than the trim size. If you export a bleed design at no-bleed size, KDP may crop, scale, or reject it.",
+    "Incorrect PDF size can come from Canva custom-size mistakes, browser print dialogs, online PDF compressors, export scaling, or accidentally choosing a standard PDF workflow that changes page boxes.",
+    "A common 8.5 x 11 coloring book example: if the interior uses bleed, the PDF page size should include the added bleed area. If the file properties still show exactly 8.5 x 11, then the artwork may look full-page but the technical file is not set up as bleed.",
+    "Dimension mismatches can also affect the cover, spine, and full wrap. If KDP flags broader template errors, compare your file with the [trim mismatch guide](/blog/kdp-cover-uploaded-successfully-but-looks-cropped) and the [spine width guide](/blog/kdp-spine-width-wrong).",
+    "## Real Print Examples: Bleed vs No Bleed",
+    "A mandala coloring page usually works best with no bleed when the mandala is centered and has a clear white margin. The circular shape benefits from breathing room. If the mandala nearly touches the edge, trim shifts can make it look off-center. If the design intentionally continues off the page, then bleed is required.",
+    "A black-background mosaic page should use bleed when the black background reaches the page edge. Black ink stopping at trim is one of the easiest ways to create visible white slivers after cutting. The mosaic details should stay inside the safe area, while the black background extends past trim.",
+    "A minimalist page with one animal, flower, vehicle, or cartoon character usually works best with no bleed. The white margin is part of the usability of the page. It gives the buyer a clean area to hold the page and reduces the chance that line art is clipped.",
+    "A children's coloring book often works best with no bleed unless the art style is intentionally full-page. Children need clear, simple shapes and enough margin around the drawing. Edge-to-edge designs can look exciting, but they create more risk and may make the page harder to color near the binding.",
+    "An adult pattern book may lean toward bleed if the style is immersive and edge-to-edge. But the pattern must be built for trimming. Repeating shapes can continue beyond the trim. Important focal details should not sit exactly on the cut line.",
+    "The best setup is not about genre alone. It is about edge behavior. Ask: does the art need to reach the physical paper edge, or is the white margin intentional?",
+    "## Which Setup Is SAFEST for Beginners?",
+    "No bleed is often safest for beginners. It is easier to set up, easier to validate, and more forgiving of trim variation. If all your coloring pages are centered drawings with white margins, no bleed is the right choice.",
+    "Bleed can look more premium when done correctly. Full-page artwork, dark backgrounds, and edge-to-edge patterns can feel polished and immersive. But bleed requires more careful setup: correct PDF dimensions, proper artwork extension, safe-area discipline, and export verification.",
+    "| Design style | Recommended setup | Risk level | Difficulty |",
+    "| --- | --- | --- | --- |",
+    "| Centered simple illustrations | No bleed | Low | Easy |",
+    "| White-margin children's pages | No bleed | Low | Easy |",
+    "| Journals, planners, activity pages | No bleed | Low to medium | Easy |",
+    "| Full-page patterns | Bleed | Medium | Moderate |",
+    "| Black-background coloring pages | Bleed | Medium to high | Moderate |",
+    "| Tight borders near edge | Redesign first | High | Hard |",
+    "If you are unsure, start with no bleed and design your pages with comfortable margins. If your creative concept requires edge-to-edge art, use bleed from the beginning and build every page with trim movement in mind.",
+    "## Canva Setup Guide for Bleed & No Bleed",
+    "For bleed in Canva, start with the correct page setup for the KDP interior. Enable bleed guides so you can see where the trim line and bleed edge are. Extend backgrounds, patterns, and edge artwork beyond the trim line. Keep important line art, text, page numbers, and small details inside the safe area.",
+    "Avoid borders that sit close to the trim. If you use a full-page border, either move it inward so it is safely inside the trim or extend it intentionally as bleed artwork. Do not let a thin border sit exactly on the cut line.",
+    "Export as PDF Print. Make sure the exported PDF dimensions match the KDP bleed setup. Do not run the PDF through a browser print dialog or online converter that might scale it.",
+    "For no bleed in Canva, keep the document at trim size and design with white margins. Do not drag artwork to the page edge. Keep line art comfortably inside the safe area. Export as PDF Print and check that the PDF page size matches the trim size.",
+    "The most common Canva mistake is trusting the visual canvas without checking the final PDF. Canva can look correct while the export is technically wrong. Open the PDF properties after export and confirm the page size.",
+    "If KDP Previewer is slow or fails after export, the issue may be file complexity, not only bleed. Image-heavy coloring books can be large. See the [KDP Previewer loading guide](/blog/kdp-previewer-not-loading) for troubleshooting.",
+    "## How KDPPreflight Helps Prevent Bleed Mistakes",
+    "KDPPreflight helps you check the technical file before you upload to Amazon. For coloring books, that means verifying whether pages that need bleed actually include bleed, whether the PDF dimensions match the selected setup, and whether artwork near the edge creates trim risk.",
+    "The tool can help with bleed validation, safe-area overlays, trim safety checking, export verification, and edge-risk detection. It is especially helpful when a Canva file looks right but you are not sure whether the exported PDF will pass KDP.",
+    "Use KDPPreflight after export, because the final PDF is what KDP evaluates. A clean source design is useful, but the print-ready PDF is the production file.",
+    "## FAQ",
+    "### Should coloring books use bleed?",
+    "Use bleed only when artwork, backgrounds, patterns, or borders are meant to reach the page edge. Use no bleed for centered illustrations with white margins.",
+    "### What happens if I forget bleed?",
+    "KDP may reject the file, or the printed book may show thin white edges where the artwork stopped at the trim line.",
+    "### Is no bleed safer for beginners?",
+    "Yes. No bleed is usually safer because centered artwork with white margins is easier to export and less vulnerable to trim movement.",
+    "### Why did white edges appear after printing?",
+    "White edges appear when artwork stops at trim and the physical cut shifts slightly, exposing unprinted paper.",
+    "### Can borders cause trimming problems?",
+    "Yes. Borders close to the edge make small trim shifts obvious and can print unevenly or get clipped.",
+    "### Does bleed make books look more professional?",
+    "Bleed can look more professional for full-page designs, but only if the artwork extends correctly and important details stay safe.",
+    "### Should black backgrounds use bleed?",
+    "Yes, if the black background reaches the edge. Otherwise tiny white slivers can become very visible after trimming.",
+    "### Can Canva export incorrect bleed?",
+    "Yes. Wrong canvas dimensions, missing bleed guides, crop or scaling mistakes, and post-export PDF resizing can all create incorrect bleed.",
+    "### Why does KDP ask for bleed?",
+    "KDP asks for bleed when content appears to reach the page edge. Bleed gives the printer extra artwork to trim through.",
+    "### What is the safest coloring book setup?",
+    "For beginners, the safest setup is no bleed with centered art, generous white margins, and a correctly exported PDF.",
+    "## Final Recommendation",
+    "For most beginner KDP coloring books, choose no bleed and design pages with intentional white margins. It is cleaner, safer, and easier to validate.",
+    "Choose bleed when the design truly needs edge-to-edge artwork, dark backgrounds, or full-page patterns. Build the file for bleed from the start, extend artwork past trim, and keep important details inside the safe area.",
+    "Before uploading, run your final PDF through [KDPPreflight](/tools/kdp-bleed-checker) to check bleed setup, trim safety, edge risks, safe-area placement, and PDF export dimensions."
+  ]
+}

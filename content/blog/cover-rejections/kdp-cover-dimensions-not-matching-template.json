@@ -1,0 +1,309 @@
+{
+  "title": "KDP Cover Dimensions Not Matching Template? Here’s the Real Fix",
+  "slug": "kdp-cover-dimensions-not-matching-template",
+  "description": "A practical troubleshooting guide for fixing Amazon KDP cover template mismatch errors caused by wrong trim size, bleed, spine width, page count, paper type, or Canva export dimensions.",
+  "metaTitle": "KDP Cover Dimensions Not Matching Template? Fix It Fast",
+  "metaDescription": "Amazon KDP says your cover dimensions don’t match the template? Learn how to fix trim size, bleed, spine width, Canva exports, and full-cover sizing errors.",
+  "ogTitle": "Fix KDP Cover Dimensions Not Matching Template",
+  "ogDescription": "Learn why Amazon KDP rejects paperback covers for template mismatch, wrong full-cover size, bleed errors, Canva export problems, and spine width mismatches.",
+  "ogImageAlt": "Diagram showing Amazon KDP paperback cover dimensions, trim size, bleed, spine width, and template mismatch checks.",
+  "excerpt": "When KDP says your cover dimensions do not match the template, the real issue is usually a mismatch between trim size, bleed, page count, paper type, spine width, and the final exported PDF dimensions.",
+  "category": "cover-rejections",
+  "tags": [
+    "KDP cover dimensions",
+    "cover template mismatch",
+    "Canva KDP cover",
+    "paperback cover size",
+    "KDP bleed"
+  ],
+  "keywords": [
+    "KDP cover dimensions not matching template",
+    "KDP cover size wrong",
+    "KDP template mismatch",
+    "paperback cover dimensions",
+    "KDP cover dimensions error",
+    "Canva KDP cover size",
+    "KDP trim size mismatch",
+    "full cover size KDP",
+    "KDP bleed dimensions",
+    "KDP spine width mismatch",
+    "trim size",
+    "bleed",
+    "spine width",
+    "cover calculator",
+    "print-ready PDF",
+    "paperback cover template",
+    "export settings",
+    "safe area",
+    "page count",
+    "cover wrap",
+    "PDF dimensions",
+    "paperback specifications"
+  ],
+  "publishedAt": "2026-05-20",
+  "updatedAt": "2026-05-20",
+  "sortPriority": 20,
+  "featured": true,
+  "author": "KDP Preflight Editorial",
+  "shortAnswer": "KDP says cover dimensions do not match the template when the uploaded PDF page size does not match the full paperback cover size Amazon expects for your trim size, page count, paper type, bleed, and binding settings. Fix it by finalizing the interior first, confirming the exact trim and bleed setup, generating a fresh KDP cover template, rebuilding the full wrap at the exact dimensions, and exporting a print-ready PDF without crop marks or scaling.",
+  "relatedToolKeys": [
+    "checker",
+    "trimCalculator",
+    "spineCalculator",
+    "bleedChecker",
+    "validator"
+  ],
+  "relatedGuides": [
+    {
+      "label": "KDP Cover Checker",
+      "href": "/tools/kdp-cover-checker"
+    },
+    {
+      "label": "KDP Trim Size Calculator",
+      "href": "/tools/kdp-trim-size-calculator"
+    },
+    {
+      "label": "KDP Spine Width Calculator",
+      "href": "/tools/kdp-spine-width-calculator"
+    },
+    {
+      "label": "KDP Bleed Checker",
+      "href": "/tools/kdp-bleed-checker"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "Why does KDP say my cover dimensions do not match the template?",
+      "answer": "KDP shows this error when the uploaded cover PDF page size does not match the expected full wrap dimensions for your trim size, page count, paper type, bleed, and binding settings."
+    },
+    {
+      "question": "Does bleed change KDP cover dimensions?",
+      "answer": "Yes. Paperback cover files include 0.125 inch bleed on the top, bottom, and outside edges. Missing bleed makes the cover too small, while adding bleed twice makes it too large."
+    },
+    {
+      "question": "Why did my KDP spine width suddenly change?",
+      "answer": "Spine width changes when the final page count or paper type changes. Adding blank pages, changing front matter, or switching from white to cream paper can change the full-cover width."
+    },
+    {
+      "question": "Can Canva export the wrong KDP cover dimensions?",
+      "answer": "Yes. Canva can export the wrong dimensions if the canvas was set up incorrectly, the template image was manually stretched, crop marks were added, or the exported file was resized after download."
+    },
+    {
+      "question": "What happens if page count changes after the cover is designed?",
+      "answer": "The spine width changes, so the full cover width changes. You should regenerate the KDP template and rebuild or adjust the cover using the new dimensions."
+    },
+    {
+      "question": "Should I resize an old KDP cover template?",
+      "answer": "No. Resizing an old template can distort the spine, bleed, and safe areas. Generate a fresh template using the final trim size, page count, paper type, and bleed setup."
+    },
+    {
+      "question": "Why does KDP reject a cover that looks correct?",
+      "answer": "A cover can look visually correct while the PDF page box is technically wrong. KDP checks dimensions numerically, including bleed and spine width, not just visual appearance."
+    },
+    {
+      "question": "Does paper type affect KDP cover dimensions?",
+      "answer": "Yes. Paper type affects spine thickness. White paper, cream paper, premium color, and standard color can produce different spine widths for the same page count."
+    },
+    {
+      "question": "Can KDP Previewer detect cover dimension issues?",
+      "answer": "Yes. KDP often flags dimension mismatches before or during Previewer processing. If Previewer struggles to load, the file may also have export, size, or processing problems."
+    },
+    {
+      "question": "What is the safest way to build a KDP paperback cover?",
+      "answer": "Finalize the interior, download a fresh official KDP template, create the cover file at the exact full-wrap dimensions, keep important content inside safe areas, and export a print-ready PDF without scaling."
+    }
+  ],
+  "summary": [
+    "KDP template mismatch errors usually come from inconsistent setup values: trim size, bleed, page count, paper type, spine width, or export dimensions.",
+    "The full paperback cover is one PDF page containing back cover, spine, front cover, and bleed, so a front-cover-only canvas will fail.",
+    "A cover that looks correct can still be rejected if the exported PDF page box is technically the wrong size."
+  ],
+  "checklist": [
+    "Final interior PDF page count has been confirmed.",
+    "Trim size matches the KDP setup and manuscript PDF.",
+    "Paper and ink type match the KDP template.",
+    "A fresh official KDP cover template was generated.",
+    "Full cover width includes bleed, back cover, spine, front cover, and bleed.",
+    "Full cover height includes top bleed, trim height, and bottom bleed.",
+    "Canva or Photoshop document size matches the template exactly.",
+    "Template guide layer was not stretched or resized manually.",
+    "PDF export uses print quality with no scaling.",
+    "Crop marks are off unless you understand their effect on the PDF page box.",
+    "Exported PDF dimensions are checked before upload."
+  ],
+  "howTo": {
+    "name": "How to fix KDP cover dimensions not matching template",
+    "description": "A step-by-step production workflow for repairing Amazon KDP paperback cover template mismatch errors caused by trim, bleed, spine width, or export-size problems.",
+    "totalTime": "PT30M",
+    "steps": [
+      {
+        "name": "Finalize the interior first",
+        "text": "Export the final manuscript PDF and confirm the real page count before calculating the cover."
+      },
+      {
+        "name": "Confirm trim size, bleed, paper type, and binding",
+        "text": "Make sure the manuscript, KDP setup, and cover template use the same trim size, bleed behavior, paper type, ink type, and paperback binding."
+      },
+      {
+        "name": "Generate a fresh KDP cover template",
+        "text": "Use Amazon's official cover calculator with the final page count and print settings, then download the PDF or PNG template.",
+        "url": "https://kdp.amazon.com/en_US/cover-templates"
+      },
+      {
+        "name": "Rebuild the cover at exact full-wrap dimensions",
+        "text": "Create one PDF page that includes bleed, back cover, calculated spine, front cover, and bleed. Do not upload a front-cover-only file."
+      },
+      {
+        "name": "Export without resizing",
+        "text": "Export as a print-ready PDF. In Canva, use PDF Print and avoid crop marks. In Photoshop, preserve the exact document size and 300 DPI setup."
+      },
+      {
+        "name": "Verify the exported PDF dimensions",
+        "text": "Open the final PDF properties and compare the page size against the KDP template before uploading again."
+      }
+    ]
+  },
+  "diagrams": [
+    "cover-anatomy",
+    "canva-correct-wraparound",
+    "trim-mismatch-comparison",
+    "bleed-mismatch-overlay",
+    "pdf-dimension-check",
+    "canva-wrong-setup",
+    "spine-mismatch",
+    "file-alignment-workflow",
+    "correct-export-setup"
+  ],
+  "content": [
+    "You upload your paperback cover to Amazon KDP, wait for the file to process, and then see the message: cover dimensions do not match the template. The design may look fine in Canva, Photoshop, Affinity, or your PDF viewer, but KDP refuses it anyway.",
+    "This is one of the most common KDP cover errors because a paperback cover is not just a front cover image. It is a full wrap production file. A wrong trim size, incorrect bleed setup, page-count mismatch, Canva export problem, wrong paper type, or spine width calculation error can make the final PDF technically different from the template Amazon expects.",
+    "Most template mismatch errors come from setup inconsistencies - not from bad design.",
+    "This guide explains how KDP cover templates actually work, why a visually correct cover can still fail validation, and how to rebuild the file so the dimensions match exactly.",
+    "## How Amazon KDP Cover Templates Actually Work",
+    "A KDP paperback cover template is a measured production layout. It is generated from the print settings for one specific book: trim size, binding type, interior type, paper type, reading direction, and final page count.",
+    "The full paperback cover is one PDF page. From left to right, it includes the back cover, spine, and front cover. Around the outside edges, it includes bleed. Inside the trim lines, it includes safe areas where important text should stay. The template also shows fold lines where the front and back panels meet the spine.",
+    "That means the template is not a decorative background. It is a map of the physical book.",
+    "The official [Amazon KDP cover calculator](https://kdp.amazon.com/en_US/cover-templates) generates this map after you enter the final print settings. Amazon's [paperback cover requirements](https://kdp.amazon.com/en_US/help/topic/G201953020) describe the cover-size equation: total cover width includes bleed, back cover, spine, front cover, and bleed. Total cover height includes top bleed, trim height, and bottom bleed.",
+    "The front and back cover panels come from the trim size. A 6 x 9 paperback has visible front and back panels that are each 6 inches wide and 9 inches tall. An 8.5 x 11 workbook has much larger panels. If you design for one trim size and publish under another, the full cover dimensions will not match.",
+    "The spine comes from page count and paper type. More pages make the spine wider. Cream paper is thicker than white paper. Color options use their own thickness assumptions. This is why a cover template generated for a 210-page white paper book cannot be trusted for a 238-page cream paper book.",
+    "Bleed adds extra artwork beyond the final trim edge. For paperback covers, KDP expects 0.125 inch of bleed on the top, bottom, and outside edges. Bleed is intentionally cut away after printing. It prevents white slivers along the edge when the cover is trimmed. If you are unsure whether your file needs bleed, start with the [KDP bleed vs no bleed guide](/blog/kdp-bleed-vs-no-bleed).",
+    "Safe areas are different from bleed. Bleed is where background art extends outward. Safe area is where important text stays inward. A file can have correct dimensions but still fail or print poorly if text is outside the safe area. For text placement checks, use the [safe area before export guide](/blog/how-to-check-safe-area-before-exporting-kdp-cover).",
+    "Full-cover dimensions are dynamic because the spine is dynamic. Change page count and the spine changes. Change paper type and the spine changes. Change trim size and both front and back panels change. KDP compares the uploaded PDF against the template generated from the current book setup, not against the template you used last week.",
+    "## The Most Common Causes of KDP Template Mismatch Errors",
+    "A template mismatch error usually has one root cause: the PDF you uploaded describes a different physical book from the one configured in KDP.",
+    "### Wrong Trim Size",
+    "Wrong trim size is one of the fastest ways to create a KDP cover dimensions error. Authors often confuse front cover size with full cover size. A 6 x 9 paperback front cover is not a 6 x 9 cover PDF. The cover PDF must include back cover, spine, front cover, and bleed.",
+    "Another common mistake is switching trim size after the cover is designed. For example, you begin with a 6 x 9 paperback, build the cover, then decide the book should be 8.5 x 11 because it is a workbook. The cover cannot be stretched to fit. The panels, safe areas, barcode area, and full cover width all change.",
+    "Canva makes this easy to miss. If you create a Canva design at 6 x 9 because that sounds like your book size, you have created only the front panel size. KDP expects a much wider full-wrap canvas. For a deeper related issue, see the [KDP cover size mismatch guide](/blog/kdp-cover-size-does-not-match-interior).",
+    "A realistic example: a 6 x 9 paperback with a 0.5-inch spine needs a full width of 0.125 + 6 + 0.5 + 6 + 0.125 = 12.75 inches. If you upload a 6 x 9 PDF, KDP sees a file less than half the required width.",
+    "### Incorrect Bleed Settings",
+    "Bleed errors are especially confusing because the visible cover may look correct. The problem is often outside the visible trim edge.",
+    "For a paperback cover, the full cover height is trim height plus 0.25 inch. That is 0.125 inch top bleed plus trim height plus 0.125 inch bottom bleed. The full cover width is front cover plus back cover plus spine plus 0.25 inch total outside bleed.",
+    "If your design canvas uses only the trim size, the PDF is too small. If Canva adds crop marks or an export tool adds extra printer marks outside the page, the PDF can become too large. If you add bleed manually and also enable an export option that expands the file, bleed may be counted twice.",
+    "Interior bleed and cover bleed are also easy to mix up. Interior bleed is a manuscript setting for pages with artwork to the edge. Cover bleed is part of the paperback cover file itself. A no-bleed manuscript does not mean your cover PDF can omit cover bleed.",
+    "Missing cover bleed can also create printed white edges, especially on dark backgrounds. The [white lines on KDP cover guide](/blog/white-lines-on-kdp-cover) explains why background art must extend past the trim edge.",
+    "### Wrong Page Count",
+    "Wrong page count causes a spine width mismatch. KDP calculates spine width from the final interior PDF page count and selected paper or ink type. If your manuscript changes after the cover template is downloaded, the cover width may no longer match.",
+    "This happens constantly during final edits. You add a title verso page. You insert a blank page so chapters start on the right. You add an author bio. You change margins and the PDF reflows. The cover still looks the same, but the book is now physically thicker or thinner.",
+    "Example: you generate a cover template for 184 pages. Later, the final PDF becomes 196 pages. On white paper, that change increases the spine. It may be a small number, but it changes the full cover width and moves the spine fold lines. For a deeper spine-specific walkthrough, read [KDP spine width wrong](/blog/kdp-spine-width-wrong).",
+    "Always use the page count from the exported interior PDF, not the page count shown inside a writing app before export.",
+    "### Canva Export Problems",
+    "Canva can create KDP covers successfully, but the setup has to be exact. Canva often looks correct visually while exporting incorrect dimensions.",
+    "The most common Canva mistake is starting with the wrong canvas size. If the canvas is set to front cover dimensions, then an imported KDP template image is scaled down to fit, the template is no longer a real guide. Every line on it becomes decorative rather than technical.",
+    "Another mistake is manually stretching the template. A KDP template PNG should be placed into a Canva canvas that already matches the required full cover dimensions. If you drag the corners until it looks right, the spine, bleed, and safe-area lines can shift by tiny amounts.",
+    "Crop marks create a different problem. Crop marks can add visual printer marks and sometimes confuse dimension checks when users export, process, or re-save the PDF through another tool. For KDP cover uploads, use PDF Print and keep crop marks off unless you know exactly how the final PDF page box is being handled.",
+    "A safe Canva workflow is: create a custom-size document using the exact full cover dimensions from the KDP template, place the template as a locked guide layer, design above it, hide or remove the guide before export, export as PDF Print, keep crop marks off, then check the exported PDF dimensions.",
+    "If the exported file is heavy or gets stuck after repeated exports, compare it with the [KDP upload processing guide](/blog/kdp-pdf-upload-takes-forever) and the [KDP Previewer not loading guide](/blog/kdp-previewer-not-loading). Dimension problems and processing problems can appear together when a Canva file has been rebuilt many times.",
+    "### Wrong Paper Type",
+    "Paper type changes spine thickness. A cover for white paper may not fit the same page count on cream paper. Premium color and standard color also use different assumptions.",
+    "| KDP paper or ink option | What changes | Dimension risk |",
+    "| --- | --- | --- |",
+    "| Black and white, white paper | Uses a thinner spine multiplier than cream | Cover may be too narrow if switched from cream to white |",
+    "| Black and white, cream paper | Creates a thicker spine than white paper | Cover may be too narrow if template was made for white |",
+    "| Premium color | Uses its own page-thickness assumption | Spine can shift from a black-and-white template |",
+    "| Standard color | Uses another color-paper calculation | Reusing a premium-color template can mismatch |",
+    "The practical rule: paper type is part of the template. If you change paper type, generate a new cover template.",
+    "## How to Calculate the Correct KDP Cover Dimensions",
+    "The correct workflow is mechanical. Do not start by resizing the rejected PDF. Start by rebuilding the chain of settings that created the template.",
+    "### Step 1: Finalize the Interior First",
+    "The cover should be production-sized only after the manuscript is final. You can design concepts early, but final cover dimensions require final page count.",
+    "Final means the PDF is exported, blank pages are intentional, chapter starts are locked, margins are stable, and KDP print options are chosen. Open the final interior PDF and confirm the page count. Do not estimate.",
+    "If you revise the manuscript after designing the cover, repeat the cover calculation. Page count changes everything because it changes the spine width and therefore the full cover width.",
+    "### Step 2: Confirm Trim Size & Bleed",
+    "Confirm the trim size in the manuscript PDF, KDP setup, and cover file. If the interior is 8.5 x 11 but the cover was designed for 6 x 9, no export setting will fix it.",
+    "Then confirm bleed. For covers, full cover height should include top and bottom bleed. Full cover width should include outside bleed on both far edges, plus back cover, spine, and front cover.",
+    "For example, a 6 x 9 paperback with a 0.45-inch spine should have a cover width of 0.125 + 6 + 0.45 + 6 + 0.125 = 12.70 inches, and a cover height of 9.25 inches. If your PDF properties show 12.45 x 9, the file is missing bleed. If it shows a much larger page box, something added extra canvas, printer marks, or scaling.",
+    "### Step 3: Use the Official KDP Cover Calculator",
+    "Use the official [KDP cover calculator](https://kdp.amazon.com/en_US/cover-templates) after the interior is final. Enter the final binding type, interior type, paper type, reading direction, trim size, and page count. Download the PDF or PNG template.",
+    "The template gives you the exact full cover size and guide lines. Use it as the source of truth. If your Canva, Photoshop, Affinity, or Illustrator document dimensions differ from the template, fix the document before designing.",
+    "Do not use a template from another book, another edition, another page count, or another paper type. It may look close, but close is not enough for KDP dimension validation.",
+    "### Step 4: Build the Cover Using Exact Dimensions",
+    "Build one full-wrap cover. It should include back cover, spine, front cover, and bleed on one page. The basic formula is:",
+    "| Measurement | Formula | Meaning |",
+    "| --- | --- | --- |",
+    "| Full cover width | 0.125 + back trim width + spine width + front trim width + 0.125 | The total PDF width KDP checks |",
+    "| Full cover height | 0.125 + trim height + 0.125 | The total PDF height KDP checks |",
+    "| Spine width | Page count x paper-type multiplier | The center section between back and front |",
+    "| Safe area | Inside trim and fold risk zones | Where important text belongs |",
+    "In a left-to-right paperback cover, the back cover sits on the left, the spine in the middle, and the front cover on the right. The bleed surrounds the outside edges. The spine fold lines are not optional decoration; they determine where the physical book bends.",
+    "If you are using Photoshop, set the document size in inches using the template dimensions and work at 300 DPI. If you are using Illustrator or InDesign-style tools, use an artboard or page size that matches the template exactly. If you are using Canva, use custom dimensions from the template and avoid resizing after export.",
+    "### Step 5: Export Correctly from Canva or Photoshop",
+    "For Canva, export as PDF Print. Use the exact full-cover canvas size. Enable bleed only if your Canva workflow requires it for the document, but do not add extra bleed beyond the KDP full cover size. Keep crop marks off for ordinary KDP cover uploads. Do not download as JPG or standard PDF and then convert it.",
+    "For Photoshop, create the source file at the exact physical size and 300 DPI. Keep text and vector shapes sharp. Flatten a copy for export if the file is complex, but preserve dimensions. Export as a high-quality print PDF without scaling, fit-to-page, or added printer marks.",
+    "For Adobe workflows, Adobe's [print PDF documentation](https://helpx.adobe.com/illustrator/using/pdf-options.html) explains how PDF presets and bleed settings affect output. The important KDP lesson is simple: your exported PDF page size must match the template, not just the artwork inside it.",
+    "After export, open the PDF properties. Check the page size. Do this before uploading. The source design can lie to you; the exported PDF is what KDP judges.",
+    "## Why KDP Rejects Covers That “Look Correct”",
+    "KDP dimension validation is numerical. It is not asking whether the cover looks centered. It is checking the PDF page box against the expected template size.",
+    "A visually correct cover can fail because the bleed is invisible. You may see the front cover artwork filling the screen, but the PDF page might be missing 0.125 inch on the outside edges. KDP sees the missing size even if your eye does not.",
+    "Export scaling is another hidden problem. Some PDF tools have options like fit to page, shrink oversized pages, print to PDF, optimize, or compress. These can change the page size or internal boxes. If you export correctly from Canva and then run the PDF through another converter, the converter may resize it.",
+    "Hidden canvas resizing also happens when users upload a KDP template image into a design app instead of creating the document at the template dimensions. The image is visible, but the document page size remains wrong.",
+    "Fractional pixel rounding can matter in pixel-based workflows. If you convert inches to pixels manually, rounding to the nearest whole pixel may create a tiny difference. Usually small rounding differences are manageable, but repeated resizing, raster export, and PDF conversion can compound the error. Working in inches from the official template is safer.",
+    "Trim inconsistency is another common cause. The interior may be set up as 8.5 x 11, while the cover was built for 8 x 10. The cover may look like a book cover, but it is describing a different book.",
+    "The rule is worth repeating: visual correctness is not technical correctness. KDP accepts the file when the PDF dimensions match the current book setup.",
+    "## Real Example: Why a Canva Cover Failed KDP Validation",
+    "A self-publisher creates a 6 x 9 paperback cover in Canva using a KDP template for a 212-page white paper book. The design looks good. The template layer is locked. The spine text is centered.",
+    "Before upload, the author adds a resources section, two blank pages, and an author bio. The final manuscript becomes 226 pages. During setup, the author also switches from white paper to cream paper because it feels more appropriate for a novel.",
+    "That changes the spine width twice: once because the page count changed, and again because cream paper is thicker. But the Canva cover still uses the old template.",
+    "The author downloads PDF Print and uploads to KDP. KDP says the cover dimensions do not match the template. The author tries stretching the exported PDF in an online tool. Now the cover is the wrong size and the artwork is slightly distorted.",
+    "The correct fix is not stretching. The author exports the final interior PDF, confirms 226 pages, returns to the KDP cover calculator, selects paperback, black-and-white interior, cream paper, 6 x 9 trim, and the final page count. A new template is downloaded.",
+    "In Canva, the author creates a new custom-size document using the new full cover dimensions. The new template is placed at full size and locked. The old design elements are copied into the new file, but the spine text is recentered between the new fold lines. The background is extended through bleed. The template layer is hidden before export.",
+    "The cover is exported as PDF Print with crop marks off. The author checks the PDF properties and confirms the page size matches the new template. The next KDP upload succeeds.",
+    "The lesson: when the book settings change, rebuild from the template. Do not stretch the old PDF.",
+    "## Common KDP Cover Setup Mistakes to Avoid",
+    "Do not manually guess spine width. Spine width is calculated from final page count and paper type. A guessed spine can make the full cover width wrong even when the front and back panels look fine.",
+    "Do not stretch templates. A template is only useful at exact scale. If you stretch a PNG template to match a canvas, you may distort the guide lines. Create the canvas at the correct size first.",
+    "Do not reuse old templates. A template from another book, previous edition, or older manuscript version may have the wrong spine.",
+    "Do not resize exported PDFs. Resize the source document and export again. Resizing a finished PDF can scale text, images, spine placement, and bleed unpredictably.",
+    "Do not design the production cover before the manuscript is finalized. Concept design is fine. Final dimensions should wait until the final interior PDF exists.",
+    "Do not confuse safe area with bleed. Safe area protects important content inward. Bleed sends background outward. They solve opposite problems.",
+    "Do not ignore the final PDF properties. The exported PDF page size is the evidence. If the PDF properties do not match the template, KDP will not care that the design looks right.",
+    "## How KDPPreflight Helps Prevent Dimension Errors",
+    "KDPPreflight helps catch cover dimension issues before the KDP upload step. It can compare exported PDF dimensions against expected trim and cover setup, check spine width assumptions, detect bleed consistency problems, and flag mismatches between the cover file and selected paperback settings.",
+    "This is useful because most template mismatch errors are not visible at normal zoom. KDPPreflight gives you a pre-upload checkpoint: trim validation, spine width checks, bleed verification, template consistency checks, and export validation.",
+    "Use it after exporting the final PDF, not only while designing. The export is where many Canva, Photoshop, and PDF conversion mistakes happen.",
+    "## FAQ",
+    "### Why does KDP say my dimensions don’t match?",
+    "Because the uploaded PDF page size does not match the full cover size KDP expects for your trim size, page count, paper type, bleed, and binding settings.",
+    "### Does bleed change cover dimensions?",
+    "Yes. Paperback cover files include 0.125 inch bleed on the top, bottom, and outside edges, so the PDF is larger than the visible trim size.",
+    "### Why did my spine width suddenly change?",
+    "Your page count or paper type changed. Spine width is calculated from the final page count and selected paper or ink type.",
+    "### Can Canva export the wrong dimensions?",
+    "Yes. Canva can export the wrong size if the canvas was set up incorrectly, the template was stretched, crop marks were added, or the PDF was resized afterward.",
+    "### What happens if page count changes?",
+    "The spine width changes, which changes the total cover width. Generate a new KDP template and adjust the cover before uploading.",
+    "### Should I resize old templates?",
+    "No. Generate a fresh template instead. Resizing old templates can distort spine, bleed, and safe-area guides.",
+    "### Why does KDP reject covers that look correct?",
+    "Because KDP checks the technical PDF dimensions, not just the visual layout. Missing bleed, wrong page box size, or stale spine width can be invisible on screen.",
+    "### Does paper type affect spine width?",
+    "Yes. White paper, cream paper, premium color, and standard color can create different spine widths for the same page count.",
+    "### Can Previewer detect dimension issues?",
+    "Yes. KDP may flag dimension mismatches during upload or Previewer processing. If Previewer stalls, also inspect file size and export complexity.",
+    "### What is the safest way to build a KDP cover?",
+    "Finalize the interior, generate a fresh official template, build one full-wrap cover at exact dimensions, export as print-ready PDF, and verify the PDF properties before upload.",
+    "## Final Pre-Upload Check",
+    "A KDP cover dimensions not matching template error is fixable when you stop guessing and return to the production inputs: trim size, bleed, page count, paper type, spine width, and exported PDF dimensions.",
+    "Before uploading again, run your exported cover through [KDPPreflight](/tools/kdp-cover-checker) to check trim size, bleed, spine width, template consistency, safe areas, and PDF dimensions before Amazon KDP catches the mismatch."
+  ]
+}
