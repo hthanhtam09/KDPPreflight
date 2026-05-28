@@ -81,7 +81,7 @@
   --duration-base: 220ms;
   --duration-panel: 320ms;
   --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
-  --nav-height: 56px;
+  --nav-height: 68px;
   --app-header-height: var(--nav-height);
   --app-header-height-mobile: var(--nav-height);
   --app-current-header-height: var(--nav-height);
@@ -91,6 +91,13 @@
   --z-nav: 50;
   --z-overlay: 60;
   --z-modal: 70;
+  --page-max: 1320px;
+  --page-x: 28px;
+  --page-y: 28px;
+  --card-radius: 20px;
+  --card-padding: 20px;
+  --section-gap: 24px;
+  --panel-gap: 16px;
 
   /* Light: warm, editorial, clean */
   --background: #f6f8fb;
@@ -316,7 +323,7 @@ a, button, [role="button"] {
 /* ─── Workspace shell — theme-adaptive checker background ──── */
 .ws-shell {
   min-height: calc(100vh - var(--app-current-header-height));
-  padding: clamp(1rem, 3vw, 1.5rem);
+  padding: 0;
   background:
     radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 28%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 42%, transparent), transparent 28%),
@@ -325,6 +332,38 @@ a, button, [role="button"] {
     linear-gradient(90deg, color-mix(in srgb, var(--foreground) 4%, transparent) 1px, transparent 1px),
     linear-gradient(0deg, color-mix(in srgb, var(--foreground) 3%, transparent) 1px, transparent 1px);
   background-size: 72px 72px;
+}
+
+.app-page-container {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--page-y) var(--page-x) 40px;
+}
+
+.app-card {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+}
+
+.app-grid-safe > * {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --page-x: 20px;
+    --page-y: 22px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --page-x: 16px;
+    --page-y: 16px;
+  }
 }
 
 .checker-page {
@@ -626,7 +665,7 @@ a, button, [role="button"] {
 
 @media (min-width: 1024px) {
   :root {
-    --nav-height: 56px;
+    --nav-height: 68px;
   }
 }
 

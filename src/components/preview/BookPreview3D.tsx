@@ -134,11 +134,11 @@ const globalTextureCache = new TextureCache();
 // ---------------------------------------------------------------------------
 
 const CAMERA_PRESETS: Record<CameraPreset, { position: [number, number, number]; target: [number, number, number] } | null> = {
-  front:        { position: [0, 0.22, 3.3],  target: [0, 0, 0] },
-  back:         { position: [0, 0.22, -3.3], target: [0, 0, 0] },
-  spine:        { position: [-3.4, 0.2, 0], target: [0, 0, 0] },
-  'open-spread': { position: [0, 2.85, 2.25], target: [0, 0, 0.08] },
-  'page-detail': { position: [0, 1.0, 2.0], target: [0, 0, 0.1] },
+  front:        { position: [0, 0.32, 6.1],  target: [0, 0, 0] },
+  back:         { position: [0, 0.32, -6.1], target: [0, 0, 0] },
+  spine:        { position: [-6.25, 0.28, 0], target: [0, 0, 0] },
+  'open-spread': { position: [0, 4.0, 3.65], target: [0, 0, 0.08] },
+  'page-detail': { position: [0, 1.55, 3.35], target: [0, 0, 0.1] },
   free:         null, // User controls freely — no animation
 };
 
@@ -279,6 +279,7 @@ function SceneContent({
           currentPage={state.currentPage}
           bookPose={state.bookPose}
           flipProgress={state.flipProgress}
+          isFlipping={state.isFlipping}
           isFlippingForward={state.flipDirection === 'forward'}
           pageTextures={pageTextures}
           coverTextures={coverTextures}
@@ -296,6 +297,7 @@ function SceneContent({
           currentPage={state.currentPage}
           bookPose={state.bookPose}
           flipProgress={state.flipProgress}
+          isFlipping={state.isFlipping}
           isFlippingForward={state.flipDirection === 'forward'}
           pageTextures={pageTextures}
           coverTextures={coverTextures}
@@ -320,8 +322,8 @@ function SceneContent({
         ref={controlsRef}
         enableDamping
         dampingFactor={0.12}
-        minDistance={1.0}
-        maxDistance={8.0}
+        minDistance={2.2}
+        maxDistance={12.0}
         enablePan={true}
         // Full 360° rotation — no angle limits
         minPolarAngle={0}
@@ -439,11 +441,6 @@ export default function BookPreview3D({
   });
   const [pageTextures, setPageTextures] = useState<Map<number, THREE.Texture | null>>(new Map());
 
-  // ---- Flip animation state ----
-  const flipAnimRef = useRef<{ rafId: number | null; startTime: number | null }>({
-    rafId: null,
-    startTime: null,
-  });
   const isFlippingRef = useRef(false);
 
   // ---- Load cover textures from segments ----
@@ -532,7 +529,9 @@ export default function BookPreview3D({
     return () => { cancelled = true; };
   }, [state.currentPage, pdfPageDataUrls]);
 
-  // ---- Page flip animation (requestAnimationFrame-based) ----
+  // ---- Page flip completion timer
+  // The visual page animation runs inside the Three scene with useFrame. Keeping
+  // React out of per-frame progress updates avoids flicker and expensive rerenders.
   const onFlipComplete = useCallback((newPage: number, pose: BookPose = 'open') => {
     isFlippingRef.current = false;
     onStateChange({
@@ -550,39 +549,19 @@ export default function BookPreview3D({
     if (isFlippingRef.current) return;
     isFlippingRef.current = true;
 
-    let startTime: number | null = null;
-    const duration = 600; // ms — slightly faster for snappier feel
+    const duration = 920; // ms — slower, more book-like page turn
 
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const rawProgress = Math.min(elapsed / duration, 1);
-
-      // Easing: ease-in-out cubic
-      const eased = rawProgress < 0.5
-        ? 4 * rawProgress * rawProgress * rawProgress
-        : 1 - Math.pow(-2 * rawProgress + 2, 3) / 2;
-
-      onStateChange({ flipProgress: safeVec(eased, 0) });
-
-      if (rawProgress < 1) {
-        flipAnimRef.current.rafId = requestAnimationFrame(animate);
-      } else {
-        const maxPage = useAppStore.getState().bookConfig.pageCount;
-        const targetPage = state.targetPage ?? (state.flipDirection === 'forward' ? state.currentPage + 2 : state.currentPage - 2);
-        const newPage = Math.max(1, Math.min(targetPage, maxPage));
-        const lastSpread = maxPage <= 1 ? 1 : maxPage % 2 === 0 ? maxPage : maxPage - 1;
-        const shouldCloseBack = state.flipDirection === 'forward' && state.targetPage === null && state.currentPage >= lastSpread;
-        onFlipComplete(shouldCloseBack ? lastSpread : newPage, shouldCloseBack ? 'closedBack' : 'open');
-      }
-    };
-
-    flipAnimRef.current.rafId = requestAnimationFrame(animate);
+    window.setTimeout(() => {
+      const maxPage = useAppStore.getState().bookConfig.pageCount;
+      const targetPage = state.targetPage ?? (state.flipDirection === 'forward' ? state.currentPage + 2 : state.currentPage - 2);
+      const newPage = Math.max(1, Math.min(targetPage, maxPage));
+      const lastSpread = maxPage <= 1 ? 1 : maxPage % 2 === 0 ? maxPage : maxPage - 1;
+      const shouldCloseBack = state.flipDirection === 'forward' && state.targetPage === null && state.currentPage >= lastSpread;
+      onFlipComplete(shouldCloseBack ? lastSpread : newPage, shouldCloseBack ? 'closedBack' : 'open');
+    }, duration);
 
     return () => {
-      if (flipAnimRef.current.rafId !== null) {
-        cancelAnimationFrame(flipAnimRef.current.rafId);
-      }
+      isFlippingRef.current = false;
     };
   }, [state.isFlipping, onStateChange, state.flipDirection, state.currentPage, state.targetPage, onFlipComplete]);
 
@@ -614,7 +593,7 @@ export default function BookPreview3D({
       {containerSize.width > 0 && containerSize.height > 0 && (
         <Canvas
           ref={canvasRef}
-          camera={{ position: [2, 1.5, 3], fov: 40 }}
+          camera={{ position: [0, 0.32, 6.1], fov: 46 }}
           gl={{
             preserveDrawingBuffer: true,
             antialias: true,

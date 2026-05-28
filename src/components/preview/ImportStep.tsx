@@ -300,12 +300,24 @@ export default function ImportStep() {
   }, [bookType, updateBookConfig, setPreviewFlowStep])
 
   const anyProcessing = coverProcessing || manuscriptProcessing || kindleProcessing
+  const statusMessage = anyProcessing
+    ? 'Processing file...'
+    : canContinue
+      ? 'Files ready. Continue to settings.'
+      : uploadedCover && !uploadedManuscript
+        ? 'Manuscript required to continue.'
+        : uploadedManuscript && !uploadedCover
+          ? 'Cover required to continue.'
+          : isPaperOrHard
+            ? 'Upload cover and manuscript to continue.'
+            : 'Upload your Kindle cover and manuscript files.'
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ---- Type switcher + trust badge ---- */}
-      <div className="flex items-center justify-between gap-4">
-        <TypeSwitcher bookType={bookType} setBookType={handleBookTypeChange} />
+      <div className="space-y-4">
+        <div className="mx-auto w-full max-w-[760px]">
+          <TypeSwitcher bookType={bookType} setBookType={handleBookTypeChange} />
+        </div>
       </div>
 
       {/* ---- Upload zones ---- */}
@@ -313,40 +325,60 @@ export default function ImportStep() {
         {!isPaperOrHard && (
           <>
             <UploadZone
-              label="Kindle File (EPUB or PDF)"
-              accept=".epub,.pdf"
-              onFile={handleKindleUpload}
-              isProcessing={kindleProcessing}
-              uploadedFile={uploadedManuscript}
-              icon={FileText}
-            />
-            <UploadZone
-              label="Cover — PNG, JPG, or PDF"
+              title="Kindle cover"
+              subtitle="PNG or JPG recommended"
+              helper="Upload your Kindle cover image or supported cover PDF."
+              requirement="Required"
+              chips={['PNG', 'JPG', 'PDF']}
               accept=".png,.jpg,.jpeg,.pdf"
               onFile={handleCoverUpload}
               isProcessing={coverProcessing}
               uploadedFile={uploadedCover}
               icon={ImageIcon}
+              onRemove={removeCover}
+            />
+            <UploadZone
+              title="Kindle manuscript"
+              subtitle="PDF or EPUB"
+              helper="Upload your Kindle manuscript file."
+              requirement="Required"
+              chips={['PDF', 'EPUB']}
+              accept=".epub,.pdf"
+              onFile={handleKindleUpload}
+              isProcessing={kindleProcessing}
+              uploadedFile={uploadedManuscript}
+              icon={FileText}
+              onRemove={removeManuscript}
             />
           </>
         )}
         {isPaperOrHard && (
           <>
             <UploadZone
-              label="Cover — PDF, PNG, or JPG"
+              title="Cover file"
+              subtitle="PDF, PNG, or JPG"
+              helper="Upload your full cover spread or cover image."
+              requirement="Required"
+              chips={['PDF', 'PNG', 'JPG']}
               accept=".pdf,.png,.jpg,.jpeg"
               onFile={handleCoverUpload}
               isProcessing={coverProcessing}
               uploadedFile={uploadedCover}
               icon={ImageIcon}
+              onRemove={removeCover}
             />
             <UploadZone
-              label="Manuscript — PDF only"
+              title="Manuscript file"
+              subtitle="PDF only"
+              helper="Upload your interior manuscript PDF."
+              requirement="Required"
+              chips={['PDF']}
               accept=".pdf"
               onFile={handleManuscriptUpload}
               isProcessing={manuscriptProcessing}
               uploadedFile={uploadedManuscript}
               icon={FileText}
+              onRemove={removeManuscript}
             />
           </>
         )}
@@ -364,32 +396,37 @@ export default function ImportStep() {
       )}
 
       {/* ---- Status bar + Continue ---- */}
-      <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface-glass px-4 py-3 backdrop-blur-sm">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface-glass p-3 shadow-soft backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           {anyProcessing ? (
-            <>
-              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
-              <span className="truncate text-xs text-muted-foreground">Processing file…</span>
-            </>
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+          ) : canContinue ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
           ) : detectedConfig && detectedConfig.confidence > 0.3 ? (
-            <span className="truncate text-xs text-muted-foreground">
-              {detectedConfig.trimSize ? TRIM_SIZES[detectedConfig.trimSize]?.label : '—'}
-              {detectedConfig.pageCount ? ` · ${detectedConfig.pageCount} pages` : ''}
-              {detectedConfig.bleed ? ` · ${detectedConfig.bleed.replace('-', ' ')}` : ''}
-            </span>
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
           ) : (
-            <span className="text-xs text-muted-foreground">
-              {isPaperOrHard ? 'Upload cover and manuscript to continue' : 'Upload your Kindle file to continue'}
-            </span>
+            <AlertCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
           )}
+          <div className="min-w-0">
+            <p className={`text-sm font-semibold ${canContinue ? 'text-foreground' : 'text-muted-foreground'}`}>
+              {statusMessage}
+            </p>
+            {detectedConfig && detectedConfig.confidence > 0.3 && (
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {detectedConfig.trimSize ? TRIM_SIZES[detectedConfig.trimSize]?.label : 'Detected settings'}
+                {detectedConfig.pageCount ? ` · ${detectedConfig.pageCount} pages` : ''}
+                {detectedConfig.bleed ? ` · ${detectedConfig.bleed.replace('-', ' ')}` : ''}
+              </p>
+            )}
+          </div>
         </div>
 
         <button
           onClick={handleContinue}
           disabled={!canContinue}
-          className="flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground shadow-sm shadow-primary/15 transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none sm:min-w-48"
         >
-          Continue
+          Continue to Settings
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
@@ -402,29 +439,41 @@ export default function ImportStep() {
 // ---------------------------------------------------------------------------
 
 function TypeSwitcher({ bookType, setBookType }: { bookType: BookType; setBookType: (t: BookType) => void }) {
-  const options: { key: BookType; label: string; icon: React.ElementType }[] = [
-    { key: 'kindle', label: 'Kindle', icon: Monitor },
-    { key: 'paperback', label: 'Paperback', icon: Book },
-    { key: 'hardcover', label: 'Hardcover', icon: BookMarked },
+  const options: { key: BookType; label: string; desc: string; icon: React.ElementType }[] = [
+    { key: 'kindle', label: 'Kindle', desc: 'eBook files', icon: Monitor },
+    { key: 'paperback', label: 'Paperback', desc: 'Print book', icon: Book },
+    { key: 'hardcover', label: 'Hardcover', desc: 'Case laminate', icon: BookMarked },
   ]
 
   return (
-    <div className="grid w-full grid-cols-3 gap-1 rounded-xl border border-border bg-secondary/70 p-1 shadow-soft sm:inline-grid sm:w-auto">
-      {options.map(({ key, label, icon: Icon }) => {
+    <div className="grid w-full grid-cols-3 gap-1.5 rounded-[22px] border border-border bg-muted/45 p-1.5 shadow-soft">
+      {options.map(({ key, label, desc, icon: Icon }) => {
         const active = bookType === key
         return (
           <button
             key={key}
             onClick={() => setBookType(key)}
-            className={`ds-focus flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
+            title={desc}
+            className={`ds-focus group flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl px-3 py-3 text-center transition-all duration-200 sm:flex-row sm:justify-center sm:gap-3 sm:px-5 ${
               active
                 ? 'bg-primary text-primary-foreground shadow-soft'
-                : 'text-muted-foreground hover:bg-surface-elevated hover:text-foreground'
+                : 'bg-surface/70 text-muted-foreground hover:bg-surface-elevated hover:text-foreground'
             }`}
             type="button"
           >
-            <Icon className="w-4 h-4" />
-            <span className="truncate">{label}</span>
+            <span
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? 'bg-primary-foreground/15' : 'bg-muted text-primary/75 group-hover:text-primary'}`}
+            >
+              <Icon className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 text-center sm:text-left">
+              <span className="block truncate text-sm font-extrabold sm:text-base">{label}</span>
+              <span
+                className={`hidden truncate text-xs font-semibold sm:block ${active ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}
+              >
+                {desc}
+              </span>
+            </span>
           </button>
         )
       })}
@@ -433,15 +482,32 @@ function TypeSwitcher({ bookType, setBookType }: { bookType: BookType; setBookTy
 }
 
 interface UploadZoneProps {
-  label: string
+  title: string
+  subtitle: string
+  helper: string
+  requirement: string
+  chips: string[]
   accept: string
   onFile: (file: File) => void
+  onRemove: () => void
   isProcessing: boolean
   uploadedFile?: UploadedFile | null
   icon?: React.ElementType
 }
 
-function UploadZone({ label, accept, onFile, isProcessing, uploadedFile, icon: ZoneIcon = Upload }: UploadZoneProps) {
+function UploadZone({
+  title,
+  subtitle,
+  helper,
+  requirement,
+  chips,
+  accept,
+  onFile,
+  onRemove,
+  isProcessing,
+  uploadedFile,
+  icon: ZoneIcon = Upload,
+}: UploadZoneProps) {
   const [dragActive, setDragActive] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -460,6 +526,7 @@ function UploadZone({ label, accept, onFile, isProcessing, uploadedFile, icon: Z
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
+  const dimensions = formatFileDimensions(uploadedFile)
 
   return (
     <div
@@ -470,13 +537,13 @@ function UploadZone({ label, accept, onFile, isProcessing, uploadedFile, icon: Z
       onDragLeave={() => setDragActive(false)}
       onDrop={handleDrop}
       onClick={() => !isProcessing && inputRef.current?.click()}
-      className={`relative flex min-h-44 cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border p-5 text-center shadow-soft transition-all duration-300 sm:min-h-48 sm:p-8 ${
+      className={`group relative flex min-h-[205px] cursor-pointer flex-col overflow-hidden rounded-[22px] border p-4 text-left shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card ${
         isProcessing
           ? 'cursor-wait border-primary/25 bg-primary/4'
           : dragActive
             ? 'scale-[1.01] border-primary/45 bg-primary/8 shadow-card'
             : uploadedFile
-              ? 'border-primary/25 bg-primary/4'
+              ? 'border-success/25 bg-success/5'
               : 'border-border bg-card hover:border-primary/35 hover:bg-surface-elevated'
       }`}
     >
@@ -492,42 +559,117 @@ function UploadZone({ label, accept, onFile, isProcessing, uploadedFile, icon: Z
         className="hidden"
       />
 
-      {isProcessing ? (
-        <>
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-          <p className="text-sm font-medium text-foreground">Analyzing file…</p>
-        </>
-      ) : uploadedFile ? (
-        <>
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <CheckCircle2 className="h-6 w-6 text-primary" />
-          </div>
-          <div className="min-w-0 max-w-full">
-            <p className="truncate text-sm font-semibold text-primary">{uploadedFile.name}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {formatSize(uploadedFile.size)}
-              {uploadedFile.pageCount ? ` · ${uploadedFile.pageCount} pages` : ''}
-            </p>
-          </div>
-          <p className="mt-1 text-[11px] font-medium text-muted-foreground">Click or drop to replace</p>
-        </>
-      ) : (
-        <>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           <div
-            className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300 ${
-              dragActive ? 'bg-primary/10' : 'bg-secondary'
-            }`}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${uploadedFile ? 'bg-success/10 text-success' : 'bg-primary/10 text-primary'}`}
           >
-            <ZoneIcon
-              className={`h-7 w-7 transition-colors duration-300 ${dragActive ? 'text-primary' : 'text-primary/70'}`}
-            />
+            {isProcessing ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : uploadedFile ? (
+              <CheckCircle2 className="h-5 w-5" />
+            ) : (
+              <ZoneIcon className="h-5 w-5" />
+            )}
           </div>
-          <p className="text-sm font-semibold text-foreground">{label}</p>
-          <p className="text-xs text-muted-foreground">Drop file here or click to browse</p>
-        </>
-      )}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base font-extrabold text-foreground">{title}</h3>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${uploadedFile ? 'bg-success/10 text-success' : 'bg-primary/8 text-primary'}`}
+              >
+                {uploadedFile ? 'Ready' : requirement}
+              </span>
+            </div>
+            <p className="mt-1 text-xs font-semibold text-muted-foreground">{subtitle}</p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={`mt-3 grid flex-1 place-items-center rounded-2xl border border-dashed p-4 text-center transition-colors ${
+          dragActive
+            ? 'border-primary/55 bg-primary/8'
+            : uploadedFile
+              ? 'border-success/30 bg-surface/80'
+              : 'border-border bg-muted/20 group-hover:border-primary/35 group-hover:bg-primary/4'
+        }`}
+      >
+        {isProcessing ? (
+          <div>
+            <Loader2 className="mx-auto h-7 w-7 animate-spin text-primary" />
+            <p className="mt-2 text-sm font-bold text-foreground">Analyzing file...</p>
+            <p className="mt-1 text-xs text-muted-foreground">Reading metadata for preview setup.</p>
+          </div>
+        ) : uploadedFile ? (
+          <div className="min-w-0">
+            <p className="truncate text-sm font-extrabold text-foreground">{uploadedFile.name}</p>
+            <p className="mt-1 text-xs font-semibold text-muted-foreground">
+              {[
+                uploadedFile.pageCount ? `${uploadedFile.pageCount} pages` : null,
+                dimensions,
+                formatSize(uploadedFile.size),
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">Ready</span>
+              <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-semibold text-muted-foreground">
+                Drop another file to replace
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <Upload className="mx-auto h-7 w-7 text-primary" />
+            <p className="mt-2 text-sm font-extrabold text-foreground">Drop file here or click to browse</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{helper}</p>
+            <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+              {chips.map((chip) => (
+                <span
+                  key={chip}
+                  className="rounded-md border border-border bg-surface px-2 py-1 text-[10px] font-extrabold text-muted-foreground"
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 flex min-h-8 items-center justify-between gap-3">
+        <p className="min-w-0 text-xs leading-relaxed text-muted-foreground">
+          {uploadedFile
+            ? 'Use this file or replace it before continuing.'
+            : 'Max file size depends on KDP processing limits.'}
+        </p>
+        {uploadedFile && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemove()
+            }}
+            className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:border-danger/25 hover:bg-danger/5 hover:text-danger"
+          >
+            Remove
+          </button>
+        )}
+      </div>
     </div>
   )
+}
+
+function formatFileDimensions(file?: UploadedFile | null) {
+  if (!file?.dimensions) return null
+  const { width, height } = file.dimensions
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return null
+  if (file.type === 'application/pdf' || file.pageCount) {
+    const w = width > 40 ? width / 300 : width
+    const h = height > 40 ? height / 300 : height
+    return `${w.toFixed(3)} × ${h.toFixed(3)} in`
+  }
+  return `${Math.round(width)} × ${Math.round(height)} px`
 }

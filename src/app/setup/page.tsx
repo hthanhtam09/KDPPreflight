@@ -6,8 +6,8 @@ export default function SetupPage() {
     <AppWorkspaceShell
       activeNav="setup"
       activeStep="setup"
-      title="Setup"
-      subtitle="Choose KDP print specs and calculate the required export size."
+      title="KDP Book Setup Tool"
+      subtitle="Choose your print specs and calculate the required KDP export size."
       primaryAction={{
         label: 'Continue to Preview',
         href: '/preview',

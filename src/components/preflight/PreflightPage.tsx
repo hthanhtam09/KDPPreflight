@@ -828,6 +828,7 @@ export default function PreflightPage() {
     <AnimatePresence mode="wait">
       <motion.div
         key={state.step}
+        className={state.step === 'confirm' ? 'h-full min-h-0' : undefined}
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
@@ -912,8 +913,9 @@ export default function PreflightPage() {
         <AppWorkspaceShell
           activeNav="preflight"
           activeStep="preflight"
-          title="Preflight"
-          subtitle="Check your files against KDP print rules."
+          title="Preflight Report"
+          subtitle="Check your files against KDP print rules before upload."
+          lockScroll={state.step === 'confirm'}
         >
           {renderContent()}
         </AppWorkspaceShell>

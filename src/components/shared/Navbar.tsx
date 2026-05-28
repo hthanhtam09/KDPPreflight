@@ -1,7 +1,7 @@
 'use client'
 
-import { Logo } from '@/components/shared/Logo'
 import { FeatureFeedback } from '@/components/feedback/FeatureFeedback'
+import { Logo } from '@/components/shared/Logo'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import { Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -12,8 +12,8 @@ import { useEffect, useState } from 'react'
 const NAV_ITEMS = [
   { href: '/', label: 'Home' },
   { href: '/setup', label: 'Setup', tooltip: 'Calculate KDP cover dimensions, bleed, spine width, margins.' },
-  { href: '/preview', label: 'Preview', tooltip: 'Inspect paperback or hardcover as a 3D physical object.' },
   { href: '/preflight', label: 'Preflight', tooltip: 'Preflight your KDP print files before upload.' },
+  { href: '/preview', label: 'Preview', tooltip: 'Inspect paperback or hardcover as a 3D physical object.' },
   { href: '/blog', label: 'Blog' },
 ] as const
 
@@ -24,8 +24,8 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setThemeReady(true), 0)
-    return () => window.clearTimeout(timer)
+    const timer = globalThis.setTimeout(() => setThemeReady(true), 0)
+    return () => globalThis.clearTimeout(timer)
   }, [])
 
   const isActive = (href: string) => {
@@ -37,15 +37,12 @@ export default function Navbar() {
   const themeLabel = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[var(--z-nav)] h-14 border-b border-border/60 bg-surface/95 backdrop-blur-xl">
-      <div className="mx-auto max-w-7xl h-full w-full flex items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-(--z-nav) h-(--nav-height) border-b border-border/60 bg-surface/95 backdrop-blur-xl">
+      <div className="mx-auto h-full w-full max-w-(--page-max) flex items-center justify-between gap-4 px-(--page-x) sm:gap-5">
         <Logo />
 
-        <div className="hidden items-center gap-2 md:flex lg:gap-3">
-          <nav
-            className="flex items-center gap-0.5 lg:gap-1 rounded-full border border-border/60 bg-surface/50 p-0.5 shadow-soft backdrop-blur-md"
-            aria-label="Main navigation"
-          >
+        <div className="hidden items-center gap-3 md:flex lg:gap-4">
+          <nav className="flex items-center gap-1 rounded-full p-1" aria-label="Main navigation">
             <NavLinks isActive={isActive} />
           </nav>
 
@@ -57,12 +54,12 @@ export default function Navbar() {
 
           <button
             onClick={() => setMobileOpen((open) => !open)}
-            className="ds-focus flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface/80 text-foreground shadow-soft backdrop-blur-md transition hover:bg-muted/40"
+            className="ds-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface/80 text-foreground shadow-soft backdrop-blur-md transition hover:bg-muted/40"
             aria-label="Toggle main navigation"
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation"
           >
-            {mobileOpen ? <X className="h-3.5 w-3.5" /> : <Menu className="h-3.5 w-3.5" />}
+            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -77,7 +74,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute left-0 right-0 top-14 rounded-b-2xl border-b border-l border-r border-border bg-surface/95 p-2 shadow-elevated backdrop-blur-3xl md:hidden overflow-y-auto max-h-[calc(100vh-3.5rem)]"
+              className="absolute left-0 right-0 top-(--nav-height) rounded-b-2xl border-b border-l border-r border-border bg-surface/95 p-2 shadow-elevated backdrop-blur-3xl md:hidden overflow-y-auto max-h-[calc(100vh-var(--nav-height))]"
             >
               <div className="grid gap-1">
                 <NavLinks isActive={isActive} mobile onNavigate={() => setMobileOpen(false)} />
@@ -93,7 +90,6 @@ export default function Navbar() {
     </header>
   )
 }
-
 
 function ThemeToggle({
   theme,
@@ -111,10 +107,10 @@ function ThemeToggle({
   return (
     <button
       onClick={onToggle}
-      className="ds-focus flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface-glass text-muted-foreground shadow-soft backdrop-blur-xl transition hover:border-primary/30 hover:bg-muted/40 hover:text-foreground"
+      className="ds-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface-glass text-muted-foreground shadow-soft backdrop-blur-xl transition hover:border-primary/30 hover:bg-muted/40 hover:text-foreground"
       aria-label={ready ? ariaLabel : 'Toggle color theme'}
     >
-      {isLight ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+      {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
     </button>
   )
 }
@@ -130,7 +126,6 @@ function NavLinks({
 }) {
   return NAV_ITEMS.map((item) => {
     const active = isActive(item.href)
-    const badge = 'badge' in item ? item.badge : undefined
     const tooltip = 'tooltip' in item ? item.tooltip : undefined
 
     return (
@@ -139,13 +134,13 @@ function NavLinks({
         href={item.href}
         onClick={onNavigate}
         title={tooltip}
-        className={`ds-focus relative flex items-center gap-2 font-medium transition-all duration-150 ${mobile
-          ? 'h-10 rounded-xl px-4 text-sm'
-          : 'h-7 rounded-full px-2.5 text-[11px]'
-          } ${active
+        className={`ds-focus relative flex items-center gap-2 font-medium transition-all duration-150 ${
+          mobile ? 'h-12 rounded-xl px-4 text-base' : 'h-10 rounded-full px-4 text-sm'
+        } ${
+          active
             ? 'bg-primary text-primary-foreground shadow-soft'
             : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-          }`}
+        }`}
         aria-current={active ? 'page' : undefined}
       >
         <span>{item.label}</span>

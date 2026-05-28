@@ -1,35 +1,26 @@
 'use client'
 
 import {
+  formatInches,
+  inchesToPixels,
+  MAX_PAGE_COUNT_HARDCOVER,
   MAX_PAGE_COUNT_PAPERBACK,
   MIN_PAGE_COUNT,
   MIN_PAGE_COUNT_HARDCOVER,
-  MAX_PAGE_COUNT_HARDCOVER,
   TRIM_SIZES,
-  formatInches,
-  inchesToPixels,
 } from '@/engine/kdp-constants'
 import {
-  validateSetupConfig,
   getExpectedManuscriptSize,
   getMarginRequirements,
-  KDP_RULE_VERSION,
+  validateSetupConfig,
   type KdpIssue,
   type SetupValidationResult,
 } from '@/lib/kdp/kdp-rules'
 import { useAppStore } from '@/store/use-app-store'
-import type {
-  BleedType,
-  BookType,
-  CoverFinish,
-  InteriorType,
-  PaperType,
-  TrimSizeKey,
-} from '@/types/kdp'
+import type { BleedType, BookType, CoverFinish, InteriorType, PaperType, TrimSizeKey } from '@/types/kdp'
 import {
   AlertCircle,
   AlertTriangle,
-  ArrowRight,
   BookOpen,
   Box,
   CheckCircle2,
@@ -40,7 +31,6 @@ import {
   Ruler,
 } from 'lucide-react'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { div } from 'three/src/nodes/math/OperatorNode.js'
 
 const PAPERBACK_TRIMS: TrimSizeKey[] = [
   '5x8',
@@ -103,7 +93,7 @@ const TRIM_KEY_MAP: Record<TrimSizeKey, string> = {
   '8.25x8.25': '8.25x8.25',
   '8.5x8.5': '8.5x8.5',
   '8.5x11': '8.5x11',
-  'custom': 'custom',
+  custom: 'custom',
 }
 
 export default function SetupFeature() {
@@ -170,9 +160,7 @@ export default function SetupFeature() {
     } else if (expectedManuscriptSize) {
       const w = expectedManuscriptSize.widthIn.toFixed(3)
       const h = expectedManuscriptSize.heightIn.toFixed(3)
-      manuscriptValue = expectedManuscriptSize.includesBleed
-        ? `${w} × ${h} in (includes bleed)`
-        : `${w} × ${h} in`
+      manuscriptValue = expectedManuscriptSize.includesBleed ? `${w} × ${h} in (includes bleed)` : `${w} × ${h} in`
     } else {
       manuscriptValue = '—'
     }
@@ -251,10 +239,14 @@ export default function SetupFeature() {
   }, [])
 
   return (
-    <div className="grid h-full w-full grid-cols-[280px_1fr_260px] gap-0 overflow-hidden text-foreground">
+    <div className="app-grid-safe grid w-full gap-6 text-foreground lg:grid-cols-[380px_minmax(0,1fr)]">
       {/* Left: Guided Setup Specs Form */}
-      <div className="overflow-y-auto space-y-2 flex flex-col min-h-0 relative">
-        <div className="space-y-2 flex-1">
+      <section className="app-card min-w-0 p-5 lg:sticky lg:top-4 lg:self-start">
+        <div className="mb-5">
+          <h2 className="text-base font-bold text-foreground">Book Settings</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Select the specs you plan to use in KDP.</p>
+        </div>
+        <div className="space-y-3">
           {/* Step 1: Book Format */}
           <StepCard step={1} label="Book format" help="KDP rules change by format.">
             <div className="grid grid-cols-3 gap-2">
@@ -266,10 +258,11 @@ export default function SetupFeature() {
                 <button
                   key={type}
                   onClick={() => handleBookType(type)}
-                  className={`ds-focus flex flex-col items-center gap-1.5 rounded-xl border p-2 text-xs font-semibold transition-colors ${bookType === type
-                    ? 'border-primary/40 bg-primary/8 text-primary font-bold'
-                    : 'border-border bg-surface text-muted-foreground hover:border-primary/20 hover:text-foreground'
-                    }`}
+                  className={`ds-focus flex flex-col items-center gap-1.5 rounded-xl border p-2 text-xs font-semibold transition-colors ${
+                    bookType === type
+                      ? 'border-primary/40 bg-primary/8 text-primary font-bold'
+                      : 'border-border bg-surface text-muted-foreground hover:border-primary/20 hover:text-foreground'
+                  }`}
                 >
                   <Icon className="h-4 w-4" />
                   {label}
@@ -279,13 +272,14 @@ export default function SetupFeature() {
           </StepCard>
 
           {isKindle ? (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
               <div className="flex gap-2">
                 <Monitor className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
                   <p className="text-xs font-bold text-foreground">Kindle format selected</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                    Kindle covers are images (1600 × 2560 px recommended). Print specs, trim sizes, and margins do not apply to e-readers.
+                    Kindle covers are images (1600 × 2560 px recommended). Print specs, trim sizes, and margins do not
+                    apply to e-readers.
                   </p>
                 </div>
               </div>
@@ -308,7 +302,8 @@ export default function SetupFeature() {
                 <p className="mt-1 text-[10px] text-muted-foreground font-semibold">
                   Print Trim Size:{' '}
                   <span className="font-mono text-foreground">
-                    {TRIM_SIZES[bookConfig.trimSize]?.widthIn.toFixed(2)} × {TRIM_SIZES[bookConfig.trimSize]?.heightIn.toFixed(2)} in
+                    {TRIM_SIZES[bookConfig.trimSize]?.widthIn.toFixed(2)} ×{' '}
+                    {TRIM_SIZES[bookConfig.trimSize]?.heightIn.toFixed(2)} in
                   </span>
                 </p>
               </StepCard>
@@ -323,10 +318,11 @@ export default function SetupFeature() {
                     <button
                       key={opt.value}
                       onClick={() => updateBookConfig({ bleed: opt.value as BleedType })}
-                      className={`ds-focus rounded-xl border p-2 text-left transition-colors ${bookConfig.bleed === opt.value
-                        ? 'border-primary/45 bg-primary/8'
-                        : 'border-border bg-surface hover:border-primary/20'
-                        }`}
+                      className={`ds-focus rounded-xl border p-2 text-left transition-colors ${
+                        bookConfig.bleed === opt.value
+                          ? 'border-primary/45 bg-primary/8'
+                          : 'border-border bg-surface hover:border-primary/20'
+                      }`}
                     >
                       <p
                         className={`text-xs font-bold ${bookConfig.bleed === opt.value ? 'text-primary' : 'text-foreground'}`}
@@ -362,8 +358,9 @@ export default function SetupFeature() {
                   }}
                   aria-invalid={pageCountRangeError}
                   aria-describedby="setup-page-count-help"
-                  className={`ds-control ds-focus min-h-9 w-full rounded-lg px-2.5 py-1 text-xs font-semibold ${pageCountRangeError ? 'border-danger/60 text-danger' : ''
-                    }`}
+                  className={`ds-control ds-focus min-h-9 w-full rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                    pageCountRangeError ? 'border-danger/60 text-danger' : ''
+                  }`}
                 />
                 <p
                   id="setup-page-count-help"
@@ -376,11 +373,7 @@ export default function SetupFeature() {
               </StepCard>
 
               {/* Step 5: Paper & Finish */}
-              <StepCard
-                step={5}
-                label="Paper & finish"
-                help="Paper affects spine thickness."
-              >
+              <StepCard step={5} label="Paper & finish" help="Paper affects spine thickness.">
                 <div className="grid grid-cols-2 gap-2">
                   <select
                     value={bookConfig.paper}
@@ -411,33 +404,37 @@ export default function SetupFeature() {
               </StepCard>
 
               {/* KDP Validation Panel */}
-              {kdpValidation && <SetupValidationPanel validation={kdpValidation} />}
             </>
           )}
         </div>
-
-      </div>
+      </section>
 
       {/* Main: Required Output + Cover Diagram (Scrolls Internally) */}
-      <div className="overflow-y-auto flex flex-col space-y-3 min-h-0">
+      <section className="min-w-0 space-y-4">
         {/* Tab switcher */}
-        <div className="flex border-b border-border/40 pb-2 flex-wrap items-center justify-between gap-3 shrink-0">
-          <div className="flex gap-1 bg-muted/40 p-0.5 rounded-lg border border-border/30">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-bold text-foreground">Output & KDP Requirements</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Use this size when exporting your final file.</p>
+          </div>
+          <div className="flex gap-1 rounded-xl border border-border/50 bg-muted/45 p-1">
             <button
               onClick={() => setActiveTab('requirements')}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${activeTab === 'requirements'
-                ? 'bg-surface text-foreground shadow-soft border border-border/20'
-                : 'text-muted-foreground hover:text-foreground'
-                }`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                activeTab === 'requirements'
+                  ? 'border border-border/30 bg-surface text-foreground shadow-soft'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              Specs & Requirements
+              Requirements
             </button>
             <button
               onClick={() => setActiveTab('cover')}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${activeTab === 'cover'
-                ? 'bg-surface text-foreground shadow-soft border border-border/20'
-                : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-                }`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                activeTab === 'cover'
+                  ? 'border border-border/30 bg-surface text-foreground shadow-soft'
+                  : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+              }`}
             >
               Cover Diagram
             </button>
@@ -446,80 +443,140 @@ export default function SetupFeature() {
 
         {/* Content switch */}
         {activeTab === 'requirements' ? (
-          <div className="space-y-4 flex-1">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(300px,0.85fr)]">
             {/* Required Manuscript PDF Export Size */}
-            {expectedManuscriptSize && (
-              <div className="rounded-xl border border-primary/20 bg-primary/4 p-4 shadow-soft">
-                <span className="text-[10px] font-extrabold tracking-wider uppercase text-muted-foreground">REQUIRED INTERIOR MANUSCRIPT SIZE</span>
-                <div className="mt-1.5 flex items-baseline gap-2.5 flex-wrap">
-                  <span className="text-2xl sm:text-3xl font-extrabold text-foreground font-mono leading-none">
-                    {expectedManuscriptSize.widthIn.toFixed(3)} × {expectedManuscriptSize.heightIn.toFixed(3)} in
+            <div className="app-card border-primary/20 bg-primary/4 p-5 shadow-elevated">
+              {isKindle ? (
+                <>
+                  <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">
+                    Required output
                   </span>
-                  {expectedManuscriptSize.includesBleed ? (
-                    <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 rounded-full px-2.5 py-0.5">
-                      Includes KDP Bleed
+                  <h3 className="mt-2 text-2xl font-extrabold tracking-tight text-foreground">
+                    Kindle format selected
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    Kindle format selected. Print trim, spine, bleed, and gutter rules do not apply.
+                  </p>
+                </>
+              ) : expectedManuscriptSize ? (
+                <>
+                  <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">
+                    Required manuscript PDF size
+                  </span>
+                  <div className="mt-1.5 flex items-baseline gap-2.5 flex-wrap">
+                    <span className="font-mono text-3xl font-extrabold leading-none text-foreground sm:text-4xl">
+                      {expectedManuscriptSize.widthIn.toFixed(3)} × {expectedManuscriptSize.heightIn.toFixed(3)} in
                     </span>
-                  ) : (
-                    <span className="text-[10px] font-bold text-muted-foreground bg-muted border border-border/50 rounded-full px-2.5 py-0.5">
-                      No Bleed
-                    </span>
-                  )}
+                    {expectedManuscriptSize.includesBleed ? (
+                      <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 rounded-full px-2.5 py-0.5">
+                        Includes KDP Bleed
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-muted-foreground bg-muted border border-border/50 rounded-full px-2.5 py-0.5">
+                        No Bleed
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                    Export your PDF at exactly this size.
+                    {expectedManuscriptSize.includesBleed
+                      ? ` Includes bleed for ${TRIM_SIZES[bookConfig.trimSize]?.label} trim.`
+                      : ' No bleed is included.'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">
+                    Required manuscript PDF size
+                  </span>
+                  <p className="mt-2 text-lg font-bold text-foreground">Select a print trim size</p>
+                </>
+              )}
+            </div>
+
+            {/* Click to Copy Specs Cards */}
+            {!isKindle && (
+              <div className="app-card p-5">
+                <div className="mb-4">
+                  <h3 className="text-base font-bold text-foreground">KDP Compatibility</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {kdpValidation?.ok ? 'Setup compatible' : 'Review the items below before export.'}
+                  </p>
                 </div>
-                <p className="mt-2.5 text-xs text-muted-foreground leading-normal">
-                  Configure your canvas in Canva, Word, Pages, or InDesign to this exact sizing before exporting your interior print-ready PDF file.
-                </p>
+                {kdpValidation && <SetupValidationPanel validation={kdpValidation} />}
+                {marginReqs && (
+                  <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl border border-border bg-muted/25 p-3">
+                    <div>
+                      <p className="text-[11px] font-semibold text-muted-foreground">Margin / gutter</p>
+                      <p className="mt-1 font-mono text-sm font-bold text-foreground">{marginReqs.insideIn}" inside</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold text-muted-foreground">Page count range</p>
+                      <p className="mt-1 font-mono text-sm font-bold text-foreground">
+                        {minPages}-{maxPages}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Click to Copy Specs Cards */}
-            <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">KDP SPECS SUMMARY (CLICK TO COPY)</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {specs.map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => handleCopy(item.key, item.value)}
-                    className="ds-focus group w-full rounded-xl border border-border bg-surface p-3 text-left transition-colors hover:border-primary/30"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">{item.label}</p>
-                        <p className="mt-1 truncate font-mono text-sm font-extrabold text-foreground leading-none">{item.value}</p>
-                        <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground/80">{item.note}</p>
+            {!isKindle && (
+              <div className="app-card p-5 xl:col-span-2">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">Export summary</p>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {specs.map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => handleCopy(item.key, item.value)}
+                      className="ds-focus group w-full rounded-2xl border border-border bg-surface p-3 text-left transition-colors hover:border-primary/30"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">{item.label}</p>
+                          <p className="mt-1 break-words font-mono text-sm font-extrabold leading-tight text-foreground">
+                            {item.value}
+                          </p>
+                          <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground/80">{item.note}</p>
+                        </div>
+                        {copied === item.key ? (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+                        ) : (
+                          <Clipboard className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                        )}
                       </div>
-                      {copied === item.key ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
-                      ) : (
-                        <Clipboard className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Page Count Warning Box */}
-            <div className={`rounded-xl border p-4 shadow-soft ${pageWarning ? 'border-warning/30 bg-warning/10' : 'border-success/25 bg-success/10'}`}>
-              <div className="flex gap-3">
-                {pageWarning ? (
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-                ) : (
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                )}
-                <div>
-                  <p className="text-xs font-bold text-foreground">
-                    {pageWarning ? 'Review spine spacing' : 'Page range check passed'}
-                  </p>
-                  <p className="mt-1 text-xs leading-normal text-muted-foreground">
-                    {helperForPageCount(bookType, bookConfig.pageCount, measurements.spineWidthIn)}
-                  </p>
+                    </button>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Page Count Warning Box */}
+            {!isKindle && (
+              <div
+                className={`rounded-2xl border p-4 shadow-soft xl:col-span-2 ${pageWarning ? 'border-warning/30 bg-warning/10' : 'border-success/25 bg-success/10'}`}
+              >
+                <div className="flex gap-3">
+                  {pageWarning ? (
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+                  ) : (
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                  )}
+                  <div>
+                    <p className="text-xs font-bold text-foreground">
+                      {pageWarning ? 'Review spine spacing' : 'Page range check passed'}
+                    </p>
+                    <p className="mt-1 text-xs leading-normal text-muted-foreground">
+                      {helperForPageCount(bookType, bookConfig.pageCount, measurements.spineWidthIn)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Collapsible Margin requirements */}
-            {marginReqs && (
-              <details className="group rounded-xl border border-border bg-surface/50 p-3 transition hover:bg-surface shadow-soft">
+            {!isKindle && marginReqs && (
+              <details className="group rounded-2xl border border-border bg-surface/50 p-4 shadow-soft transition hover:bg-surface xl:col-span-2">
                 <summary className="flex cursor-pointer items-center justify-between text-xs font-bold text-foreground outline-none">
                   <span>View KDP Gutter & Page Margin Minimums</span>
                   <span className="text-primary transition-transform group-open:rotate-180">▼</span>
@@ -539,41 +596,30 @@ export default function SetupFeature() {
                     </div>
                   </div>
                   <p className="text-[10px] leading-relaxed text-muted-foreground/80">
-                    Important: Body text, page numbers, and headers must not enter this border buffer zone to clear final verification checks on KDP.
+                    Important: Body text, page numbers, and headers must not enter this border buffer zone to clear
+                    final verification checks on KDP.
                   </p>
                 </div>
               </details>
             )}
 
             {/* Quick design guidelines */}
-            <div className="rounded-xl border border-border bg-surface p-4 shadow-soft">
-              <div className="flex gap-3">
-                <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <p className="text-xs leading-normal text-muted-foreground">
-                  Text or elements touching margins will cause print submission rejections. Always perform final PDF proof checks, as design canvas bounds might slightly shift during export.
-                </p>
+            {!isKindle && (
+              <div className="rounded-2xl border border-border bg-surface p-4 shadow-soft xl:col-span-2">
+                <div className="flex gap-3">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <p className="text-xs leading-normal text-muted-foreground">
+                    Text or elements touching margins will cause print submission rejections. Always perform final PDF
+                    proof checks, as design canvas bounds might slightly shift during export.
+                  </p>
+                </div>
               </div>
-            </div>
-
-            {/* Dev diagnostics */}
-            {process.env.NODE_ENV === 'development' && kdpValidation && (
-              <details className="group rounded-xl border border-border/50 p-2 text-[10px] text-muted-foreground">
-                <summary className="cursor-pointer font-semibold outline-none hover:text-foreground">▼ Technical rules metadata</summary>
-                <pre className="mt-2 max-h-48 overflow-auto rounded-lg border border-border bg-surface p-2 font-mono text-[9px]">
-                  {JSON.stringify({
-                    ruleVersion: KDP_RULE_VERSION,
-                    expectedManuscriptSize: kdpValidation.expectedManuscriptSize,
-                    checksPerformed: kdpValidation.checksPerformed,
-                    checksSkipped: kdpValidation.checksSkipped,
-                  }, null, 2)}
-                </pre>
-              </details>
             )}
           </div>
         ) : (
-          <div className="space-y-4 flex-1">
+          <div className="app-card p-5">
             {/* Live KDP Preview Card */}
-            <div className="rounded-xl border border-border bg-surface p-4 shadow-soft">
+            <div>
               <div className="mb-4 flex items-center gap-3">
                 <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
                   <Ruler className="h-4 w-4" />
@@ -597,51 +643,7 @@ export default function SetupFeature() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Right: KDP Summary & Validation */}
-      <div className="overflow-y-auto flex flex-col space-y-3 min-h-0">
-        {!isKindle && expectedManuscriptSize && (
-          <div className="rounded-xl border border-border bg-surface p-3">
-            <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Setup Summary</p>
-            <div className="space-y-2">
-              <div>
-                <p className="text-[10px] text-muted-foreground">Trim Size</p>
-                <p className="text-sm font-semibold text-foreground">
-                  {TRIM_SIZES[bookConfig.trimSize]?.label}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Interior Type</p>
-                <p className="text-sm font-semibold text-foreground capitalize">
-                  {bookConfig.interior.replace('-', ' ')}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Page Count</p>
-                <p className="text-sm font-semibold text-foreground">{bookConfig.pageCount}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">Bleed</p>
-                <p className="text-sm font-semibold text-foreground">
-                  {bookConfig.bleed === 'bleed' ? 'With bleed' : 'No bleed'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {kdpValidation && <SetupValidationPanel validation={kdpValidation} />}
-
-        {isKindle && (
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
-            <p className="text-xs font-bold text-foreground">Kindle format selected</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              Kindle covers are images. Print specs do not apply.
-            </p>
-          </div>
-        )}
-      </div>
+      </section>
     </div>
   )
 }
@@ -649,9 +651,9 @@ export default function SetupFeature() {
 // ── KDP Validation Panel ──────────────────────────────────────────────────────
 
 function SetupValidationPanel({ validation }: { validation: SetupValidationResult }) {
-  const blockingIssues = validation.issues.filter(i => i.category === 'must-fix')
-  const warningIssues = validation.issues.filter(i => i.category === 'should-fix')
-  const infoIssues = validation.issues.filter(i => i.category === 'info' && i.status !== 'skipped')
+  const blockingIssues = validation.issues.filter((i) => i.category === 'must-fix')
+  const warningIssues = validation.issues.filter((i) => i.category === 'should-fix')
+  const infoIssues = validation.issues.filter((i) => i.category === 'info' && i.status !== 'skipped')
 
   if (blockingIssues.length === 0 && warningIssues.length === 0 && infoIssues.length === 0) {
     // All valid — show a small success indicator
@@ -672,13 +674,13 @@ function SetupValidationPanel({ validation }: { validation: SetupValidationResul
 
   return (
     <div className="space-y-2">
-      {blockingIssues.map(issue => (
+      {blockingIssues.map((issue) => (
         <ValidationIssueCard key={issue.id} issue={issue} />
       ))}
-      {warningIssues.map(issue => (
+      {warningIssues.map((issue) => (
         <ValidationIssueCard key={issue.id} issue={issue} />
       ))}
-      {infoIssues.map(issue => (
+      {infoIssues.map((issue) => (
         <ValidationIssueCard key={issue.id} issue={issue} />
       ))}
     </div>
@@ -726,7 +728,7 @@ function ValidationIssueCard({ issue }: { issue: KdpIssue }) {
             </div>
           )}
           <button
-            onClick={() => setExpanded(v => !v)}
+            onClick={() => setExpanded((v) => !v)}
             className="mt-1 text-[10px] text-muted-foreground hover:text-foreground"
           >
             {expanded ? '▲ Hide' : '▼ Why?'}
