@@ -1,5 +1,6 @@
 import { BookConfig, CalculatedMeasurements, ValidationCheck, CheckStatus, PageIssue, PageIssueExtended, ValidationSummary, IssueCategory, KdpRiskLevel } from '@/types/kdp';
-import { DIMENSION_TOLERANCE_IN, SPINE_TOLERANCE_IN, MIN_COVER_DPI, SAFE_AREA_IN, BARCODE_AREA, BLEED_SIZE_IN } from './kdp-constants';
+import {  MIN_COVER_DPI, SAFE_AREA_IN, BARCODE_AREA, BLEED_SIZE_IN } from './kdp-constants';
+import { getExpectedManuscriptSize } from '@/lib/kdp/kdp-rules';
 
 // ---------------------------------------------------------------------------
 // KDP-Realistic Dimension Tolerances
@@ -83,22 +84,25 @@ function evaluateDimension(
 // ---------------------------------------------------------------------------
 
 /**
- * When bleed is enabled, the manuscript PDF should include bleed area.
- * Expected page size = trim + (bleedIn * 2) for both width and height.
- * When bleed is disabled, expected page size = trim exactly.
+ * When bleed is enabled, the manuscript PDF must include bleed area.
+ * Official KDP rule: width +0.125", height +0.25".
+ * Source: https://kdp.amazon.com/help/topic/GVBQ3CMEQW3W2VL6
+ *
+ * Uses getExpectedManuscriptSize() from src/lib/kdp/kdp-rules.ts
+ * (single source of truth for the bleed formula).
+ *
+ * NOTE: The previous implementation incorrectly used bleedIn * 2 for BOTH
+ * dimensions, adding 0.25" to the width instead of 0.125".
  */
 function getExpectedManuscriptDimensions(
   config: BookConfig,
   measurements: CalculatedMeasurements,
 ): { widthIn: number; heightIn: number; includesBleed: boolean } {
-  const hasBleed = config.bleed === 'bleed';
-  const bleedAdd = hasBleed ? measurements.bleedIn * 2 : 0;
-
-  return {
-    widthIn: measurements.trimWidthIn + bleedAdd,
-    heightIn: measurements.trimHeightIn + bleedAdd,
-    includesBleed: hasBleed,
-  };
+  return getExpectedManuscriptSize(
+    measurements.trimWidthIn,
+    measurements.trimHeightIn,
+    config.bleed,
+  );
 }
 
 // ---------------------------------------------------------------------------

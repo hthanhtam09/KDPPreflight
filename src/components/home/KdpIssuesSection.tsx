@@ -289,7 +289,7 @@ export default function KdpIssuesSection() {
               </p>
               <div className="mt-4 flex flex-wrap gap-2.5">
                 <Link
-                  href="/checker"
+                  href="/preflight"
                   className="ds-button-primary inline-flex min-h-9 items-center gap-2 rounded-xl px-4 text-[13px] font-bold transition hover:-translate-y-px active:translate-y-px"
                 >
                   <ScanLine className="h-3.5 w-3.5" />

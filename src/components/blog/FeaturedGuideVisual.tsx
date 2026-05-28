@@ -49,7 +49,7 @@ export function FeaturedGuideVisual({ type, title }: FeaturedGuideVisualProps) {
         </span>
         <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card/80 px-3 py-1 text-[11px] font-semibold text-muted-foreground shadow-soft backdrop-blur">
           <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-          KDP ready
+          Preflight OK
         </span>
       </div>
 

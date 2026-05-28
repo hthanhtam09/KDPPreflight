@@ -1,4 +1,23 @@
 import { TrimSize, TrimSizeKey, BleedType, PaperType, InteriorType, BookConfig, CalculatedMeasurements, BookType } from '@/types/kdp';
+import {
+  KDP_BLEED_RULES,
+  KDP_COVER_RULES,
+  KDP_BARCODE_RULES,
+  KDP_TECHNICAL_RULES,
+  KDP_SPINE_RULES,
+  KDP_PRINT_MATRIX,
+} from '@/lib/kdp/kdp-rules';
+
+// Re-export shared KDP rule constants so existing imports keep working.
+// Source of truth: src/lib/kdp/kdp-rules.ts
+export { KDP_BLEED_RULES, KDP_COVER_RULES, KDP_BARCODE_RULES, KDP_TECHNICAL_RULES, KDP_SPINE_RULES };
+
+/**
+ * Official KDP bleed width added to manuscript width.
+ * Source: https://kdp.amazon.com/help/topic/GVBQ3CMEQW3W2VL6
+ * Re-exported from KDP_BLEED_RULES for backward compatibility.
+ */
+export const BLEED_SIZE_IN = KDP_BLEED_RULES.BLEED_WIDTH_ADD_IN; // 0.125 in
 
 // KDP Standard Trim Sizes
 export const TRIM_SIZES: Record<TrimSizeKey, TrimSize> = {
@@ -16,9 +35,7 @@ export const TRIM_SIZES: Record<TrimSizeKey, TrimSize> = {
   'custom': { key: 'custom', label: 'Custom', widthIn: 0, heightIn: 0, widthCm: 0, heightCm: 0, widthPx: 0, heightPx: 0 },
 };
 
-// Bleed settings
-export const BLEED_SIZE_IN = 0.125; // 1/8 inch on each side
-export const NO_BLEED_SIZE_IN = 0;
+
 
 // Spine width calculation factors per paper type (inches per page)
 export const SPINE_WIDTH_FACTORS: Record<PaperType, number> = {
@@ -27,30 +44,31 @@ export const SPINE_WIDTH_FACTORS: Record<PaperType, number> = {
   'premium-color': 0.0025, // ~0.0025 in/page for premium color
 };
 
-// Safe area margins
-export const SAFE_AREA_IN = 0.25; // 1/4 inch
-export const BARCODE_AREA = { x: 0, y: 0, width: 2, height: 1.2 }; // inches from bottom-right
+
+
 
 // Wrap-around for full cover
 export const WRAP_AROUND_IN = 0.0625; // 1/16 inch each side
 
 // DPI standards
-export const MIN_COVER_DPI = 300;
-export const MIN_INTERIOR_DPI = 300;
-export const RECOMMENDED_DPI = 300;
+export const MIN_COVER_DPI = KDP_TECHNICAL_RULES.MIN_COVER_DPI;
+export const MIN_INTERIOR_DPI = KDP_TECHNICAL_RULES.MIN_IMAGE_DPI;
+export const RECOMMENDED_DPI = KDP_TECHNICAL_RULES.MIN_COVER_DPI;
 
 // KDP tolerance
-export const DIMENSION_TOLERANCE_IN = 0.02; // ±0.02 inch — perfect match
-export const DIMENSION_WARNING_TOLERANCE_IN = 0.125; // 0.02–0.125" — slight variance, KDP usually accepts
-export const SPINE_TOLERANCE_IN = 0.01; // ±0.01 inch spine tolerance
+export const DIMENSION_TOLERANCE_IN = KDP_BLEED_RULES.TOLERANCE_IN;         // ±0.02 inch — perfect match
+export const DIMENSION_WARNING_TOLERANCE_IN = 0.125;                         // 0.02–0.125" — slight variance, KDP usually accepts
+export const SPINE_TOLERANCE_IN = 0.01;                                      // ±0.01 inch spine tolerance
 
-// Page count limits
-export const MIN_PAGE_COUNT = 24;
-export const MAX_PAGE_COUNT_PAPERBACK = 828;
-export const MAX_PAGE_COUNT_HARDCOVER = 550;
+// Page count limits — derived from official KDP print matrix
+// Source: https://kdp.amazon.com/help/topic/G201834180
+export const MIN_PAGE_COUNT = 24;  // Minimum for all paperback combinations
+export const MAX_PAGE_COUNT_PAPERBACK = 828; // Maximum across all paperback combinations
+export const MAX_PAGE_COUNT_HARDCOVER = 550; // Maximum for hardcover (official range: 75–550)
+export const MIN_PAGE_COUNT_HARDCOVER = 75;  // Minimum for hardcover (official KDP rule)
 
 // File size limits
-export const MAX_FILE_SIZE_MB = 650;
+export const MAX_FILE_SIZE_MB = KDP_TECHNICAL_RULES.MAX_FILE_SIZE_MB;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 // Supported file types
@@ -59,9 +77,13 @@ export const SUPPORTED_MANUSCRIPT_TYPES = ['application/pdf'];
 export const SUPPORTED_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg'];
 
 // Hardcover hinge and wrap settings
-export const HARDCOVER_HINGE_IN = 0.375; // 3/8 inch hinge
-export const HARDCOVER_WRAP_IN = 0.625; // 5/8 inch wrap
-export const GUTTER_IN = 0.1; // inner gutter spacing per page
+export const HARDCOVER_HINGE_IN = KDP_COVER_RULES.HARDCOVER_HINGE_IN;  // 3/8 inch hinge
+export const HARDCOVER_WRAP_IN = KDP_COVER_RULES.HARDCOVER_WRAP_IN;    // 5/8 inch wrap
+export const GUTTER_IN = 0.1;                                           // inner gutter spacing per page
+
+// Safe area and barcode area
+export const SAFE_AREA_IN = KDP_TECHNICAL_RULES.SAFE_AREA_IN;  // 1/4 inch
+export const BARCODE_AREA = KDP_BARCODE_RULES.AREA;             // { width: 2, height: 1.2 } inches
 
 // Default book config
 export const DEFAULT_BOOK_CONFIG: BookConfig = {

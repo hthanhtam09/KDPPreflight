@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { CoverTextures, Preview3DOverlays } from '../BookPreview3D';
 
@@ -14,6 +15,7 @@ interface PhysicalBookProps {
   currentPage: number;
   pose: PhysicalBookPose;
   flipProgress: number;
+  isFlipping: boolean;
   isFlippingForward: boolean;
   pageTextures: Map<number, THREE.Texture | null>;
   coverTextures: CoverTextures;
@@ -74,6 +76,7 @@ function material(texture: THREE.Texture | null | undefined, color = PAPER, side
       polygonOffset: true,
       polygonOffsetFactor: -1,
       polygonOffsetUnits: -1,
+      depthWrite: true,
     });
   }
 
@@ -84,6 +87,7 @@ function material(texture: THREE.Texture | null | undefined, color = PAPER, side
     polygonOffset: true,
     polygonOffsetFactor: -1,
     polygonOffsetUnits: -1,
+    depthWrite: true,
   });
 }
 
@@ -419,7 +423,6 @@ function FlippingPage({
   width,
   height,
   topZ,
-  progress,
   forward,
   frontTexture,
   backTexture,
@@ -427,33 +430,57 @@ function FlippingPage({
   width: number;
   height: number;
   topZ: number;
-  progress: number;
   forward: boolean;
   frontTexture: THREE.Texture | null;
   backTexture: THREE.Texture | null;
 }) {
-  const eased = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-  const curlLift = Math.sin(eased * Math.PI) * 0.1;
+  const groupRef = useRef<THREE.Group>(null);
+  const progressRef = useRef(0);
   const front = useMemo(() => material(frontTexture, PAPER, THREE.FrontSide), [frontTexture]);
   const back = useMemo(() => material(backTexture, PAPER, THREE.BackSide), [backTexture]);
-  const geometry = useMemo(() => {
+  const frontGeometry = useMemo(() => {
     const geo = new THREE.PlaneGeometry(safe(width), safe(height), 18, 1);
     geo.translate(forward ? width / 2 : -width / 2, 0, 0);
-    const positions = geo.getAttribute('position');
-    for (let i = 0; i < positions.count; i += 1) {
-      const x = positions.getX(i);
-      const t = forward ? x / width : Math.abs(x) / width;
-      positions.setZ(i, Math.sin(t * Math.PI) * curlLift);
-    }
-    positions.needsUpdate = true;
-    geo.computeVertexNormals();
     return geo;
-  }, [curlLift, forward, height, width]);
+  }, [forward, height, width]);
+  const backGeometry = useMemo(() => frontGeometry.clone(), [frontGeometry]);
+
+  useEffect(() => {
+    return () => {
+      frontGeometry.dispose();
+      backGeometry.dispose();
+    };
+  }, [backGeometry, frontGeometry]);
+
+  useFrame((_, delta) => {
+    progressRef.current = Math.min(progressRef.current + delta / 0.92, 1);
+    const raw = progressRef.current;
+    const eased = raw * raw * (3 - 2 * raw);
+    const curlLift = Math.sin(eased * Math.PI) * 0.13;
+
+    if (groupRef.current) {
+      groupRef.current.rotation.y = forward ? -Math.PI * eased : Math.PI * eased;
+    }
+
+    const updateGeometry = (geo: THREE.BufferGeometry, offset: number) => {
+      const positions = geo.getAttribute('position') as THREE.BufferAttribute;
+      for (let i = 0; i < positions.count; i += 1) {
+        const x = positions.getX(i);
+        const t = forward ? x / width : Math.abs(x) / width;
+        positions.setZ(i, Math.sin(t * Math.PI) * curlLift + offset);
+      }
+      positions.needsUpdate = true;
+      geo.computeVertexNormals();
+    };
+
+    updateGeometry(frontGeometry, 0.002);
+    updateGeometry(backGeometry, -0.002);
+  });
 
   return (
-    <group position={[0, 0, topZ + 0.018]} rotation={[0, forward ? -Math.PI * eased : Math.PI * eased, 0]}>
-      <mesh geometry={geometry} material={front} renderOrder={ORDER.flip} frustumCulled={false} />
-      <mesh geometry={geometry} material={back} renderOrder={ORDER.flip} frustumCulled={false} />
+    <group ref={groupRef} position={[0, 0, topZ + 0.026]}>
+      <mesh geometry={frontGeometry} material={front} renderOrder={ORDER.flip} frustumCulled={false} />
+      <mesh geometry={backGeometry} material={back} renderOrder={ORDER.flip + 1} frustumCulled={false} />
     </group>
   );
 }
@@ -470,6 +497,7 @@ interface OpenBookProps {
   pageCount: number;
   currentPage: number;
   flipProgress: number;
+  isFlipping: boolean;
   isFlippingForward: boolean;
   pageTextures: Map<number, THREE.Texture | null>;
   bleedEnabled: boolean;
@@ -489,6 +517,7 @@ function OpenBook({
   pageCount,
   currentPage,
   flipProgress,
+  isFlipping,
   isFlippingForward,
   pageTextures,
   bleedEnabled,
@@ -515,6 +544,9 @@ function OpenBook({
   const getPageTexture = (pageNo: number | null) => (pageNo ? pageTextures.get(pageNo - 1) ?? null : null);
   const flipFrontNo = isFlippingForward ? rightPageNo : leftPageNo;
   const flipBackNo = isFlippingForward ? (rightPageNo ? rightPageNo + 1 : null) : (leftPageNo ? leftPageNo - 1 : null);
+  const isMidFlip = isFlipping || (flipProgress > 0.001 && flipProgress < 0.999);
+  const showLeftActive = !(isMidFlip && !isFlippingForward && leftPageNo !== null);
+  const showRightActive = !(isMidFlip && isFlippingForward && rightPageNo !== null);
 
   return (
     <group>
@@ -540,16 +572,18 @@ function OpenBook({
       />
       <PageStack width={trimWidth * 0.96} height={trimHeight * 0.96} depth={leftStackDepth} position={[-trimWidth / 2, 0, coverThickness + leftStackDepth / 2]} />
       <PageStack width={trimWidth * 0.96} height={trimHeight * 0.96} depth={rightStackDepth} position={[trimWidth / 2, 0, coverThickness + rightStackDepth / 2]} />
-      <ActivePage
-        width={pageW}
-        height={pageH}
-        position={[-trimWidth / 2, 0, leftTop]}
-        texture={getPageTexture(leftPageNo)}
-        bleedEnabled={bleedEnabled}
-        overlays={overlays}
-        safeInset={safeInset}
-      />
-      {rightPageNo && (
+      {showLeftActive && (
+        <ActivePage
+          width={pageW}
+          height={pageH}
+          position={[-trimWidth / 2, 0, leftTop]}
+          texture={getPageTexture(leftPageNo)}
+          bleedEnabled={bleedEnabled}
+          overlays={overlays}
+          safeInset={safeInset}
+        />
+      )}
+      {rightPageNo && showRightActive && (
         <ActivePage
           width={pageW}
           height={pageH}
@@ -560,12 +594,11 @@ function OpenBook({
           safeInset={safeInset}
         />
       )}
-      {flipProgress > 0.001 && flipProgress < 0.999 && (
+      {isMidFlip && (
         <FlippingPage
           width={flipW}
           height={flipH}
           topZ={activeTop}
-          progress={flipProgress}
           forward={isFlippingForward}
           frontTexture={getPageTexture(flipFrontNo)}
           backTexture={getPageTexture(flipBackNo && flipBackNo >= 1 && flipBackNo <= totalPages ? flipBackNo : null)}
@@ -587,6 +620,7 @@ export default function PhysicalBook({
   currentPage,
   pose,
   flipProgress,
+  isFlipping,
   isFlippingForward,
   pageTextures,
   coverTextures,
@@ -631,6 +665,7 @@ export default function PhysicalBook({
       pageCount={pageCount}
       currentPage={currentPage}
       flipProgress={flipProgress}
+      isFlipping={isFlipping}
       isFlippingForward={isFlippingForward}
       pageTextures={pageTextures}
       bleedEnabled={bleedEnabled}

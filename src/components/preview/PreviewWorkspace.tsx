@@ -3,19 +3,20 @@
 import { memo, useCallback, useMemo, useState } from 'react';
 import type React from 'react';
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion';
-import { ChevronDown, ChevronUp, Info, Maximize2, Minus, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, ChevronDown, ChevronUp, Info, RotateCcw, Sparkles } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
-import { formatInches } from '@/engine/kdp-constants';
-import type { CoverSegments } from '@/engine/cover-parser';
+import { DEFAULT_BOOK_CONFIG, formatInches } from '@/engine/kdp-constants';
 import PreviewConfigPanel from './PreviewConfigPanel';
-import GenerateStep from './GenerateStep';
 
-interface Props {
-  onCoverSegments: (segments: CoverSegments | null) => void;
-}
-
-export default function PreviewWorkspace({ onCoverSegments }: Props) {
-  const { previewFlowStep, setPreviewFlowStep, bookConfig, previewGenerated } = useAppStore();
+export default function PreviewWorkspace() {
+  const {
+    previewFlowStep,
+    setPreviewFlowStep,
+    bookConfig,
+    previewGenerated,
+    updateBookConfig,
+    setBookType,
+  } = useAppStore();
   const [isMobileConfigOpen, setIsMobileConfigOpen] = useState(false);
 
   // Track dirty state: snapshot the config key when user generates
@@ -23,46 +24,75 @@ export default function PreviewWorkspace({ onCoverSegments }: Props) {
   const configKey = `${bookConfig.bookType}|${bookConfig.trimSize}|${bookConfig.bleed}|${bookConfig.pageCount}|${bookConfig.paper}|${bookConfig.interior}|${bookConfig.coverFinish}|${bookConfig.readingDirection}|${bookConfig.customWidth}|${bookConfig.customHeight}`;
   const isDirty = previewGenerated && lastGeneratedKey !== '' && lastGeneratedKey !== configKey;
 
-  const isGenerating = previewFlowStep === 'generate';
-
   const handleGenerate = useCallback(() => {
     setLastGeneratedKey(configKey);
     setPreviewFlowStep('generate');
   }, [configKey, setPreviewFlowStep]);
 
+  const handleReset = useCallback(() => {
+    updateBookConfig(DEFAULT_BOOK_CONFIG);
+    setBookType(DEFAULT_BOOK_CONFIG.bookType);
+  }, [setBookType, updateBookConfig]);
+
   const isKindle = bookConfig.bookType === 'kindle';
   const isHardcover = bookConfig.bookType === 'hardcover' || bookConfig.binding === 'hardcover';
-  const [zoom, setZoom] = useState(1);
-
-  const fitPreview = useCallback(() => setZoom(1), []);
-  const zoomOut = useCallback(() => setZoom((value) => Math.max(0.72, Number((value - 0.08).toFixed(2)))), []);
-  const zoomIn = useCallback(() => setZoom((value) => Math.min(1.28, Number((value + 0.08).toFixed(2)))), []);
 
   return (
-    <div className="grid min-h-0 gap-4 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[360px_minmax(0,1fr)] lg:gap-6">
+    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
+      <div className="flex shrink-0 flex-col gap-3 rounded-[20px] border border-border bg-surface px-3 py-3 shadow-soft lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-sm font-extrabold text-foreground">Confirm preview settings</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            Review layout settings, then generate the final 3D preview.
+          </p>
+        </div>
+        {isDirty && previewGenerated && (
+          <p className="rounded-full border border-warning/30 bg-warning/8 px-3 py-1 text-xs font-bold text-warning">
+            Settings changed
+          </p>
+        )}
+        <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={() => setPreviewFlowStep('import')}
+            className="ds-focus inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Import
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="ds-focus inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset defaults
+          </button>
+          <button
+            type="button"
+            onClick={handleGenerate}
+            className="ds-button-primary ds-focus inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold disabled:opacity-60 sm:min-w-52"
+          >
+            <Sparkles className="h-4 w-4" />
+            Generate 3D Preview
+          </button>
+        </div>
+      </div>
+
+      <div className="app-grid-safe grid min-h-0 flex-1 gap-4 overflow-hidden md:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]">
 
       {/* ─── Left: Config panel (desktop/tablet) ─── */}
-      <aside className="hidden md:block">
-        <div className="sticky top-4 max-h-[calc(100svh-var(--nav-height)-112px)] overflow-hidden rounded-panel border border-border bg-surface shadow-card">
-          <PreviewConfigPanel
-            onGenerate={handleGenerate}
-            isGenerating={isGenerating}
-            isDirty={isDirty}
-          />
+      <aside className="hidden md:block h-full min-h-0 overflow-hidden">
+        <div className="h-full overflow-hidden rounded-[20px] border border-border bg-surface shadow-card">
+          <PreviewConfigPanel />
         </div>
       </aside>
 
-      {/* ─── Right: Live preview area ─── */}
-      <div className="min-w-0">
+      {/* ─── Right: Setup summary / generation area ─── */}
+      <div className="flex h-full min-h-0 flex-col min-w-0">
 
         {/* Mobile: preview-first controls */}
-        <div className="mb-3 flex items-center justify-between md:hidden">
-          <button
-            onClick={() => setPreviewFlowStep('import')}
-            className="ds-focus text-xs text-muted-foreground transition-colors hover:text-foreground"
-          >
-            ← Import
-          </button>
+        <div className="mb-3 flex items-center justify-end md:hidden">
           <button
             onClick={() => setIsMobileConfigOpen((p) => !p)}
             className="ds-focus flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-foreground"
@@ -78,179 +108,136 @@ export default function PreviewWorkspace({ onCoverSegments }: Props) {
         {/* Mobile: collapsible settings sheet */}
         {isMobileConfigOpen && (
           <div className="mb-4 max-h-[72svh] overflow-hidden rounded-panel border border-border bg-surface shadow-elevated md:hidden">
-            <PreviewConfigPanel
-              onGenerate={handleGenerate}
-              isGenerating={isGenerating}
-              isDirty={isDirty}
-            />
+            <PreviewConfigPanel />
           </div>
         )}
 
         <LazyMotion features={domAnimation}>
           <AnimatePresence mode="wait">
-            {isGenerating ? (
-              <m.div
-                key="generating"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="min-h-[560px] rounded-panel border border-border bg-surface shadow-card"
-              >
-                <GenerateStep onCoverSegments={onCoverSegments} />
-              </m.div>
-            ) : (
-              <m.div
-                key="live-preview"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <LiveCoverLayout
-                  isKindle={isKindle}
-                  isHardcover={isHardcover}
-                  isDirty={isDirty}
-                  onGenerate={handleGenerate}
-                  isGenerating={isGenerating}
-                  zoom={zoom}
-                  onFit={fitPreview}
-                  onZoomIn={zoomIn}
-                  onZoomOut={zoomOut}
-                />
-              </m.div>
-            )}
+            <m.div
+              key="settings-summary"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex-1 h-full min-h-0 flex flex-col overflow-hidden"
+            >
+              <PreviewSettingsSummary
+                isKindle={isKindle}
+                isHardcover={isHardcover}
+                isDirty={isDirty}
+              />
+            </m.div>
           </AnimatePresence>
         </LazyMotion>
 
-        <div className="sticky bottom-0 z-20 mt-4 border-t border-border bg-background/90 py-3 backdrop-blur md:hidden">
-          {isDirty && previewGenerated && (
-            <p className="mb-2 rounded-lg border border-warning/30 bg-warning/8 px-3 py-2 text-[11px] text-warning">
-              Settings changed — regenerate 3D preview.
-            </p>
-          )}
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="ds-button-primary ds-focus flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold disabled:opacity-60"
-          >
-            <Sparkles className="h-4 w-4" />
-            Generate 3D Preview
-          </button>
-        </div>
+      </div>
+
       </div>
     </div>
   );
 }
 
-// ── Live Cover Layout ──────────────────────────────────────────────────────────
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-muted/20 p-3">
+      <p className="text-[11px] font-semibold text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-bold capitalize text-foreground [overflow-wrap:anywhere]">{value}</p>
+    </div>
+  );
+}
 
-const LiveCoverLayout = memo(function LiveCoverLayout({
+// ── Settings Summary ───────────────────────────────────────────────────────────
+
+const PreviewSettingsSummary = memo(function PreviewSettingsSummary({
   isKindle,
   isHardcover,
   isDirty,
-  onGenerate,
-  isGenerating,
-  zoom,
-  onFit,
-  onZoomIn,
-  onZoomOut,
 }: {
   isKindle: boolean;
   isHardcover: boolean;
   isDirty: boolean;
-  onGenerate: () => void;
-  isGenerating: boolean;
-  zoom: number;
-  onFit: () => void;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
 }) {
-  const { measurements, previewGenerated } = useAppStore();
+  const { bookConfig, measurements, previewGenerated } = useAppStore();
 
   return (
-    <section className="overflow-hidden rounded-panel border border-border bg-surface shadow-card">
-      <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <div>
-          <p className="text-sm font-semibold text-foreground">Live cover layout</p>
-          <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
-            Updates instantly. Generate when you are ready for the final 3D preview.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <IconAction label="Fit" onClick={onFit}>
-            <Maximize2 className="h-3.5 w-3.5" />
-          </IconAction>
-          <IconAction label="Zoom out" onClick={onZoomOut}>
-            <Minus className="h-3.5 w-3.5" />
-          </IconAction>
-          <span className="min-w-10 text-center font-mono text-[11px] text-muted-foreground">
-            {Math.round(zoom * 100)}%
-          </span>
-          <IconAction label="Zoom in" onClick={onZoomIn}>
-            <Plus className="h-3.5 w-3.5" />
-          </IconAction>
-          <button
-            onClick={onGenerate}
-            disabled={isGenerating}
-            className="ds-button-primary ds-focus ml-0 inline-flex h-9 items-center gap-2 rounded-xl px-3 text-xs font-semibold disabled:opacity-60 sm:ml-1"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Generate
-          </button>
-        </div>
+    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-border bg-surface shadow-card">
+      <div className="shrink-0 border-b border-border px-5 py-4">
+        <p className="text-sm font-extrabold text-foreground">Ready to generate</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Confirm the detected setup, then use the single Generate button above.
+        </p>
       </div>
 
       {isDirty && previewGenerated && (
-        <div className="border-b border-warning/20 bg-warning/8 px-4 py-2 text-[11px] font-medium text-warning sm:px-5">
+        <div className="shrink-0 border-b border-warning/20 bg-warning/8 px-5 py-2 text-xs font-semibold text-warning">
           Settings changed — regenerate 3D preview.
         </div>
       )}
 
-      <div className="bg-[linear-gradient(to_right,color-mix(in_srgb,var(--border)_58%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_srgb,var(--border)_58%,transparent)_1px,transparent_1px)] bg-[size:24px_24px] p-3 sm:p-5">
-        <div className="grid min-h-[360px] place-items-center overflow-hidden rounded-2xl border border-border bg-background/70 p-3 sm:min-h-[min(62svh,620px)] sm:p-5">
-          <div
-            className="flex w-full origin-center items-center justify-center will-change-transform"
-            style={{ transform: `scale(${zoom})` }}
-          >
-            {isKindle ? (
-              <KindleLayoutDiagram />
-            ) : (
-              <PrintLayoutDiagram
-                trimWidthIn={measurements.trimWidthIn}
-                trimHeightIn={measurements.trimHeightIn}
-                spineWidthIn={measurements.spineWidthIn}
-                bleedIn={measurements.bleedIn}
-                wrapAroundIn={measurements.wrapAroundIn}
-                hingeIn={measurements.hingeIn}
-                isHardcover={isHardcover}
-                fullCoverWidthIn={measurements.fullCoverWidthIn}
-                fullCoverHeightIn={measurements.fullCoverHeightIn}
-              />
-            )}
+      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden p-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+        <div className="min-h-0 overflow-y-auto rounded-2xl border border-border bg-muted/15 p-4 [scrollbar-gutter:stable]">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <SummaryRow label="Status" value={previewGenerated ? (isDirty ? 'Regenerate needed' : 'Preview generated') : 'Ready to generate'} />
+            <SummaryRow label="Format" value={bookConfig.bookType} />
+            <SummaryRow label="Trim" value={bookConfig.trimSize === 'custom' ? 'Custom' : bookConfig.trimSize} />
+            <SummaryRow label="Pages" value={`${bookConfig.pageCount}`} />
+            {!isKindle && <SummaryRow label="Bleed" value={bookConfig.bleed === 'bleed' ? 'With bleed' : 'No bleed'} />}
+            {!isKindle && <SummaryRow label="Spine" value={formatInches(measurements.spineWidthIn)} />}
+            {!isKindle && <SummaryRow label="Full cover" value={`${formatInches(measurements.fullCoverWidthIn)} × ${formatInches(measurements.fullCoverHeightIn)}`} />}
+            {isHardcover && <SummaryRow label="Hinge" value={formatInches(measurements.hingeIn)} />}
+            {isKindle && <SummaryRow label="Cover target" value="1600 × 2560 px" />}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+            <div className="flex items-start gap-3">
+              <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-bold text-foreground">One final action</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  The 3D preview will be generated from these settings and your imported files. Use Reset defaults if you want to return to the standard paperback setup.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {!isKindle && (
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
-            <LegendItem label="Trim" className="border-primary/60" />
-            <LegendItem label="Bleed" className="border-danger/60 bg-danger/10" />
-            <LegendItem label="Safe area" className="border-success/60 border-dashed" />
-            <LegendItem label="Spine" className="border-warning/70 bg-warning/10" />
-            <LegendItem label="Barcode" className="border-warning/70 border-dashed bg-warning/10" />
+        <div className="hidden min-h-0 overflow-y-auto rounded-2xl border border-border bg-surface p-4 [scrollbar-gutter:stable] lg:block">
+          <p className="text-sm font-bold text-foreground">What happens next</p>
+          <div className="mt-4 space-y-3">
+            <StepHint number="1" label="Use current settings" />
+            <StepHint number="2" label="Generate the 3D preview" />
+            <StepHint number="3" label="Inspect cover, spine, and pages" />
           </div>
-        )}
+          <details className="mt-4 rounded-xl border border-border bg-muted/20 p-3">
+            <summary className="cursor-pointer text-xs font-bold text-foreground">Diagnostics</summary>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Missing file metadata and skipped checks are handled in Preflight diagnostics.
+            </p>
+          </details>
+        </div>
       </div>
 
-      <div className="flex items-start gap-2 border-t border-border bg-surface/70 px-4 py-3 sm:px-5">
+      <div className="shrink-0 flex items-start gap-2 border-t border-border bg-surface/70 px-4 py-2.5 sm:px-5">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <p className="text-xs leading-5 text-muted-foreground">
-          Keep cover text out of the barcode, hinge, and safe-margin zones.
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          Generate once when your settings are ready, then inspect the final 3D preview.
         </p>
       </div>
     </section>
   );
 });
+
+function StepHint({ number, label }: { number: string; label: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/15 p-3">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-extrabold text-primary">
+        {number}
+      </span>
+      <span className="text-xs font-semibold text-foreground">{label}</span>
+    </div>
+  );
+}
 
 // ── Kindle placeholder diagram ──────────────────────────────────────────────────
 

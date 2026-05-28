@@ -1,23 +1,16 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  AlertTriangle,
   BadgeCheck,
   BookOpen,
   Box,
   ChevronDown,
   ChevronRight,
-  Check,
-  Clipboard,
-  Loader2,
   Monitor,
-  RotateCcw,
-  Sparkles,
 } from 'lucide-react';
 import { useAppStore } from '@/store/use-app-store';
 import {
-  DEFAULT_BOOK_CONFIG,
   TRIM_SIZES,
   formatInches,
   MAX_PAGE_COUNT_PAPERBACK,
@@ -40,13 +33,7 @@ const PAPERBACK_TRIMS: TrimSizeKey[] = [
 ];
 const HARDCOVER_TRIMS: TrimSizeKey[] = ['5.5x8.5', '6x9', '7x10', '8.25x8.25', '8.5x11'];
 
-interface Props {
-  onGenerate: () => void;
-  isGenerating: boolean;
-  isDirty: boolean;
-}
-
-export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }: Props) {
+export default function PreviewConfigPanel() {
   const {
     bookConfig,
     bookType,
@@ -54,11 +41,9 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
     updateBookConfig,
     setBookType,
     detectedConfig,
-    previewGenerated,
   } = useAppStore();
 
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [copiedValue, setCopiedValue] = useState<string | null>(null);
   const [pageCountInput, setPageCountInput] = useState(() => String(bookConfig.pageCount));
   const [isEditingPageCount, setIsEditingPageCount] = useState(false);
 
@@ -72,6 +57,12 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
     pageCountInput.length > 0 &&
     Number.isFinite(pageCountDraft) &&
     (pageCountDraft < MIN_PAGE_COUNT || pageCountDraft > maxPages);
+
+  useEffect(() => {
+    if (!isEditingPageCount) {
+      setPageCountInput(String(bookConfig.pageCount));
+    }
+  }, [bookConfig.pageCount, isEditingPageCount]);
 
   const isDetected = useCallback(
     (field: keyof DetectedConfig): boolean => {
@@ -107,13 +98,6 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
     [updateBookConfig],
   );
 
-  const handleReset = useCallback(() => {
-    updateBookConfig(DEFAULT_BOOK_CONFIG);
-    setBookType(DEFAULT_BOOK_CONFIG.bookType);
-    setPageCountInput(String(DEFAULT_BOOK_CONFIG.pageCount));
-    setIsEditingPageCount(false);
-  }, [updateBookConfig, setBookType]);
-
   const commitPageCount = useCallback(
     (value: string) => {
       const raw = Number.parseInt(value, 10);
@@ -143,16 +127,6 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
     [bookConfig.pageCount, maxPages, updateBookConfig],
   );
 
-  const handleCopy = useCallback(async (value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopiedValue(value);
-      window.setTimeout(() => setCopiedValue(null), 1200);
-    } catch {
-      setCopiedValue(null);
-    }
-  }, []);
-
   return (
     <div className="flex h-full flex-col overflow-hidden">
 
@@ -165,7 +139,7 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
       </div>
 
       {/* ── Controls ───────────────────────────────────────────────── */}
-      <div className="min-h-0 flex-1 divide-y divide-border/60 overflow-y-auto">
+      <div className="min-h-0 flex-1 divide-y divide-border/60 overflow-y-auto [scrollbar-gutter:stable]">
 
         {/* 1. Format */}
         <div className="px-4 py-3">
@@ -379,70 +353,6 @@ export default function PreviewConfigPanel({ onGenerate, isGenerating, isDirty }
         )}
       </div>
 
-      {/* ── Live measurements ──────────────────────────────────────── */}
-      <div className="shrink-0 border-t border-border bg-secondary/30 px-4 py-3">
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Live measurements
-        </p>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-          {!isKindle ? (
-            <>
-              <MeasItem label="Trim" value={`${formatInches(measurements.trimWidthIn)} × ${formatInches(measurements.trimHeightIn)}`} copied={copiedValue} onCopy={handleCopy} />
-              <MeasItem label="Spine" value={formatInches(measurements.spineWidthIn)} accent copied={copiedValue} onCopy={handleCopy} />
-              <MeasItem label="Bleed" value={measurements.bleedIn > 0 ? formatInches(measurements.bleedIn) : '—'} copied={copiedValue} onCopy={handleCopy} />
-              <MeasItem label="Wrap" value={formatInches(measurements.wrapAroundIn)} copied={copiedValue} onCopy={handleCopy} />
-              {isHardcover && <MeasItem label="Hinge" value={formatInches(measurements.hingeIn)} copied={copiedValue} onCopy={handleCopy} />}
-              <div className="col-span-2 mt-0.5 border-t border-border/60 pt-1.5">
-                <MeasItem
-                  label="Full cover"
-                  value={`${formatInches(measurements.fullCoverWidthIn)} × ${formatInches(measurements.fullCoverHeightIn)}`}
-                  accent
-                  copied={copiedValue}
-                  onCopy={handleCopy}
-                />
-              </div>
-            </>
-          ) : (
-            <MeasItem label="Cover size" value="1600 × 2560 px" copied={copiedValue} onCopy={handleCopy} />
-          )}
-        </div>
-      </div>
-
-      {/* ── Generate action ────────────────────────────────────────── */}
-      <div className="sticky bottom-0 z-10 shrink-0 space-y-2 border-t border-border bg-surface px-4 py-4 shadow-[0_-12px_28px_-24px_rgba(15,23,42,0.5)]">
-        {isDirty && previewGenerated && (
-          <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/8 px-3 py-2">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" />
-            <p className="text-[11px] leading-4 text-warning">
-              Settings changed — regenerate 3D preview.
-            </p>
-          </div>
-        )}
-        <button
-          onClick={onGenerate}
-          disabled={isGenerating}
-          className="ds-button-primary ds-focus flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" />
-              Generating…
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4" />
-              Generate 3D Preview
-            </>
-          )}
-        </button>
-        <button
-          onClick={handleReset}
-          className="ds-focus flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <RotateCcw className="h-3 w-3" />
-          Reset to defaults
-        </button>
-      </div>
     </div>
   );
 }
@@ -465,41 +375,6 @@ function FieldLabel({
           Auto-detected
         </span>
       )}
-    </div>
-  );
-}
-
-function MeasItem({
-  label,
-  value,
-  accent,
-  copied,
-  onCopy,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-  copied: string | null;
-  onCopy: (value: string) => void;
-}) {
-  const isCopied = copied === value;
-
-  return (
-    <div className="group min-w-0">
-      <span className="block text-[10px] text-muted-foreground">{label}</span>
-      <div className="mt-0.5 flex min-w-0 items-center gap-1">
-        <span className={`truncate font-mono text-[11px] ${accent ? 'text-primary' : 'text-foreground/80'}`}>
-          {value}
-        </span>
-        <button
-          type="button"
-          onClick={() => onCopy(value)}
-          aria-label={`Copy ${label}`}
-          className="ds-focus grid size-5 shrink-0 place-items-center rounded-md text-muted-foreground opacity-70 transition-colors hover:bg-surface hover:text-foreground group-hover:opacity-100"
-        >
-          {isCopied ? <Check className="h-3 w-3 text-success" /> : <Clipboard className="h-3 w-3" />}
-        </button>
-      </div>
     </div>
   );
 }

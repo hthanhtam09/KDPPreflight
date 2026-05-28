@@ -1,19 +1,19 @@
 'use client'
 
 import { FeatureFeedback } from '@/components/feedback/FeatureFeedback'
+import { Logo } from '@/components/shared/Logo'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'framer-motion'
 import { Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Home' },
-  { href: '/setup', label: 'Setup' },
-  { href: '/checker', label: 'Checker' },
-  { href: '/preview', label: 'Preview' },
+  { href: '/setup', label: 'Setup', tooltip: 'Calculate KDP cover dimensions, bleed, spine width, margins.' },
+  { href: '/preflight', label: 'Preflight', tooltip: 'Preflight your KDP print files before upload.' },
+  { href: '/preview', label: 'Preview', tooltip: 'Inspect paperback or hardcover as a 3D physical object.' },
   { href: '/blog', label: 'Blog' },
 ] as const
 
@@ -21,12 +21,11 @@ export default function Navbar() {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const [themeReady, setThemeReady] = useState(false)
-  const scrolled = useSyncExternalStore(subscribeToScroll, getScrolledSnapshot, () => false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setThemeReady(true), 0)
-    return () => window.clearTimeout(timer)
+    const timer = globalThis.setTimeout(() => setThemeReady(true), 0)
+    return () => globalThis.clearTimeout(timer)
   }, [])
 
   const isActive = (href: string) => {
@@ -38,39 +37,12 @@ export default function Navbar() {
   const themeLabel = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-[var(--z-nav)] h-[var(--app-header-height)] border-b backdrop-blur-2xl transition-[background-color,border-color,box-shadow] duration-300 w-full ${
-        scrolled ? 'border-border bg-background/95 shadow-elevated' : 'border-border/70 bg-background/85 shadow-none'
-      }`}
-    >
-      <div className="mx-auto flex h-[var(--nav-height)] w-full max-w-7xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
-        <Link
-          href="/"
-          className="group flex min-w-0 shrink items-center gap-1 rounded-full outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/40"
-          aria-label="KDPPreflight home"
-        >
-          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center sm:h-16 sm:w-16">
-            <Image
-              src="/logo-nav.png"
-              alt=""
-              width={60}
-              height={60}
-              className="h-[50px] w-[50px] sm:h-[60px] sm:w-[60px] object-contain brightness-105 transition group-hover:brightness-125"
-              priority
-            />
-          </div>
-          <div className="min-w-0">
-            <span className="block truncate text-base font-semibold leading-tight tracking-tight text-foreground sm:text-xl lg:text-xl md:text-lg hover:text-primary">
-              KDPPreflight
-            </span>
-          </div>
-        </Link>
+    <header className="fixed top-0 left-0 right-0 z-(--z-nav) h-(--nav-height) border-b border-border/60 bg-surface/95 backdrop-blur-xl">
+      <div className="mx-auto h-full w-full max-w-(--page-max) flex items-center justify-between gap-4 px-(--page-x) sm:gap-5">
+        <Logo />
 
-        <div className="hidden items-center gap-2 md:flex lg:gap-3">
-          <nav
-            className="flex items-center gap-0.5 lg:gap-1 rounded-full border border-border bg-surface-glass p-1 shadow-soft backdrop-blur-xl"
-            aria-label="Main navigation"
-          >
+        <div className="hidden items-center gap-3 md:flex lg:gap-4">
+          <nav className="flex items-center gap-1 rounded-full p-1" aria-label="Main navigation">
             <NavLinks isActive={isActive} />
           </nav>
 
@@ -82,7 +54,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setMobileOpen((open) => !open)}
-            className="ds-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface-glass text-foreground shadow-soft backdrop-blur-xl transition hover:bg-muted/40"
+            className="ds-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface/80 text-foreground shadow-soft backdrop-blur-md transition hover:bg-muted/40"
             aria-label="Toggle main navigation"
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation"
@@ -102,7 +74,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute inset-x-4 top-[calc(100%+0.5rem)] rounded-2xl border border-border bg-background/95 p-2 shadow-elevated backdrop-blur-3xl md:hidden overflow-y-auto max-h-[80vh]"
+              className="absolute left-0 right-0 top-(--nav-height) rounded-b-2xl border-b border-l border-r border-border bg-surface/95 p-2 shadow-elevated backdrop-blur-3xl md:hidden overflow-y-auto max-h-[calc(100vh-var(--nav-height))]"
             >
               <div className="grid gap-1">
                 <NavLinks isActive={isActive} mobile onNavigate={() => setMobileOpen(false)} />
@@ -117,15 +89,6 @@ export default function Navbar() {
       </LazyMotion>
     </header>
   )
-}
-
-function subscribeToScroll(onStoreChange: () => void) {
-  window.addEventListener('scroll', onStoreChange, { passive: true })
-  return () => window.removeEventListener('scroll', onStoreChange)
-}
-
-function getScrolledSnapshot() {
-  return window.scrollY > 8
 }
 
 function ThemeToggle({
@@ -161,18 +124,18 @@ function NavLinks({
   mobile?: boolean
   onNavigate?: () => void
 }) {
-  return NAV_ITEMS.map(({ href, label }) => {
-    const active = isActive(href)
+  return NAV_ITEMS.map((item) => {
+    const active = isActive(item.href)
+    const tooltip = 'tooltip' in item ? item.tooltip : undefined
 
     return (
       <Link
-        key={href}
-        href={href}
+        key={item.href}
+        href={item.href}
         onClick={onNavigate}
-        className={`ds-focus flex items-center gap-2 font-medium transition-all duration-150 ${
-          mobile
-            ? 'h-11 rounded-xl px-4 text-base'
-            : 'h-8 md:h-9 rounded-full px-2.5 md:px-3 text-[11px] md:text-xs lg:px-3.5'
+        title={tooltip}
+        className={`ds-focus relative flex items-center gap-2 font-medium transition-all duration-150 ${
+          mobile ? 'h-12 rounded-xl px-4 text-base' : 'h-10 rounded-full px-4 text-sm'
         } ${
           active
             ? 'bg-primary text-primary-foreground shadow-soft'
@@ -180,7 +143,7 @@ function NavLinks({
         }`}
         aria-current={active ? 'page' : undefined}
       >
-        <span>{label}</span>
+        <span>{item.label}</span>
       </Link>
     )
   })

@@ -33,7 +33,7 @@ export const toolPages: ToolPage[] = [
     eyebrow: 'KDP Cover Checker',
     h1: 'Check your KDP cover before Amazon rejects your upload.',
     intro: 'Upload your exported cover PDF to check the production details that cause Amazon KDP warnings: full wrap size, bleed, trim, spine width, safe area, and PDF readiness.',
-    primaryCta: { label: 'Open KDP Cover Checker', href: '/checker' },
+    primaryCta: { label: 'Open KDP Preflight Checker', href: '/preflight' },
     secondaryCta: { label: 'Calculate Book Specs', href: '/setup' },
     checks: ['Full wrap PDF size', '0.125 inch bleed', 'Trim size match', 'Spine width from page count', 'Safe area risk zones', 'Barcode area conflicts', 'PDF export dimensions'],
     steps: [
@@ -57,7 +57,7 @@ export const toolPages: ToolPage[] = [
     eyebrow: 'KDP Bleed Checker',
     h1: 'Check KDP bleed before Amazon flags your PDF.',
     intro: 'Missing bleed is one of the easiest KDP upload problems to prevent. Check whether your exported PDF includes the correct 0.125 inch bleed area before upload.',
-    primaryCta: { label: 'Check Bleed in My PDF', href: '/checker' },
+    primaryCta: { label: 'Check Bleed in My PDF', href: '/preflight' },
     secondaryCta: { label: 'Browse Guides', href: '/blog' },
     checks: ['Bleed-inclusive PDF size', 'Trim vs bleed mismatch', 'Full-bleed artwork risk', 'Canva and Photoshop export mistakes'],
     steps: [
@@ -82,7 +82,7 @@ export const toolPages: ToolPage[] = [
     h1: 'Calculate KDP spine width from page count and paper type.',
     intro: 'Your KDP cover width changes whenever the spine changes. Calculate the spine before exporting the full wrap cover so front, back, and spine panels align.',
     primaryCta: { label: 'Calculate Spine Width', href: '/setup' },
-    secondaryCta: { label: 'Check Cover PDF', href: '/checker' },
+    secondaryCta: { label: 'Check Cover PDF', href: '/preflight' },
     checks: ['Page count impact', 'Paper type impact', 'Full wrap width', 'Spine text safety', 'Cover PDF width mismatch'],
     steps: [
       { name: 'Finalize page count', text: 'Use the final formatted manuscript page count, not a draft estimate.' },
@@ -129,7 +129,7 @@ export const toolPages: ToolPage[] = [
     eyebrow: 'KDP Cover Validator',
     h1: 'Validate your KDP full cover wrap before upload.',
     intro: 'A valid KDP print cover must be one full wrap PDF with the correct back cover, spine, front cover, and bleed dimensions. Validate the final PDF before Amazon reviews it.',
-    primaryCta: { label: 'Validate My Cover', href: '/checker' },
+    primaryCta: { label: 'Validate My Cover', href: '/preflight' },
     secondaryCta: { label: 'Browse Guides', href: '/blog' },
     checks: ['Back + spine + front cover wrap', 'Total cover width', 'Total cover height', 'Bleed on outside edges', 'Barcode zone', 'Safe area content'],
     steps: [

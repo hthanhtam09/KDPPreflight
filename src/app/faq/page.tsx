@@ -321,7 +321,7 @@ export default function FaqPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/checker"
+              href="/preflight"
               className="ds-button-primary inline-flex min-h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold transition hover:-translate-y-px"
             >
               Scan My KDP Files

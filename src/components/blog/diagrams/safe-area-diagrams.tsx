@@ -269,41 +269,39 @@ export function TrimSafeZoneAnatomy() {
 }
 
 
+const LeftWarnCallout = ({ y, label, cx }: { y: number; label: string; cx: number }) => (
+  <g>
+    <path d={`M16 ${y}H${cx - 4}`} stroke="var(--danger)" strokeWidth={1.5} strokeDasharray="5 4" />
+    <rect x={16} y={y - 13} width={220} height={26} rx={7}
+      fill="color-mix(in srgb, var(--danger) 7%, var(--card))" stroke="var(--danger)" strokeWidth={1.5} />
+    <circle cx={32} cy={y} r={11}
+      fill="color-mix(in srgb, var(--danger) 14%, transparent)" />
+    <text x={32} y={y} textAnchor="middle" dominantBaseline="central"
+      fill="var(--danger)" fontSize={11} fontWeight={950}>!</text>
+    <text x={52} y={y} dominantBaseline="middle"
+      fill="var(--danger)" fontSize={11} fontWeight={850}>{label}</text>
+  </g>
+);
+
+const RightWarnCallout = ({ y, label, cx, cw }: { y: number; label: string; cx: number; cw: number }) => (
+  <g>
+    <path d={`M${cx + cw + 4} ${y}H${cx + cw + 26}`} stroke="var(--danger)" strokeWidth={1.5} strokeDasharray="5 4" />
+    <rect x={cx + cw + 28} y={y - 13} width={144} height={26} rx={7}
+      fill="color-mix(in srgb, var(--danger) 7%, var(--card))" stroke="var(--danger)" strokeWidth={1.5} />
+    <circle cx={cx + cw + 44} cy={y} r={11}
+      fill="color-mix(in srgb, var(--danger) 14%, transparent)" />
+    <text x={cx + cw + 44} y={y} textAnchor="middle" dominantBaseline="central"
+      fill="var(--danger)" fontSize={11} fontWeight={950}>!</text>
+    <text x={cx + cw + 64} y={y} dominantBaseline="middle"
+      fill="var(--danger)" fontSize={11} fontWeight={850}>{label}</text>
+  </g>
+);
+
 export function UnsafeTextPlacementExamples() {
   // Cover: x=262, y=68, w=340, h=314 — leaves room for side callouts
   const cx = 262, cy = 68, cw = 340, ch = 314;
   // Safe zone inset 52px
   const sx = cx + 52, sy = cy + 52, sw = cw - 104, sh = ch - 104;
-
-  // Left callout label: line from cover-left to label box (x=16–240)
-  const LWarn = ({ y, label }: { y: number; label: string }) => (
-    <g>
-      <path d={`M16 ${y}H${cx - 4}`} stroke="var(--danger)" strokeWidth={1.5} strokeDasharray="5 4" />
-      <rect x={16} y={y - 13} width={220} height={26} rx={7}
-        fill="color-mix(in srgb, var(--danger) 7%, var(--card))" stroke="var(--danger)" strokeWidth={1.5} />
-      <circle cx={32} cy={y} r={11}
-        fill="color-mix(in srgb, var(--danger) 14%, transparent)" />
-      <text x={32} y={y} textAnchor="middle" dominantBaseline="central"
-        fill="var(--danger)" fontSize={11} fontWeight={950}>!</text>
-      <text x={52} y={y} dominantBaseline="middle"
-        fill="var(--danger)" fontSize={11} fontWeight={850}>{label}</text>
-    </g>
-  );
-
-  // Right callout label: line from cover-right to label box (x=606–784)
-  const RWarn = ({ y, label }: { y: number; label: string }) => (
-    <g>
-      <path d={`M${cx + cw + 4} ${y}H${cx + cw + 26}`} stroke="var(--danger)" strokeWidth={1.5} strokeDasharray="5 4" />
-      <rect x={cx + cw + 28} y={y - 13} width={144} height={26} rx={7}
-        fill="color-mix(in srgb, var(--danger) 7%, var(--card))" stroke="var(--danger)" strokeWidth={1.5} />
-      <circle cx={cx + cw + 44} cy={y} r={11}
-        fill="color-mix(in srgb, var(--danger) 14%, transparent)" />
-      <text x={cx + cw + 44} y={y} textAnchor="middle" dominantBaseline="central"
-        fill="var(--danger)" fontSize={11} fontWeight={950}>!</text>
-      <text x={cx + cw + 64} y={y} dominantBaseline="middle"
-        fill="var(--danger)" fontSize={11} fontWeight={850}>{label}</text>
-    </g>
-  );
 
   return (
     <g>
@@ -344,13 +342,13 @@ export function UnsafeTextPlacementExamples() {
         fill="var(--primary)" fontSize={9} fontWeight={950}>LOGO</text>
 
       {/* Left callouts — staggered y positions */}
-      <LWarn y={cy + 17}   label="title near top" />
-      <LWarn y={cy + ch / 2} label="left border" />
-      <LWarn y={cy + ch - 15} label="subtitle" />
+      <LeftWarnCallout y={cy + 17}   label="title near top" cx={cx} />
+      <LeftWarnCallout y={cy + ch / 2} label="left border" cx={cx} />
+      <LeftWarnCallout y={cy + ch - 15} label="subtitle" cx={cx} />
 
       {/* Right callouts */}
-      <RWarn y={cy + 17}   label="corner logo" />
-      <RWarn y={cy + ch / 2} label="right border" />
+      <RightWarnCallout y={cy + 17}   label="corner logo" cx={cx} cw={cw} />
+      <RightWarnCallout y={cy + ch / 2} label="right border" cx={cx} cw={cw} />
     </g>
   );
 }
@@ -407,20 +405,20 @@ export function SafeAreaMistakesGrid() {
 }
 
 
+const MeasureArrow = ({ x1, y1, x2, y2, label, lx, ly }: { x1: number; y1: number; x2: number; y2: number; label: string; lx: number; ly: number }) => (
+  <g>
+    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--primary)" strokeWidth={1.5} strokeDasharray="4 3" />
+    <rect x={lx - label.length * 4.2 - 2} y={ly - 10} width={label.length * 8.4 + 4} height={20} rx={5} fill="var(--card)" stroke="var(--primary)" strokeWidth={1.5} />
+    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fill="var(--primary)" fontSize={11} fontWeight={950}>{label}</text>
+  </g>
+);
+
 export function MarginRecommendationLayout() {
   // Cover centered: x=200, y=64, w=400, h=322
   const cx = 200, cy = 64, cw = 400, ch = 322;
   // Safe zone 56px inset
   const sx = cx + 56, sy = cy + 56, sw = cw - 112, sh = ch - 112;
   const scx = sx + sw / 2;
-
-  const MeasureArrow = ({ x1, y1, x2, y2, label, lx, ly }: { x1: number; y1: number; x2: number; y2: number; label: string; lx: number; ly: number }) => (
-    <g>
-      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--primary)" strokeWidth={1.5} strokeDasharray="4 3" />
-      <rect x={lx - label.length * 4.2 - 2} y={ly - 10} width={label.length * 8.4 + 4} height={20} rx={5} fill="var(--card)" stroke="var(--primary)" strokeWidth={1.5} />
-      <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fill="var(--primary)" fontSize={11} fontWeight={950}>{label}</text>
-    </g>
-  );
 
   return (
     <g>

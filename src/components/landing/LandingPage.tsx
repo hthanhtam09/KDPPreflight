@@ -51,7 +51,6 @@ const steps = [
     href: '/setup',
     label: 'Smart Book Setup',
     visual: 'setup',
-    icon: Ruler,
     details: ['KDP trim size calculator', 'KDP spine width calculator', 'Bleed margin guide'],
   },
   {
@@ -59,10 +58,9 @@ const steps = [
     title: 'Check Your Exported Files',
     description:
       'Scan your cover PDF and manuscript PDF for KDP upload errors: missing bleed, wrong trim, unsafe margins, low resolution images, and spine mismatch.',
-    href: '/checker',
-    label: 'Format Checker',
+    href: '/preflight',
+    label: 'KDP Preflight Checker',
     visual: 'checker',
-    icon: SearchCheck,
     details: ['KDP bleed checker', 'KDP manuscript checker', 'Actual vs expected measurements'],
     featured: true,
   },
@@ -74,7 +72,6 @@ const steps = [
     href: '/preview',
     label: '3D Book Preview',
     visual: 'preview',
-    icon: Box,
     details: ['Paperback and hardcover preview', 'Spine inspection', 'Export preview images'],
   },
 ]
@@ -343,306 +340,302 @@ function PrivacyVisual() {
 export default function LandingPage() {
   return (
     <LazyMotion features={domAnimation}>
-    <div className="overflow-hidden">
-      <section className="relative overflow-hidden bg-background">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.025] dark:opacity-[0.02]"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
-            backgroundSize: '76px 76px',
-          }}
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute right-[8%] top-[10%] h-[560px] w-[560px] rounded-full bg-primary/[0.105] blur-[140px] dark:bg-primary/[0.075]"
-          aria-hidden="true"
-        />
-        <div
-          className="pointer-events-none absolute left-[12%] top-[58%] h-[260px] w-[260px] rounded-full bg-primary/[0.075] blur-[95px] dark:bg-primary/[0.05]"
-          aria-hidden="true"
-        />
+      <div className="overflow-hidden">
+        <section className="relative overflow-hidden bg-background">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.025] dark:opacity-[0.02]"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
+              backgroundSize: '76px 76px',
+            }}
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute right-[8%] top-[10%] h-[560px] w-[560px] rounded-full bg-primary/[0.105] blur-[140px] dark:bg-primary/[0.075]"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute left-[12%] top-[58%] h-[260px] w-[260px] rounded-full bg-primary/[0.075] blur-[95px] dark:bg-primary/[0.05]"
+            aria-hidden="true"
+          />
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 lg:pb-16 lg:pt-16">
-          <div className="grid items-center gap-10 lg:grid-cols-[0.88fr_1.22fr] lg:gap-10">
-            <div className="min-w-0">
-              <m.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.46 }}>
-                <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-[20px] sm:rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5 sm:px-3.5 text-center text-[9.5px] sm:text-[11px] font-semibold uppercase tracking-wider sm:tracking-[0.18em] text-primary">
-                  <BookOpen className="h-3 w-3 shrink-0" />
-                  Free KDP Preflight Tool for Amazon Creators
-                </span>
-              </m.div>
+          <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 lg:pb-16 lg:pt-16">
+            <div className="grid items-center gap-10 lg:grid-cols-[0.88fr_1.22fr] lg:gap-10">
+              <div className="min-w-0">
+                <m.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.46 }}>
+                  <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-[20px] sm:rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5 sm:px-3.5 text-center text-[9.5px] sm:text-[11px] font-semibold uppercase tracking-wider sm:tracking-[0.18em] text-primary">
+                    <BookOpen className="h-3 w-3 shrink-0" />
+                    Free KDP Preflight Tool for Amazon Creators
+                  </span>
+                </m.div>
 
-              <m.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.08 }}
-                className="ds-heading mt-6 max-w-[650px] text-balance text-[clamp(34px,4.8vw,56px)]"
-              >
-                Fix bleed, trim, spine, and margin issues{' '}
-                <span className="text-primary">before KDP rejects</span> your upload.
-              </m.h1>
-
-              <m.p
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.18 }}
-                className="ds-body mt-5 max-w-[590px] text-[clamp(14px,1.5vw,17px)]"
-              >
-                Scan your cover and manuscript PDF for practical KDP problems: bleed, trim size, spine width, safe
-                areas, margins, and export mistakes that create painful Amazon KDP upload errors.
-              </m.p>
-
-              <m.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.27 }}
-                className="mt-8 flex flex-col gap-3 sm:flex-row"
-              >
-                <Link
-                  href="/checker"
-                  className="ds-button-primary inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-6 text-sm font-bold transition hover:-translate-y-px active:translate-y-px"
+                <m.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.08 }}
+                  className="ds-heading mt-6 max-w-[650px] text-balance text-[clamp(34px,4.8vw,56px)]"
                 >
-                  <FileCheck2 className="h-4 w-4" />
+                  Fix bleed, trim, spine, and margin issues{' '}
+                  <span className="text-primary">before KDP rejects</span> your upload.
+                </m.h1>
+
+                <m.p
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.55, delay: 0.18 }}
+                  className="ds-body mt-5 max-w-[590px] text-[clamp(14px,1.5vw,17px)]"
+                >
+                  Scan your cover and manuscript PDF for practical KDP problems: bleed, trim size, spine width, safe
+                  areas, margins, and export mistakes that create painful Amazon KDP upload errors.
+                </m.p>
+
+                <m.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.27 }}
+                  className="mt-8 flex flex-col gap-3 sm:flex-row"
+                >
+                  <Link
+                    href="/preflight"
+                    className="ds-button-primary inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-6 text-sm font-bold transition hover:-translate-y-px active:translate-y-px"
+                  >
+                    <FileCheck2 className="h-4 w-4" />
+                    Scan My KDP Files
+                  </Link>
+                  <Link
+                    href="/setup"
+                    className="ds-button-secondary inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-6 text-sm font-bold transition hover:-translate-y-px hover:border-primary/30 active:translate-y-px"
+                  >
+                    <Ruler className="h-4 w-4" />
+                    Calculate Book Specs
+                  </Link>
+                </m.div>
+
+                <m.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.36 }}
+                  className="mt-5 flex flex-wrap gap-x-4 gap-y-2"
+                >
+                  <TrustNote>Files processed locally</TrustNote>
+                  <TrustNote>No manuscript storage</TrustNote>
+                  <TrustNote>Built for KDP creators</TrustNote>
+                </m.div>
+
+                <m.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                  className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground/60"
+                >
+                  <Link href="/setup" className="flex items-center gap-1 transition hover:text-primary">
+                    <span>Setup specs</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                  <span aria-hidden="true">/</span>
+                  <Link href="/preflight" className="flex items-center gap-1 transition hover:text-primary">
+                    <span>KDP Preflight</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                  <span aria-hidden="true">/</span>
+                  <Link href="/preview" className="flex items-center gap-1 transition hover:text-primary">
+                    <span>3D preview</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </m.div>
+              </div>
+
+              <div className="relative lg:-mr-10 xl:-mr-16 min-w-0">
+                <HeroMockup />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-14 overflow-hidden border-y border-border bg-secondary/35 py-3.5" aria-hidden="true">
+          <div className="landing-marquee flex w-max select-none gap-8 whitespace-nowrap">
+            {[...marqueeItems, ...marqueeItems].map((item, i) => (
+              <span
+                key={i}
+                className="flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50"
+              >
+                <span className="h-1 w-1 rounded-full bg-primary/40" />
+                {item}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <div>
+          <KdpIssuesSection />
+
+          <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
+            <div className="mx-auto max-w-6xl">
+              <SectionHeader
+                label="The workflow"
+                title="Problem, scan, issue, fix, confidence."
+                body="KDPPreflight works like a production workstation: calculate the specs, scan the exported files, identify the issue, then preview the corrected book."
+              />
+              <div className="grid gap-5 lg:grid-cols-[0.92fr_1.18fr_0.92fr]">
+                 {steps.map((s) => {
+                  return (
+                    <Link key={s.step} href={s.href} className="flex h-full flex-col">
+                      <m.article
+                        {...fadeUp}
+                        className={`ds-card ds-card-interactive group relative overflow-hidden p-6 flex flex-col flex-1 ${s.featured ? 'workflow-card-featured min-h-[480px]' : 'min-h-[430px]'
+                          } max-sm:min-h-0`}
+                      >
+                        <div className="mb-5 flex items-center justify-between gap-3">
+                          <span className="text-[11px] font-bold tracking-[0.16em] text-primary/60">{s.step}</span>
+                          <span className="rounded-full border border-primary/20 bg-primary/8 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                            {s.label}
+                          </span>
+                        </div>
+                        <WorkflowVisual featured={s.featured} visual={s.visual} />
+                        <div className="mt-6 flex items-center gap-3">
+                          <h3 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">{s.title}</h3>
+                        </div>
+                        <p className="mt-4 text-sm leading-6 text-muted-foreground">{s.description}</p>
+                        <div className="mt-6 space-y-2.5">
+                          {s.details.map((detail) => (
+                            <p key={detail} className="flex items-center gap-2 text-sm text-foreground/80">
+                              <Check className="h-3.5 w-3.5 shrink-0 text-success" />
+                              {detail}
+                            </p>
+                          ))}
+                        </div>
+                        <div className="mt-auto pt-8 inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                          Open tool
+                          <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-1" />
+                        </div>
+                      </m.article>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          </section>
+
+          <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
+            <div className="mx-auto max-w-6xl">
+              <SectionHeader
+                label="A real KDP bleed checker result"
+                title="Understand exactly what is wrong."
+                body="A practical result should show the selected issue, highlighted bleed edge, actual vs expected measurements, and the export setting that fixes it."
+              />
+              <ResultDemo />
+            </div>
+          </section>
+
+          <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
+            <m.div
+              {...fadeUp}
+              className="ds-card-elevated mx-auto grid max-w-6xl gap-10 overflow-hidden p-[clamp(28px,5vw,48px)] lg:grid-cols-[0.95fr_1.05fr] lg:items-center"
+            >
+              <div>
+                <LockKeyhole className="mb-7 h-8 w-8 text-primary" />
+                <SectionLabel>Private creator workstation</SectionLabel>
+                <h2 className="ds-heading text-balance text-4xl sm:text-5xl">
+                  Your unpublished files never leave your browser.
+                </h2>
+                <p className="ds-body mt-5 text-base">
+                  KDP creators upload manuscripts they have not published yet, covers they paid for, and interiors they
+                  plan to sell. KDPPreflight treats those files like private production assets, not sample data.
+                </p>
+                <div className="mt-7 grid gap-2 sm:grid-cols-2">
+                  {privacyItems.map((item) => (
+                    <span key={item} className="privacy-badge">
+                      <ShieldCheck className="h-4 w-4" />
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <PrivacyVisual />
+            </m.div>
+          </section>
+
+          <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6" aria-labelledby="guide-heading">
+            <div className="mx-auto max-w-6xl">
+              <SectionHeader
+                id="guide-heading"
+                label="KDP formatting guide"
+                title="KDP bleed, trim size, spine width, and PDF upload errors explained."
+                body="Practical KDP measurements and examples for creators who want to catch rejection risks before they upload."
+              />
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {guideItems.map((item, i) => (
+                  <m.article
+                    key={item.title}
+                    {...fadeUp}
+                    transition={{ ...fadeUp.transition, delay: i * 0.05 }}
+                    className="ds-card ds-card-interactive guide-card p-6"
+                  >
+                    <span className="mb-3 block text-[10px] font-bold uppercase tracking-[0.18em] text-primary/65">
+                      {item.keyword}
+                    </span>
+                    <h3 className="mb-3 text-lg font-bold leading-snug text-foreground">{item.title}</h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+                  </m.article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6" aria-labelledby="faq-heading">
+            <div className="mx-auto max-w-5xl">
+              <SectionHeader
+                id="faq-heading"
+                label="FAQ"
+                title="Questions self-publishers ask after KDP rejects a file."
+                body="Specific answers for KDP cover checker, KDP manuscript checker, KDP bleed checker, trim mismatch, PDF export, Canva, Affinity Publisher, and Adobe Illustrator workflows."
+              />
+              <div className="grid gap-3 md:grid-cols-2">
+                {faqs.map((faq, i) => (
+                  <m.article
+                    key={faq.q}
+                    {...fadeUp}
+                    transition={{ ...fadeUp.transition, delay: i * 0.025 }}
+                    className="ds-card ds-card-interactive min-h-[190px] p-5"
+                  >
+                    <h3 className="text-[17px] font-bold leading-snug text-foreground">{faq.q}</h3>
+                    <p className="mt-3.5 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
+                  </m.article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="px-4 py-12 sm:pb-20 sm:pt-16 lg:pb-28 lg:pt-8 sm:px-6">
+            <m.div {...fadeUp} className="final-cta mx-auto max-w-4xl overflow-hidden rounded-[var(--radius-panel)] p-8 text-center sm:p-12">
+              <SectionLabel>Before the next upload</SectionLabel>
+              <h2 className="ds-heading mx-auto max-w-3xl text-balance text-4xl sm:text-6xl">
+                Your PDF looks fine until KDP checks it.
+              </h2>
+              <p className="ds-body mx-auto mt-5 max-w-2xl text-base">
+                Catch the bleed, trim, spine, margin, and PDF export issue before it becomes another rejected upload.
+              </p>
+              <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Link
+                  href="/preflight"
+                  className="ds-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-[22px] text-sm font-bold transition hover:-translate-y-px active:translate-y-px"
+                >
+                  <ScanLine className="h-4 w-4" />
                   Scan My KDP Files
                 </Link>
                 <Link
                   href="/setup"
-                  className="ds-button-secondary inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-6 text-sm font-bold transition hover:-translate-y-px hover:border-primary/30 active:translate-y-px"
+                  className="ds-button-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-[22px] text-sm font-bold transition hover:-translate-y-px hover:border-primary/30 active:translate-y-px"
                 >
                   <Ruler className="h-4 w-4" />
                   Calculate Book Specs
                 </Link>
-              </m.div>
-
-              <m.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.36 }}
-                className="mt-5 flex flex-wrap gap-x-4 gap-y-2"
-              >
-                <TrustNote>Files processed locally</TrustNote>
-                <TrustNote>No manuscript storage</TrustNote>
-                <TrustNote>Built for KDP creators</TrustNote>
-              </m.div>
-
-              <m.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted-foreground/60"
-              >
-                <Link href="/setup" className="flex items-center gap-1 transition hover:text-primary">
-                  <span>Setup specs</span>
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
-                <span aria-hidden="true">/</span>
-                <Link href="/checker" className="flex items-center gap-1 transition hover:text-primary">
-                  <span>Check files</span>
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
-                <span aria-hidden="true">/</span>
-                <Link href="/preview" className="flex items-center gap-1 transition hover:text-primary">
-                  <span>3D preview</span>
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
-              </m.div>
-            </div>
-
-            <div className="relative lg:-mr-10 xl:-mr-16 min-w-0">
-              <HeroMockup />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-14 overflow-hidden border-y border-border bg-secondary/35 py-3.5" aria-hidden="true">
-        <div className="landing-marquee flex w-max select-none gap-8 whitespace-nowrap">
-          {[...marqueeItems, ...marqueeItems].map((item, i) => (
-            <span
-              key={i}
-              className="flex items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50"
-            >
-              <span className="h-1 w-1 rounded-full bg-primary/40" />
-              {item}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <div>
-        <KdpIssuesSection />
-
-        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
-          <div className="mx-auto max-w-6xl">
-            <SectionHeader
-              label="The workflow"
-              title="Problem, scan, issue, fix, confidence."
-              body="KDPPreflight works like a production workstation: calculate the specs, scan the exported files, identify the issue, then preview the corrected book."
-            />
-            <div className="grid gap-5 lg:grid-cols-[0.92fr_1.18fr_0.92fr]">
-              {steps.map((s) => {
-                const Icon = s.icon
-                return (
-                  <m.article
-                    key={s.step}
-                    {...fadeUp}
-                    className={`ds-card ds-card-interactive group relative overflow-hidden p-6 ${
-                      s.featured ? 'workflow-card-featured min-h-[480px]' : 'min-h-[430px]'
-                    } max-sm:min-h-0`}
-                  >
-                    <div className="mb-5 flex items-center justify-between gap-3">
-                      <span className="text-[11px] font-bold tracking-[0.16em] text-primary/60">{s.step}</span>
-                      <span className="rounded-full border border-primary/20 bg-primary/8 px-2.5 py-1 text-[11px] font-semibold text-primary">
-                        {s.label}
-                      </span>
-                    </div>
-                    <WorkflowVisual featured={s.featured} visual={s.visual} />
-                    <div className="mt-6 flex items-center gap-3">
-                      <span className="grid h-10 w-10 place-items-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <h3 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">{s.title}</h3>
-                    </div>
-                    <p className="mt-4 text-sm leading-6 text-muted-foreground">{s.description}</p>
-                    <div className="mt-6 space-y-2.5">
-                      {s.details.map((detail) => (
-                        <p key={detail} className="flex items-center gap-2 text-sm text-foreground/80">
-                          <Check className="h-3.5 w-3.5 shrink-0 text-success" />
-                          {detail}
-                        </p>
-                      ))}
-                    </div>
-                    <Link href={s.href} className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                      Open tool
-                      <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-1" />
-                    </Link>
-                  </m.article>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
-          <div className="mx-auto max-w-6xl">
-            <SectionHeader
-              label="A real KDP bleed checker result"
-              title="Understand exactly what is wrong."
-              body="A practical result should show the selected issue, highlighted bleed edge, actual vs expected measurements, and the export setting that fixes it."
-            />
-            <ResultDemo />
-          </div>
-        </section>
-
-        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6">
-          <m.div
-            {...fadeUp}
-            className="ds-card-elevated mx-auto grid max-w-6xl gap-10 overflow-hidden p-[clamp(28px,5vw,48px)] lg:grid-cols-[0.95fr_1.05fr] lg:items-center"
-          >
-            <div>
-              <LockKeyhole className="mb-7 h-8 w-8 text-primary" />
-              <SectionLabel>Private creator workstation</SectionLabel>
-              <h2 className="ds-heading text-balance text-4xl sm:text-5xl">
-                Your unpublished files never leave your browser.
-              </h2>
-              <p className="ds-body mt-5 text-base">
-                KDP creators upload manuscripts they have not published yet, covers they paid for, and interiors they
-                plan to sell. KDPPreflight treats those files like private production assets, not sample data.
-              </p>
-              <div className="mt-7 grid gap-2 sm:grid-cols-2">
-                {privacyItems.map((item) => (
-                  <span key={item} className="privacy-badge">
-                    <ShieldCheck className="h-4 w-4" />
-                    {item}
-                  </span>
-                ))}
               </div>
-            </div>
-            <PrivacyVisual />
-          </m.div>
-        </section>
-
-        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6" aria-labelledby="guide-heading">
-          <div className="mx-auto max-w-6xl">
-            <SectionHeader
-              id="guide-heading"
-              label="KDP formatting guide"
-              title="KDP bleed, trim size, spine width, and PDF upload errors explained."
-              body="Practical KDP measurements and examples for creators who want to catch rejection risks before they upload."
-            />
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {guideItems.map((item, i) => (
-                <m.article
-                  key={item.title}
-                  {...fadeUp}
-                  transition={{ ...fadeUp.transition, delay: i * 0.05 }}
-                  className="ds-card ds-card-interactive guide-card p-6"
-                >
-                  <span className="mb-3 block text-[10px] font-bold uppercase tracking-[0.18em] text-primary/65">
-                    {item.keyword}
-                  </span>
-                  <h3 className="mb-3 text-lg font-bold leading-snug text-foreground">{item.title}</h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{item.body}</p>
-                </m.article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="ds-section px-4 py-12 sm:py-16 lg:py-24 sm:px-6" aria-labelledby="faq-heading">
-          <div className="mx-auto max-w-5xl">
-            <SectionHeader
-              id="faq-heading"
-              label="FAQ"
-              title="Questions self-publishers ask after KDP rejects a file."
-              body="Specific answers for KDP cover checker, KDP manuscript checker, KDP bleed checker, trim mismatch, PDF export, Canva, Affinity Publisher, and Adobe Illustrator workflows."
-            />
-            <div className="grid gap-3 md:grid-cols-2">
-              {faqs.map((faq, i) => (
-                <m.article
-                  key={faq.q}
-                  {...fadeUp}
-                  transition={{ ...fadeUp.transition, delay: i * 0.025 }}
-                  className="ds-card ds-card-interactive min-h-[190px] p-5"
-                >
-                  <h3 className="text-[17px] font-bold leading-snug text-foreground">{faq.q}</h3>
-                  <p className="mt-3.5 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
-                </m.article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="px-4 py-12 sm:pb-20 sm:pt-16 lg:pb-28 lg:pt-8 sm:px-6">
-          <m.div {...fadeUp} className="final-cta mx-auto max-w-4xl overflow-hidden rounded-[var(--radius-panel)] p-8 text-center sm:p-12">
-            <SectionLabel>Before the next upload</SectionLabel>
-            <h2 className="ds-heading mx-auto max-w-3xl text-balance text-4xl sm:text-6xl">
-              Your PDF looks fine until KDP checks it.
-            </h2>
-            <p className="ds-body mx-auto mt-5 max-w-2xl text-base">
-              Catch the bleed, trim, spine, margin, and PDF export issue before it becomes another rejected upload.
-            </p>
-            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href="/checker"
-                className="ds-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-[22px] text-sm font-bold transition hover:-translate-y-px active:translate-y-px"
-              >
-                <ScanLine className="h-4 w-4" />
-                Scan My KDP Files
-              </Link>
-              <Link
-                href="/setup"
-                className="ds-button-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-[22px] text-sm font-bold transition hover:-translate-y-px hover:border-primary/30 active:translate-y-px"
-              >
-                <Ruler className="h-4 w-4" />
-                Calculate Book Specs
-              </Link>
-            </div>
-          </m.div>
-        </section>
+            </m.div>
+          </section>
+        </div>
       </div>
-    </div>
     </LazyMotion>
   )
 }

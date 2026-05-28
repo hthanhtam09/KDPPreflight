@@ -33,7 +33,7 @@ export default function GlobalError({
             context={{ boundary: 'global', route: 'app' }}
             secondaryActions={[
               { label: 'Go Home', href: '/' },
-              { label: 'Open KDP Checker', href: '/checker' },
+              { label: 'KDP Preflight', href: '/preflight' },
             ]}
           />
         </ThemeProvider>

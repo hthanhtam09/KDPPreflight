@@ -312,7 +312,7 @@ export default function AboutPage() {
               },
               {
                 title: 'Book cover designers',
-                body: 'Freelance cover designers who need to deliver KDP-ready cover PDFs to clients and want to confirm the spine, bleed, and safe area before delivery.',
+                body: 'Freelance cover designers who need to deliver print-ready KDP cover PDFs to clients and want to confirm the spine, bleed, and safe area before delivery.',
               },
               {
                 title: 'Book formatters',
@@ -336,7 +336,7 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/checker"
+              href="/preflight"
               className="ds-button-primary inline-flex min-h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold transition hover:-translate-y-px"
             >
               <FileCheck2 className="h-4 w-4" />

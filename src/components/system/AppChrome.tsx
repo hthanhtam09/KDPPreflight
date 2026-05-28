@@ -7,7 +7,7 @@ import Footer from '@/components/shared/Footer';
 import Navbar from '@/components/shared/Navbar';
 import DeferredRootWidgets from '@/components/system/DeferredRootWidgets';
 
-const FEATURE_ROUTES = ['/setup', '/checker', '/preview', '/tools'];
+const FEATURE_ROUTES = ['/setup', '/preview', '/tools', '/preflight'];
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

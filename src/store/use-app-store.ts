@@ -1,195 +1,204 @@
-import { create } from 'zustand';
+import { DEFAULT_BOOK_CONFIG, calculateMeasurements } from '@/engine/kdp-constants'
+import type { PDFAnalysisResult } from '@/engine/validator'
+import type { SaveStatus } from '@/lib/persistence'
 import {
-  AppView, BookConfig, CalculatedMeasurements, UploadedFile,
-  ValidationReport, PageTexture, BookType, CheckerStep,
-  PreviewViewMode, OverlayType, PageAnalysis, PageIssue,
-  BookPage, PreviewAssetCache, ProcessingStatus, PageIssueExtended,
-  IssueFilter, SpreadModel, ValidationSummary, CheckStatus,
-  PreviewFlowStep, CameraPreset, DetectedConfig, GenerationProgress,
-} from '@/types/kdp';
-import { DEFAULT_BOOK_CONFIG, calculateMeasurements } from '@/engine/kdp-constants';
-import type { PDFAnalysisResult } from '@/engine/validator';
-import type { SaveStatus } from '@/lib/persistence';
+  AppView,
+  BookConfig,
+  BookPage,
+  BookType,
+  CalculatedMeasurements,
+  CameraPreset,
+  CheckStatus,
+  DetectedConfig,
+  GenerationProgress,
+  IssueFilter,
+  OverlayType,
+  PageAnalysis,
+  PageIssue,
+  PageIssueExtended,
+  PageTexture,
+  PreviewAssetCache,
+  PreviewFlowStep,
+  PreviewViewMode,
+  ProcessingStatus,
+  SpreadModel,
+  UploadedFile,
+  ValidationReport,
+  ValidationSummary,
+} from '@/types/kdp'
+import { create } from 'zustand'
 
-type FeatureWorkspaceName = 'checker' | 'preview';
+type FeatureWorkspaceName = 'preview'
 
 interface FeatureWorkspaceState {
-  bookConfig: BookConfig;
-  measurements: CalculatedMeasurements;
-  uploadedCover: UploadedFile | null;
-  uploadedManuscript: UploadedFile | null;
-  bookType: BookType;
-  currentPage: number;
-  totalPages: number;
-  activeOverlays: OverlayType[];
-  pageAnalyses: PageAnalysis[];
-  pageIssues: PageIssue[];
-  pdfPageDataUrls: Map<number, string>;
-  bookPages: BookPage[];
-  coverDataUrl: string;
-  previewCache: PreviewAssetCache | null;
-  processingStatus: ProcessingStatus;
-  previewReady: boolean;
-  pageIssuesExtended: PageIssueExtended[];
-  selectedIssueId: string | null;
-  issueFilter: IssueFilter;
-  spreadModels: SpreadModel[];
-  pdfAnalysis: PDFAnalysisResult | null;
-  detectedConfig: DetectedConfig | null;
-  generationProgress: GenerationProgress;
-  previewGenerated: boolean;
-  checkerStep: CheckerStep;
-  previewFlowStep: PreviewFlowStep;
+  bookConfig: BookConfig
+  measurements: CalculatedMeasurements
+  uploadedCover: UploadedFile | null
+  uploadedManuscript: UploadedFile | null
+  bookType: BookType
+  currentPage: number
+  totalPages: number
+  activeOverlays: OverlayType[]
+  pageAnalyses: PageAnalysis[]
+  pageIssues: PageIssue[]
+  pdfPageDataUrls: Map<number, string>
+  bookPages: BookPage[]
+  coverDataUrl: string
+  previewCache: PreviewAssetCache | null
+  processingStatus: ProcessingStatus
+  previewReady: boolean
+  pageIssuesExtended: PageIssueExtended[]
+  selectedIssueId: string | null
+  issueFilter: IssueFilter
+  spreadModels: SpreadModel[]
+  pdfAnalysis: PDFAnalysisResult | null
+  detectedConfig: DetectedConfig | null
+  generationProgress: GenerationProgress
+  previewGenerated: boolean
+  previewFlowStep: PreviewFlowStep
 }
 
 interface AppStore {
   // Navigation
-  view: AppView;
-  setView: (view: AppView) => void;
+  view: AppView
+  setView: (view: AppView) => void
 
   // Book Setup
-  bookConfig: BookConfig;
-  measurements: CalculatedMeasurements;
-  updateBookConfig: (updates: Partial<BookConfig>) => void;
+  bookConfig: BookConfig
+  measurements: CalculatedMeasurements
+  updateBookConfig: (updates: Partial<BookConfig>) => void
 
   // Uploaded Files
-  uploadedCover: UploadedFile | null;
-  uploadedManuscript: UploadedFile | null;
-  setUploadedCover: (file: UploadedFile | null) => void;
-  setUploadedManuscript: (file: UploadedFile | null) => void;
+  uploadedCover: UploadedFile | null
+  uploadedManuscript: UploadedFile | null
+  setUploadedCover: (file: UploadedFile | null) => void
+  setUploadedManuscript: (file: UploadedFile | null) => void
 
   // Validation
-  validationReports: ValidationReport[];
-  setValidationReports: (reports: ValidationReport[]) => void;
-  clearValidationReports: () => void;
+  validationReports: ValidationReport[]
+  setValidationReports: (reports: ValidationReport[]) => void
+  clearValidationReports: () => void
 
   // Textures for 3D preview
-  coverTextures: PageTexture[];
-  manuscriptTextures: PageTexture[];
-  setCoverTextures: (textures: PageTexture[]) => void;
-  setManuscriptTextures: (textures: PageTexture[]) => void;
+  coverTextures: PageTexture[]
+  manuscriptTextures: PageTexture[]
+  setCoverTextures: (textures: PageTexture[]) => void
+  setManuscriptTextures: (textures: PageTexture[]) => void
 
   // Processing state
-  isProcessing: boolean;
-  processingMessage: string;
-  setProcessing: (isProcessing: boolean, message?: string) => void;
+  isProcessing: boolean
+  processingMessage: string
+  setProcessing: (isProcessing: boolean, message?: string) => void
 
-  // Checker workflow
-  checkerStep: CheckerStep;
-  setCheckerStep: (step: CheckerStep) => void;
-  bookType: BookType;
-  setBookType: (type: BookType) => void;
+  bookType: BookType
+  setBookType: (type: BookType) => void
 
   // Preview state
-  previewViewMode: PreviewViewMode;
-  setPreviewViewMode: (mode: PreviewViewMode) => void;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  totalPages: number;
-  setTotalPages: (total: number) => void;
-  activeOverlays: OverlayType[];
-  toggleOverlay: (overlay: OverlayType) => void;
-  setOverlays: (overlays: OverlayType[]) => void;
+  previewViewMode: PreviewViewMode
+  setPreviewViewMode: (mode: PreviewViewMode) => void
+  currentPage: number
+  setCurrentPage: (page: number) => void
+  totalPages: number
+  setTotalPages: (total: number) => void
+  activeOverlays: OverlayType[]
+  toggleOverlay: (overlay: OverlayType) => void
+  setOverlays: (overlays: OverlayType[]) => void
 
   // Page analysis
-  pageAnalyses: PageAnalysis[];
-  setPageAnalyses: (analyses: PageAnalysis[]) => void;
-  pageIssues: PageIssue[];
-  setPageIssues: (issues: PageIssue[]) => void;
+  pageAnalyses: PageAnalysis[]
+  setPageAnalyses: (analyses: PageAnalysis[]) => void
+  pageIssues: PageIssue[]
+  setPageIssues: (issues: PageIssue[]) => void
 
   // PDF document data
-  pdfPageDataUrls: Map<number, string>;
-  setPdfPageDataUrl: (page: number, dataUrl: string) => void;
-  clearPdfPageData: () => void;
+  pdfPageDataUrls: Map<number, string>
+  setPdfPageDataUrl: (page: number, dataUrl: string) => void
+  clearPdfPageData: () => void
 
   // Unified book model
-  bookPages: BookPage[];
-  setBookPages: (pages: BookPage[]) => void;
-  coverDataUrl: string;
-  setCoverDataUrl: (url: string) => void;
+  bookPages: BookPage[]
+  setBookPages: (pages: BookPage[]) => void
+  coverDataUrl: string
+  setCoverDataUrl: (url: string) => void
 
   // Preview asset cache (built during import)
-  previewCache: PreviewAssetCache | null;
-  setPreviewCache: (cache: PreviewAssetCache | null) => void;
+  previewCache: PreviewAssetCache | null
+  setPreviewCache: (cache: PreviewAssetCache | null) => void
 
   // Processing status
-  processingStatus: ProcessingStatus;
-  setProcessingStatus: (status: ProcessingStatus) => void;
+  processingStatus: ProcessingStatus
+  setProcessingStatus: (status: ProcessingStatus) => void
 
   // Preview ready flag
-  previewReady: boolean;
-  setPreviewReady: (ready: boolean) => void;
+  previewReady: boolean
+  setPreviewReady: (ready: boolean) => void
 
   // Extended page issues (with position info)
-  pageIssuesExtended: PageIssueExtended[];
-  setPageIssuesExtended: (issues: PageIssueExtended[]) => void;
+  pageIssuesExtended: PageIssueExtended[]
+  setPageIssuesExtended: (issues: PageIssueExtended[]) => void
 
   // Selected issue for highlighting
-  selectedIssueId: string | null;
-  setSelectedIssueId: (id: string | null) => void;
+  selectedIssueId: string | null
+  setSelectedIssueId: (id: string | null) => void
 
   // Issue filter
-  issueFilter: IssueFilter;
-  setIssueFilter: (filter: Partial<IssueFilter>) => void;
+  issueFilter: IssueFilter
+  setIssueFilter: (filter: Partial<IssueFilter>) => void
 
   // Spread model (correctly computed)
-  spreadModels: SpreadModel[];
-  setSpreadModels: (spreads: SpreadModel[]) => void;
+  spreadModels: SpreadModel[]
+  setSpreadModels: (spreads: SpreadModel[]) => void
 
   // Current spread index (derived from currentPage)
-  currentSpreadIndex: number;
+  currentSpreadIndex: number
 
   // Validation summary (computed from pageIssues)
-  validationSummary: ValidationSummary;
+  validationSummary: ValidationSummary
 
   // Save/restore system
-  saveStatus: SaveStatus;
-  setSaveStatus: (status: SaveStatus) => void;
-  hasRestoredSession: boolean;
-  setHasRestoredSession: (restored: boolean) => void;
+  saveStatus: SaveStatus
+  setSaveStatus: (status: SaveStatus) => void
+  hasRestoredSession: boolean
+  setHasRestoredSession: (restored: boolean) => void
 
   // Onboarding hints
-  dismissedHints: string[];
-  dismissHint: (hintId: string) => void;
-  isHintDismissed: (hintId: string) => boolean;
+  dismissedHints: string[]
+  dismissHint: (hintId: string) => void
+  isHintDismissed: (hintId: string) => boolean
 
   // Sidebar collapsed state
-  sidebarCollapsed: boolean;
-  setSidebarCollapsed: (collapsed: boolean) => void;
+  sidebarCollapsed: boolean
+  setSidebarCollapsed: (collapsed: boolean) => void
 
   // PDF analysis result (stored for re-validation when config changes)
-  pdfAnalysis: PDFAnalysisResult | null;
-  setPdfAnalysis: (analysis: PDFAnalysisResult | null) => void;
+  pdfAnalysis: PDFAnalysisResult | null
+  setPdfAnalysis: (analysis: PDFAnalysisResult | null) => void
 
   // 3D Preview flow state
-  previewFlowStep: PreviewFlowStep;
-  setPreviewFlowStep: (step: PreviewFlowStep) => void;
-  cameraPreset: CameraPreset;
-  setCameraPreset: (preset: CameraPreset) => void;
-  detectedConfig: DetectedConfig | null;
-  setDetectedConfig: (config: DetectedConfig | null) => void;
-  generationProgress: GenerationProgress;
-  setGenerationProgress: (progress: GenerationProgress) => void;
-  previewGenerated: boolean;
-  setPreviewGenerated: (generated: boolean) => void;
+  previewFlowStep: PreviewFlowStep
+  setPreviewFlowStep: (step: PreviewFlowStep) => void
+  cameraPreset: CameraPreset
+  setCameraPreset: (preset: CameraPreset) => void
+  detectedConfig: DetectedConfig | null
+  setDetectedConfig: (config: DetectedConfig | null) => void
+  generationProgress: GenerationProgress
+  setGenerationProgress: (progress: GenerationProgress) => void
+  previewGenerated: boolean
+  setPreviewGenerated: (generated: boolean) => void
 
   // Feature workspace isolation
-  activeFeatureWorkspace: FeatureWorkspaceName | null;
-  checkerWorkspace: FeatureWorkspaceState;
-  previewWorkspace: FeatureWorkspaceState;
-  activateFeatureWorkspace: (feature: FeatureWorkspaceName) => void;
+  activeFeatureWorkspace: FeatureWorkspaceName | null
+  previewWorkspace: FeatureWorkspaceState
+  activateFeatureWorkspace: (feature: FeatureWorkspaceName) => void
 
   // Reset
-  reset: () => void;
+  reset: () => void
 }
 
-const initialConfig: BookConfig = { ...DEFAULT_BOOK_CONFIG, bookType: 'paperback' };
-const initialMeasurements = calculateMeasurements(initialConfig);
+const initialConfig: BookConfig = { ...DEFAULT_BOOK_CONFIG, bookType: 'paperback' }
+const initialMeasurements = calculateMeasurements(initialConfig)
 
-function createEmptyWorkspace(
-  checkerStep: CheckerStep = 'import',
-  previewFlowStep: PreviewFlowStep = 'import',
-): FeatureWorkspaceState {
+function createEmptyWorkspace(previewFlowStep: PreviewFlowStep = 'import'): FeatureWorkspaceState {
   return {
     bookConfig: initialConfig,
     measurements: initialMeasurements,
@@ -213,11 +222,10 @@ function createEmptyWorkspace(
     spreadModels: [],
     pdfAnalysis: null,
     detectedConfig: null,
-    generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
+    generationProgress: { phase: 'idle', phaseLabel: '', progress: 0 },
     previewGenerated: false,
-    checkerStep,
     previewFlowStep,
-  };
+  }
 }
 
 function snapshotWorkspace(state: AppStore): FeatureWorkspaceState {
@@ -246,30 +254,29 @@ function snapshotWorkspace(state: AppStore): FeatureWorkspaceState {
     detectedConfig: state.detectedConfig,
     generationProgress: state.generationProgress,
     previewGenerated: state.previewGenerated,
-    checkerStep: state.checkerStep,
     previewFlowStep: state.previewFlowStep,
-  };
+  }
 }
 
 // Load dismissed hints from localStorage
 function loadDismissedHints(): string[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === 'undefined') return []
   try {
-    const stored = localStorage.getItem('kdp-dismissed-hints');
-    return stored ? JSON.parse(stored) : [];
+    const stored = localStorage.getItem('kdp-dismissed-hints')
+    return stored ? JSON.parse(stored) : []
   } catch {
-    return [];
+    return []
   }
 }
 
 // Load view mode from localStorage
 function loadViewMode(): PreviewViewMode {
-  if (typeof window === 'undefined') return 'single';
+  if (typeof window === 'undefined') return 'single'
   try {
-    const stored = localStorage.getItem('kdp-view-mode');
-    return (stored === 'spread' || stored === 'single') ? stored : 'single';
+    const stored = localStorage.getItem('kdp-view-mode')
+    return stored === 'spread' || stored === 'single' ? stored : 'single'
   } catch {
-    return 'single';
+    return 'single'
   }
 }
 
@@ -283,9 +290,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   measurements: initialMeasurements,
   updateBookConfig: (updates) =>
     set((state) => {
-      const newConfig = { ...state.bookConfig, ...updates };
-      const newMeasurements = calculateMeasurements(newConfig);
-      return { bookConfig: newConfig, measurements: newMeasurements };
+      const newConfig = { ...state.bookConfig, ...updates }
+      const newMeasurements = calculateMeasurements(newConfig)
+      return { bookConfig: newConfig, measurements: newMeasurements }
     }),
 
   // Uploaded Files
@@ -310,9 +317,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
   processingMessage: '',
   setProcessing: (isProcessing, message = '') => set({ isProcessing, processingMessage: message }),
 
-  // Checker workflow
-  checkerStep: 'import',
-  setCheckerStep: (step) => set({ checkerStep: step }),
   bookType: 'paperback',
   setBookType: (type) => set({ bookType: type }),
 
@@ -320,9 +324,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
   previewViewMode: loadViewMode(),
   setPreviewViewMode: (mode) => {
     if (typeof window !== 'undefined') {
-      try { localStorage.setItem('kdp-view-mode', mode); } catch { /* ignore */ }
+      try {
+        localStorage.setItem('kdp-view-mode', mode)
+      } catch {
+        /* ignore */
+      }
     }
-    set({ previewViewMode: mode });
+    set({ previewViewMode: mode })
   },
   currentPage: 0,
   setCurrentPage: (page) => set({ currentPage: page }),
@@ -347,9 +355,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   pdfPageDataUrls: new Map(),
   setPdfPageDataUrl: (page, dataUrl) =>
     set((state) => {
-      const newMap = new Map(state.pdfPageDataUrls);
-      newMap.set(page, dataUrl);
-      return { pdfPageDataUrls: newMap };
+      const newMap = new Map(state.pdfPageDataUrls)
+      newMap.set(page, dataUrl)
+      return { pdfPageDataUrls: newMap }
     }),
   clearPdfPageData: () => set({ pdfPageDataUrls: new Map() }),
 
@@ -381,8 +389,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   // Issue filter
   issueFilter: { severity: 'all', category: 'all', search: '' },
-  setIssueFilter: (filter) =>
-    set((state) => ({ issueFilter: { ...state.issueFilter, ...filter } })),
+  setIssueFilter: (filter) => set((state) => ({ issueFilter: { ...state.issueFilter, ...filter } })),
 
   // Spread model
   spreadModels: [],
@@ -392,7 +399,17 @@ export const useAppStore = create<AppStore>((set, get) => ({
   currentSpreadIndex: 0,
 
   // Validation summary (computed from pageIssues)
-  validationSummary: { total: 0, fail: 0, risk: 0, warning: 0, safe: 0, pass: 0, byCategory: { cover: 0, interior: 0, bleed: 0, dpi: 0, font: 0, gutter: 0, margin: 0, size: 0 }, overallStatus: 'pass' as CheckStatus, isReady: true },
+  validationSummary: {
+    total: 0,
+    fail: 0,
+    risk: 0,
+    warning: 0,
+    safe: 0,
+    pass: 0,
+    byCategory: { cover: 0, interior: 0, bleed: 0, dpi: 0, font: 0, gutter: 0, margin: 0, size: 0 },
+    overallStatus: 'pass' as CheckStatus,
+    isReady: true,
+  },
 
   // Save/restore system
   saveStatus: 'idle',
@@ -404,12 +421,16 @@ export const useAppStore = create<AppStore>((set, get) => ({
   dismissedHints: loadDismissedHints(),
   dismissHint: (hintId) =>
     set((state) => {
-      const updated = [...state.dismissedHints];
-      if (!updated.includes(hintId)) updated.push(hintId);
+      const updated = [...state.dismissedHints]
+      if (!updated.includes(hintId)) updated.push(hintId)
       if (typeof window !== 'undefined') {
-        try { localStorage.setItem('kdp-dismissed-hints', JSON.stringify(updated)); } catch { /* ignore */ }
+        try {
+          localStorage.setItem('kdp-dismissed-hints', JSON.stringify(updated))
+        } catch {
+          /* ignore */
+        }
       }
-      return { dismissedHints: updated };
+      return { dismissedHints: updated }
     }),
   isHintDismissed: (hintId) => get().dismissedHints.includes(hintId),
 
@@ -428,21 +449,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setCameraPreset: (preset) => set({ cameraPreset: preset }),
   detectedConfig: null,
   setDetectedConfig: (config) => set({ detectedConfig: config }),
-  generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
+  generationProgress: { phase: 'idle', phaseLabel: '', progress: 0 },
   setGenerationProgress: (progress) => set({ generationProgress: progress }),
   previewGenerated: false,
   setPreviewGenerated: (generated) => set({ previewGenerated: generated }),
 
   // Feature workspace isolation
   activeFeatureWorkspace: null,
-  checkerWorkspace: createEmptyWorkspace('import', 'import'),
-  previewWorkspace: createEmptyWorkspace('import', 'import'),
+  previewWorkspace: createEmptyWorkspace('import'),
   activateFeatureWorkspace: (feature) =>
     set((state) => {
-      if (state.activeFeatureWorkspace === feature) return {};
+      if (state.activeFeatureWorkspace === feature) return {}
 
-      const currentSnapshot = snapshotWorkspace(state);
-      const target = feature === 'checker' ? state.checkerWorkspace : state.previewWorkspace;
+      const currentSnapshot = snapshotWorkspace(state)
+      const target = state.previewWorkspace
       const updates: Partial<AppStore> = {
         activeFeatureWorkspace: feature,
         bookConfig: target.bookConfig,
@@ -469,17 +489,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
         detectedConfig: target.detectedConfig,
         generationProgress: target.generationProgress,
         previewGenerated: target.previewGenerated,
-        checkerStep: target.checkerStep,
         previewFlowStep: target.previewFlowStep,
-      };
-
-      if (state.activeFeatureWorkspace === 'checker') {
-        updates.checkerWorkspace = currentSnapshot;
-      } else if (state.activeFeatureWorkspace === 'preview') {
-        updates.previewWorkspace = currentSnapshot;
       }
 
-      return updates;
+      if (state.activeFeatureWorkspace === 'preview') {
+        updates.previewWorkspace = currentSnapshot
+      }
+
+      return updates
     }),
 
   // Reset
@@ -495,7 +512,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
       manuscriptTextures: [],
       isProcessing: false,
       processingMessage: '',
-      checkerStep: 'import',
       bookType: 'paperback',
       previewViewMode: loadViewMode(),
       currentPage: 0,
@@ -520,10 +536,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
       previewFlowStep: 'import',
       cameraPreset: 'free',
       detectedConfig: null,
-      generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
+      generationProgress: { phase: 'idle', phaseLabel: '', progress: 0 },
       previewGenerated: false,
       activeFeatureWorkspace: null,
-      checkerWorkspace: createEmptyWorkspace('import', 'import'),
-      previewWorkspace: createEmptyWorkspace('import', 'import'),
+      previewWorkspace: createEmptyWorkspace('import'),
     }),
-}));
+}))

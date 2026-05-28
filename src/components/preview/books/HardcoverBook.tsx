@@ -12,6 +12,7 @@ interface HardcoverBookProps {
   currentPage: number;
   bookPose: Preview3DState['bookPose'];
   flipProgress: number;
+  isFlipping: boolean;
   isFlippingForward: boolean;
   pageTextures: Map<number, THREE.Texture | null>;
   coverTextures: CoverTextures;

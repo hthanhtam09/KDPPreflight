@@ -19,7 +19,7 @@ export default function BlogError({
       context={{ boundary: 'route', route: '/blog' }}
       secondaryActions={[
         { label: 'Browse Guides', href: '/blog' },
-        { label: 'Open KDP Checker', href: '/checker' },
+        { label: 'KDP Preflight', href: '/preflight' },
       ]}
     />
   );
