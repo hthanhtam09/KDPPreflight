@@ -46,7 +46,7 @@ type ErrorStateProps = {
 };
 
 const quickLinks = [
-  { href: '/checker', label: 'Checker' },
+  { href: '/preflight', label: 'Preflight' },
   { href: '/preview', label: 'Preview' },
   { href: '/blog', label: 'Blog' },
   { href: '/tools/kdp-trim-size-calculator', label: 'Trim Size Guide' },

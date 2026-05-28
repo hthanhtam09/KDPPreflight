@@ -39,11 +39,11 @@ export default function PreviewWorkspace({ onCoverSegments }: Props) {
   const zoomIn = useCallback(() => setZoom((value) => Math.min(1.28, Number((value + 0.08).toFixed(2)))), []);
 
   return (
-    <div className="grid min-h-0 gap-4 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[360px_minmax(0,1fr)] lg:gap-6">
+    <div className="grid h-full min-h-0 gap-4 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[360px_minmax(0,1fr)] lg:gap-6 px-1 pb-4">
 
       {/* ─── Left: Config panel (desktop/tablet) ─── */}
-      <aside className="hidden md:block">
-        <div className="sticky top-4 max-h-[calc(100svh-var(--nav-height)-112px)] overflow-hidden rounded-panel border border-border bg-surface shadow-card">
+      <aside className="hidden md:block h-full min-h-0 overflow-hidden">
+        <div className="h-full overflow-hidden rounded-panel border border-border bg-surface shadow-card">
           <PreviewConfigPanel
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
@@ -53,7 +53,7 @@ export default function PreviewWorkspace({ onCoverSegments }: Props) {
       </aside>
 
       {/* ─── Right: Live preview area ─── */}
-      <div className="min-w-0">
+      <div className="flex h-full min-h-0 flex-col min-w-0">
 
         {/* Mobile: preview-first controls */}
         <div className="mb-3 flex items-center justify-between md:hidden">
@@ -95,7 +95,7 @@ export default function PreviewWorkspace({ onCoverSegments }: Props) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="min-h-[560px] rounded-panel border border-border bg-surface shadow-card"
+                className="flex-1 h-full min-h-0 flex flex-col rounded-panel border border-border bg-surface shadow-card"
               >
                 <GenerateStep onCoverSegments={onCoverSegments} />
               </m.div>
@@ -106,6 +106,7 @@ export default function PreviewWorkspace({ onCoverSegments }: Props) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
+                className="flex-1 h-full min-h-0 flex flex-col overflow-hidden"
               >
                 <LiveCoverLayout
                   isKindle={isKindle}
@@ -169,11 +170,11 @@ const LiveCoverLayout = memo(function LiveCoverLayout({
   const { measurements, previewGenerated } = useAppStore();
 
   return (
-    <section className="overflow-hidden rounded-panel border border-border bg-surface shadow-card">
-      <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-panel border border-border bg-surface shadow-card">
+      <div className="shrink-0 flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div>
           <p className="text-sm font-semibold text-foreground">Live cover layout</p>
-          <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
+          <p className="mt-0.5 max-w-2xl text-[11px] text-muted-foreground">
             Updates instantly. Generate when you are ready for the final 3D preview.
           </p>
         </div>
@@ -202,13 +203,13 @@ const LiveCoverLayout = memo(function LiveCoverLayout({
       </div>
 
       {isDirty && previewGenerated && (
-        <div className="border-b border-warning/20 bg-warning/8 px-4 py-2 text-[11px] font-medium text-warning sm:px-5">
+        <div className="shrink-0 border-b border-warning/20 bg-warning/8 px-4 py-1.5 text-[11px] font-medium text-warning sm:px-5">
           Settings changed — regenerate 3D preview.
         </div>
       )}
 
-      <div className="bg-[linear-gradient(to_right,color-mix(in_srgb,var(--border)_58%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_srgb,var(--border)_58%,transparent)_1px,transparent_1px)] bg-[size:24px_24px] p-3 sm:p-5">
-        <div className="grid min-h-[360px] place-items-center overflow-hidden rounded-2xl border border-border bg-background/70 p-3 sm:min-h-[min(62svh,620px)] sm:p-5">
+      <div className="flex-1 min-h-0 flex flex-col bg-[linear-gradient(to_right,color-mix(in_srgb,var(--border)_58%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_srgb,var(--border)_58%,transparent)_1px,transparent_1px)] bg-[size:24px_24px] p-3 sm:p-5">
+        <div className="flex-1 min-h-0 grid place-items-center overflow-hidden rounded-2xl border border-border bg-background/70 p-3">
           <div
             className="flex w-full origin-center items-center justify-center will-change-transform"
             style={{ transform: `scale(${zoom})` }}
@@ -232,7 +233,7 @@ const LiveCoverLayout = memo(function LiveCoverLayout({
         </div>
 
         {!isKindle && (
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="mt-3 shrink-0 grid grid-cols-2 gap-2 sm:grid-cols-5">
             <LegendItem label="Trim" className="border-primary/60" />
             <LegendItem label="Bleed" className="border-danger/60 bg-danger/10" />
             <LegendItem label="Safe area" className="border-success/60 border-dashed" />
@@ -242,9 +243,9 @@ const LiveCoverLayout = memo(function LiveCoverLayout({
         )}
       </div>
 
-      <div className="flex items-start gap-2 border-t border-border bg-surface/70 px-4 py-3 sm:px-5">
+      <div className="shrink-0 flex items-start gap-2 border-t border-border bg-surface/70 px-4 py-2.5 sm:px-5">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <p className="text-xs leading-5 text-muted-foreground">
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
           Keep cover text out of the barcode, hinge, and safe-margin zones.
         </p>
       </div>

@@ -17,7 +17,7 @@ export function GET() {
 
   const entries: SitemapEntry[] = [
     { url: SITE_URL, lastModified: now, changeFrequency: 'weekly', priority: 1 },
-    { url: `${SITE_URL}/checker`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${SITE_URL}/preflight`, lastModified: now, changeFrequency: 'weekly', priority: 0.95 },
     { url: `${SITE_URL}/setup`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${SITE_URL}/preview`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },

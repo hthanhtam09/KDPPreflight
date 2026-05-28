@@ -81,7 +81,7 @@
   --duration-base: 220ms;
   --duration-panel: 320ms;
   --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
-  --nav-height: 72px;
+  --nav-height: 56px;
   --app-header-height: var(--nav-height);
   --app-header-height-mobile: var(--nav-height);
   --app-current-header-height: var(--nav-height);
@@ -303,6 +303,7 @@
 .ds-button-primary,
 .ds-button-secondary,
 a, button, [role="button"] {
+  cursor: pointer;
   transition:
     background-color var(--duration-base) var(--ease-premium),
     border-color var(--duration-base) var(--ease-premium),
@@ -625,7 +626,7 @@ a, button, [role="button"] {
 
 @media (min-width: 1024px) {
   :root {
-    --nav-height: 72px;
+    --nav-height: 56px;
   }
 }
 

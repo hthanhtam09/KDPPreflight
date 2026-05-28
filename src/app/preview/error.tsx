@@ -18,7 +18,7 @@ export default function PreviewError({
       reset={reset}
       context={{ boundary: 'route', route: '/preview' }}
       secondaryActions={[
-        { label: 'Open KDP Checker', href: '/checker' },
+        { label: 'KDP Preflight', href: '/preflight' },
         { label: 'Browse Guides', href: '/blog' },
       ]}
     />

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import {
   AppView, BookConfig, CalculatedMeasurements, UploadedFile,
-  ValidationReport, PageTexture, BookType, CheckerStep,
+  ValidationReport, PageTexture, BookType,
   PreviewViewMode, OverlayType, PageAnalysis, PageIssue,
   BookPage, PreviewAssetCache, ProcessingStatus, PageIssueExtended,
   IssueFilter, SpreadModel, ValidationSummary, CheckStatus,
@@ -11,7 +11,7 @@ import { DEFAULT_BOOK_CONFIG, calculateMeasurements } from '@/engine/kdp-constan
 import type { PDFAnalysisResult } from '@/engine/validator';
 import type { SaveStatus } from '@/lib/persistence';
 
-type FeatureWorkspaceName = 'checker' | 'preview';
+type FeatureWorkspaceName = 'preview';
 
 interface FeatureWorkspaceState {
   bookConfig: BookConfig;
@@ -38,7 +38,6 @@ interface FeatureWorkspaceState {
   detectedConfig: DetectedConfig | null;
   generationProgress: GenerationProgress;
   previewGenerated: boolean;
-  checkerStep: CheckerStep;
   previewFlowStep: PreviewFlowStep;
 }
 
@@ -74,9 +73,6 @@ interface AppStore {
   processingMessage: string;
   setProcessing: (isProcessing: boolean, message?: string) => void;
 
-  // Checker workflow
-  checkerStep: CheckerStep;
-  setCheckerStep: (step: CheckerStep) => void;
   bookType: BookType;
   setBookType: (type: BookType) => void;
 
@@ -175,7 +171,6 @@ interface AppStore {
 
   // Feature workspace isolation
   activeFeatureWorkspace: FeatureWorkspaceName | null;
-  checkerWorkspace: FeatureWorkspaceState;
   previewWorkspace: FeatureWorkspaceState;
   activateFeatureWorkspace: (feature: FeatureWorkspaceName) => void;
 
@@ -187,7 +182,6 @@ const initialConfig: BookConfig = { ...DEFAULT_BOOK_CONFIG, bookType: 'paperback
 const initialMeasurements = calculateMeasurements(initialConfig);
 
 function createEmptyWorkspace(
-  checkerStep: CheckerStep = 'import',
   previewFlowStep: PreviewFlowStep = 'import',
 ): FeatureWorkspaceState {
   return {
@@ -215,7 +209,6 @@ function createEmptyWorkspace(
     detectedConfig: null,
     generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
     previewGenerated: false,
-    checkerStep,
     previewFlowStep,
   };
 }
@@ -246,7 +239,6 @@ function snapshotWorkspace(state: AppStore): FeatureWorkspaceState {
     detectedConfig: state.detectedConfig,
     generationProgress: state.generationProgress,
     previewGenerated: state.previewGenerated,
-    checkerStep: state.checkerStep,
     previewFlowStep: state.previewFlowStep,
   };
 }
@@ -310,9 +302,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
   processingMessage: '',
   setProcessing: (isProcessing, message = '') => set({ isProcessing, processingMessage: message }),
 
-  // Checker workflow
-  checkerStep: 'import',
-  setCheckerStep: (step) => set({ checkerStep: step }),
   bookType: 'paperback',
   setBookType: (type) => set({ bookType: type }),
 
@@ -435,14 +424,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   // Feature workspace isolation
   activeFeatureWorkspace: null,
-  checkerWorkspace: createEmptyWorkspace('import', 'import'),
-  previewWorkspace: createEmptyWorkspace('import', 'import'),
+  previewWorkspace: createEmptyWorkspace('import'),
   activateFeatureWorkspace: (feature) =>
     set((state) => {
       if (state.activeFeatureWorkspace === feature) return {};
 
       const currentSnapshot = snapshotWorkspace(state);
-      const target = feature === 'checker' ? state.checkerWorkspace : state.previewWorkspace;
+      const target = state.previewWorkspace;
       const updates: Partial<AppStore> = {
         activeFeatureWorkspace: feature,
         bookConfig: target.bookConfig,
@@ -469,13 +457,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
         detectedConfig: target.detectedConfig,
         generationProgress: target.generationProgress,
         previewGenerated: target.previewGenerated,
-        checkerStep: target.checkerStep,
         previewFlowStep: target.previewFlowStep,
       };
 
-      if (state.activeFeatureWorkspace === 'checker') {
-        updates.checkerWorkspace = currentSnapshot;
-      } else if (state.activeFeatureWorkspace === 'preview') {
+      if (state.activeFeatureWorkspace === 'preview') {
         updates.previewWorkspace = currentSnapshot;
       }
 
@@ -495,7 +480,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
       manuscriptTextures: [],
       isProcessing: false,
       processingMessage: '',
-      checkerStep: 'import',
       bookType: 'paperback',
       previewViewMode: loadViewMode(),
       currentPage: 0,
@@ -523,7 +507,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
       generationProgress: { phase: 'idle', phaseLabel: '', phaseIcon: '', progress: 0 },
       previewGenerated: false,
       activeFeatureWorkspace: null,
-      checkerWorkspace: createEmptyWorkspace('import', 'import'),
-      previewWorkspace: createEmptyWorkspace('import', 'import'),
+      previewWorkspace: createEmptyWorkspace('import'),
     }),
 }));

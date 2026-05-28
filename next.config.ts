@@ -73,6 +73,7 @@ const nextConfig: NextConfig = {
   // Remove sitemap.xml from public — Next.js now generates it via app/sitemap.ts
   async redirects() {
     return [
+      { source: '/kdp-ready', destination: '/preflight', statusCode: 301 },
       { source: '/kdp-bleed-checker', destination: '/tools/kdp-bleed-checker', statusCode: 301 },
       { source: '/kdp-cover-validator', destination: '/tools/kdp-cover-validator', statusCode: 301 },
       { source: '/kdp-spine-width-calculator', destination: '/tools/kdp-spine-width-calculator', statusCode: 301 },

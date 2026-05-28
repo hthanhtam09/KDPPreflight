@@ -50,9 +50,7 @@ function rrect(
   r: number,
 ) {
   // Use native roundRect when available (Chrome 99+, FF 112+, Safari 15.4+)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (typeof (ctx as any).roundRect === 'function') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ctx as any).roundRect(x, y, w, h, r);
     return;
   }

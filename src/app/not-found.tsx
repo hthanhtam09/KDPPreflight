@@ -23,7 +23,7 @@ export default function NotFound() {
       description="The page you’re looking for may have been moved, deleted, or never existed."
       primaryAction={{ label: 'Back to Home', href: '/' }}
       secondaryActions={[
-        { label: 'Open KDP Checker', href: '/checker' },
+        { label: 'KDP Preflight', href: '/preflight' },
         { label: 'Browse Guides', href: '/blog' },
       ]}
       showSearch

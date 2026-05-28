@@ -304,16 +304,16 @@ export default function PreviewFeature() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex-1 min-h-0 overflow-y-auto px-4 pb-6"
+              className="flex-1 min-h-0 flex flex-col overflow-hidden pb-4"
             >
-              <div className="mx-auto w-full max-w-7xl">
+              <div className="mx-auto w-full max-w-7xl shrink-0 pb-3">
                 <CompactPreviewStepper
                   steps={STEPS}
                   current={previewFlowStep}
                   onStepClick={handleStepClick}
                 />
               </div>
-              <div className="mx-auto mt-4 w-full max-w-7xl">
+              <div className="mx-auto w-full max-w-7xl flex-1 min-h-0 overflow-hidden">
                 <PreviewWorkspace onCoverSegments={setCoverSegments} />
               </div>
             </m.div>

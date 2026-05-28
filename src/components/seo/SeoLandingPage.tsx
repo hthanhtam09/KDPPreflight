@@ -212,7 +212,7 @@ export function SeoLandingPage({
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/checker"
+              href="/preflight"
               className="ds-button-primary inline-flex min-h-12 items-center gap-2.5 rounded-xl px-6 text-sm font-bold transition hover:-translate-y-px active:translate-y-px"
             >
               <FileCheck2 className="h-4 w-4" />

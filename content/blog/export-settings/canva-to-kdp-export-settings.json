@@ -183,7 +183,7 @@
     "Canva can export files that look visually correct while still being technically wrong for KDP. The canvas may be the wrong size. The template image may be stretched. The file may be exported as Standard PDF. Bleed may be visible in Canva but missing in the final PDF. Transparent effects may rasterize. Oversized PNGs may create giant files that slow down KDP processing.",
     "This is why “looks fine on screen” is not enough. A screen preview shows appearance. KDP evaluates production details: page size, bleed, image quality, spine width, margins, and PDF processing behavior.",
     "The official [Amazon KDP paperback cover requirements](https://kdp.amazon.com/en_US/help/topic/G201953020) say a print cover must be one PDF file containing back cover, spine, and front cover, and that images should be flattened and at least 300 DPI. KDP's [paperback submission guidelines](https://kdp.amazon.com/en_US/help/topic/G201857950) also emphasize PDF setup and 300 DPI images for print. Canva's own documentation explains that PDF Print is intended for printing and higher quality than PDF Standard.",
-    "The core lesson: Canva can make KDP-ready files, but only when the design is built at the right size and exported as a print production file.",
+    "The core lesson: Canva can make print-ready files, but only when the design is built at the right size and exported as a print production file.",
     "## The Most Common Canva-to-KDP Export Mistakes",
     "Most Canva KDP upload issues come from a handful of repeated mistakes. Fix these first before redesigning the whole book.",
     "### Exporting as “Standard PDF” Instead of “PDF Print”",

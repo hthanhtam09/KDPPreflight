@@ -56,11 +56,7 @@ export type KdpRiskLevel =
   | 'print-risk'        // 🟠 May cause print inconsistencies
   | 'high-rejection';   // 🔴 High rejection risk
 
-// Book type for the checker workflow
 export type BookType = 'kindle' | 'paperback' | 'hardcover';
-
-// Checker workflow steps
-export type CheckerStep = 'import' | 'config' | 'preview';
 
 // Preview view modes
 export type PreviewViewMode = 'single' | 'spread';
@@ -203,7 +199,7 @@ export interface PageTexture {
   height: number;
 }
 
-export type AppView = 'landing' | 'setup' | 'checker' | 'preview';
+export type AppView = 'landing' | 'setup' | 'preview';
 
 export interface AppState {
   view: AppView;
