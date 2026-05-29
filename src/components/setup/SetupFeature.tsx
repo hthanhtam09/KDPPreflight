@@ -239,14 +239,14 @@ export default function SetupFeature() {
   }, [])
 
   return (
-    <div className="app-grid-safe grid w-full gap-6 text-foreground lg:grid-cols-[380px_minmax(0,1fr)]">
+    <div className="app-grid-safe grid h-full min-h-0 w-full gap-4 overflow-hidden text-foreground lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]">
       {/* Left: Guided Setup Specs Form */}
-      <section className="app-card min-w-0 p-5 lg:sticky lg:top-4 lg:self-start">
-        <div className="mb-5">
+      <section className="app-card min-h-0 min-w-0 overflow-y-auto p-4">
+        <div className="mb-3">
           <h2 className="text-base font-bold text-foreground">Book Settings</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Select the specs you plan to use in KDP.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Select the specs you plan to use in KDP.</p>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {/* Step 1: Book Format */}
           <StepCard step={1} label="Book format" help="KDP rules change by format.">
             <div className="grid grid-cols-3 gap-2">
@@ -272,12 +272,12 @@ export default function SetupFeature() {
           </StepCard>
 
           {isKindle ? (
-            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
               <div className="flex gap-2">
                 <Monitor className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
                   <p className="text-xs font-bold text-foreground">Kindle format selected</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
                     Kindle covers are images (1600 × 2560 px recommended). Print specs, trim sizes, and margins do not
                     apply to e-readers.
                   </p>
@@ -410,12 +410,12 @@ export default function SetupFeature() {
       </section>
 
       {/* Main: Required Output + Cover Diagram (Scrolls Internally) */}
-      <section className="min-w-0 space-y-4">
+      <section className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
         {/* Tab switcher */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-bold text-foreground">Output & KDP Requirements</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Use this size when exporting your final file.</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Use this size when exporting your final file.</p>
           </div>
           <div className="flex gap-1 rounded-xl border border-border/50 bg-muted/45 p-1">
             <button
@@ -443,18 +443,18 @@ export default function SetupFeature() {
 
         {/* Content switch */}
         {activeTab === 'requirements' ? (
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(300px,0.85fr)]">
+          <div className="grid min-h-0 flex-1 gap-3 overflow-hidden xl:grid-cols-[minmax(0,1.15fr)_minmax(300px,0.85fr)]">
             {/* Required Manuscript PDF Export Size */}
-            <div className="app-card border-primary/20 bg-primary/4 p-5 shadow-elevated">
+            <div className={`app-card border-primary/20 bg-primary/4 p-4 shadow-elevated ${isKindle ? 'xl:col-span-2' : ''}`}>
               {isKindle ? (
                 <>
                   <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">
                     Required output
                   </span>
-                  <h3 className="mt-2 text-2xl font-extrabold tracking-tight text-foreground">
+                  <h3 className="mt-1.5 text-xl font-extrabold tracking-tight text-foreground">
                     Kindle format selected
                   </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                     Kindle format selected. Print trim, spine, bleed, and gutter rules do not apply.
                   </p>
                 </>
@@ -464,7 +464,7 @@ export default function SetupFeature() {
                     Required manuscript PDF size
                   </span>
                   <div className="mt-1.5 flex items-baseline gap-2.5 flex-wrap">
-                    <span className="font-mono text-3xl font-extrabold leading-none text-foreground sm:text-4xl">
+                    <span className="font-mono text-2xl font-extrabold leading-none text-foreground sm:text-3xl">
                       {expectedManuscriptSize.widthIn.toFixed(3)} × {expectedManuscriptSize.heightIn.toFixed(3)} in
                     </span>
                     {expectedManuscriptSize.includesBleed ? (
@@ -477,7 +477,7 @@ export default function SetupFeature() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                     Export your PDF at exactly this size.
                     {expectedManuscriptSize.includesBleed
                       ? ` Includes bleed for ${TRIM_SIZES[bookConfig.trimSize]?.label} trim.`
@@ -496,16 +496,16 @@ export default function SetupFeature() {
 
             {/* Click to Copy Specs Cards */}
             {!isKindle && (
-              <div className="app-card p-5">
-                <div className="mb-4">
+              <div className="app-card p-4">
+                <div className="mb-3">
                   <h3 className="text-base font-bold text-foreground">KDP Compatibility</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {kdpValidation?.ok ? 'Setup compatible' : 'Review the items below before export.'}
                   </p>
                 </div>
                 {kdpValidation && <SetupValidationPanel validation={kdpValidation} />}
                 {marginReqs && (
-                  <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl border border-border bg-muted/25 p-3">
+                  <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted/25 p-2.5">
                     <div>
                       <p className="text-[11px] font-semibold text-muted-foreground">Margin / gutter</p>
                       <p className="mt-1 font-mono text-sm font-bold text-foreground">{marginReqs.insideIn}" inside</p>
@@ -522,14 +522,14 @@ export default function SetupFeature() {
             )}
 
             {!isKindle && (
-              <div className="app-card p-5 xl:col-span-2">
-                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">Export summary</p>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="app-card p-4 xl:col-span-2">
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Export summary</p>
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   {specs.map((item) => (
                     <button
                       key={item.key}
                       onClick={() => handleCopy(item.key, item.value)}
-                      className="ds-focus group w-full rounded-2xl border border-border bg-surface p-3 text-left transition-colors hover:border-primary/30"
+                      className="ds-focus group w-full rounded-xl border border-border bg-surface p-2.5 text-left transition-colors hover:border-primary/30"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -537,7 +537,7 @@ export default function SetupFeature() {
                           <p className="mt-1 break-words font-mono text-sm font-extrabold leading-tight text-foreground">
                             {item.value}
                           </p>
-                          <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground/80">{item.note}</p>
+                          <p className="mt-1 text-[10px] leading-snug text-muted-foreground/80">{item.note}</p>
                         </div>
                         {copied === item.key ? (
                           <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
@@ -554,7 +554,7 @@ export default function SetupFeature() {
             {/* Page Count Warning Box */}
             {!isKindle && (
               <div
-                className={`rounded-2xl border p-4 shadow-soft xl:col-span-2 ${pageWarning ? 'border-warning/30 bg-warning/10' : 'border-success/25 bg-success/10'}`}
+                className={`rounded-xl border p-3 shadow-soft ${pageWarning ? 'border-warning/30 bg-warning/10' : 'border-success/25 bg-success/10'}`}
               >
                 <div className="flex gap-3">
                   {pageWarning ? (
@@ -566,7 +566,7 @@ export default function SetupFeature() {
                     <p className="text-xs font-bold text-foreground">
                       {pageWarning ? 'Review spine spacing' : 'Page range check passed'}
                     </p>
-                    <p className="mt-1 text-xs leading-normal text-muted-foreground">
+                    <p className="mt-0.5 text-xs leading-normal text-muted-foreground">
                       {helperForPageCount(bookType, bookConfig.pageCount, measurements.spineWidthIn)}
                     </p>
                   </div>
@@ -576,12 +576,12 @@ export default function SetupFeature() {
 
             {/* Collapsible Margin requirements */}
             {!isKindle && marginReqs && (
-              <details className="group rounded-2xl border border-border bg-surface/50 p-4 shadow-soft transition hover:bg-surface xl:col-span-2">
+              <details className="group rounded-xl border border-border bg-surface/50 p-3 shadow-soft transition hover:bg-surface">
                 <summary className="flex cursor-pointer items-center justify-between text-xs font-bold text-foreground outline-none">
                   <span>View KDP Gutter & Page Margin Minimums</span>
                   <span className="text-primary transition-transform group-open:rotate-180">▼</span>
                 </summary>
-                <div className="mt-3 text-xs text-muted-foreground space-y-2 border-t border-border/40 pt-3">
+                <div className="mt-2 space-y-2 border-t border-border/40 pt-2 text-xs text-muted-foreground">
                   <p>KDP required minimum boundary margins for {bookConfig.pageCount} pages:</p>
                   <div className="grid grid-cols-2 gap-3 bg-muted/20 p-2.5 rounded-lg border border-border/40">
                     <div>
@@ -605,7 +605,7 @@ export default function SetupFeature() {
 
             {/* Quick design guidelines */}
             {!isKindle && (
-              <div className="rounded-2xl border border-border bg-surface p-4 shadow-soft xl:col-span-2">
+              <div className="rounded-xl border border-border bg-surface p-3 shadow-soft xl:col-span-2">
                 <div className="flex gap-3">
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <p className="text-xs leading-normal text-muted-foreground">
@@ -617,7 +617,7 @@ export default function SetupFeature() {
             )}
           </div>
         ) : (
-          <div className="app-card p-5">
+          <div className="app-card min-h-0 flex-1 overflow-hidden p-4">
             {/* Live KDP Preview Card */}
             <div>
               <div className="mb-4 flex items-center gap-3">
@@ -743,14 +743,14 @@ function ValidationIssueCard({ issue }: { issue: KdpIssue }) {
 
 function StepCard({ step, label, help, children }: { step: number; label: string; help: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
-      <div className="mb-3 flex items-center gap-2.5">
-        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+    <div className="rounded-xl border border-border bg-surface p-3">
+      <div className="mb-2.5 flex items-center gap-2">
+        <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
           {step}
         </span>
         <div>
-          <p className="text-sm font-semibold text-foreground">{label}</p>
-          <p className="text-[11px] text-muted-foreground">{help}</p>
+          <p className="text-xs font-semibold text-foreground">{label}</p>
+          <p className="text-[10px] text-muted-foreground">{help}</p>
         </div>
       </div>
       {children}

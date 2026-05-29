@@ -8,6 +8,7 @@ export default function SetupPage() {
       activeStep="setup"
       title="KDP Book Setup Tool"
       subtitle="Choose your print specs and calculate the required KDP export size."
+      lockScroll
       primaryAction={{
         label: 'Continue to Preview',
         href: '/preview',
