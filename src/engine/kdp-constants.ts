@@ -41,7 +41,7 @@ export const TRIM_SIZES: Record<TrimSizeKey, TrimSize> = {
 export const SPINE_WIDTH_FACTORS: Record<PaperType, number> = {
   'white': 0.002252,     // ~0.002252 in/page for white paper
   'cream': 0.0025,       // ~0.0025 in/page for cream paper
-  'premium-color': 0.0025, // ~0.0025 in/page for premium color
+  'premium-color': 0.002347, // ~0.002347 in/page for color interiors
 };
 
 

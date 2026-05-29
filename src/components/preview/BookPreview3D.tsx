@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useCallback, useRef, Suspense, useMemo, useEffect } from 'react';
-import type { MutableRefObject, RefObject } from 'react';
+import type { MutableRefObject, ReactNode, RefObject } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, AdaptiveDpr, AdaptiveEvents, PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppStore } from '@/store/use-app-store';
 import { BookType, CameraPreset } from '@/types/kdp';
-import { CoverSegments } from '@/engine/cover-parser';
+import type { InteriorType } from '@/types/kdp';
+import { CoverSegments, sliceCoverTextures } from '@/engine/cover-parser';
 import { calculateMeasurements, DEFAULT_BOOK_CONFIG } from '@/engine/kdp-constants';
 import PaperbackBook from './books/PaperbackBook';
 import HardcoverBook from './books/HardcoverBook';
@@ -128,6 +129,53 @@ class TextureCache {
 }
 
 const globalTextureCache = new TextureCache();
+const interiorTextureCache = new Map<string, THREE.Texture>();
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+async function loadInteriorTexture(dataUrl: string, interior: InteriorType): Promise<THREE.Texture> {
+  if (interior !== 'black-white') {
+    return globalTextureCache.load(dataUrl);
+  }
+
+  const cacheKey = `bw:${dataUrl}`;
+  const existing = interiorTextureCache.get(cacheKey);
+  if (existing) return existing;
+
+  const img = await loadImage(dataUrl);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return globalTextureCache.load(dataUrl);
+
+  ctx.drawImage(img, 0, 0);
+  const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = image.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = Math.round(data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+    data[i] = gray;
+    data[i + 1] = gray;
+    data[i + 2] = gray;
+  }
+  ctx.putImageData(image, 0, 0);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = true;
+  tex.needsUpdate = true;
+  interiorTextureCache.set(cacheKey, tex);
+  return tex;
+}
 
 // ---------------------------------------------------------------------------
 // Camera preset positions
@@ -170,6 +218,12 @@ function CameraPresetAnimator({
   // When preset changes (and it's not 'free'), start animation
   useEffect(() => {
     if (cameraPreset === 'free' || cameraPreset === prevPreset.current) return;
+    if (cameraPreset !== 'page-detail') {
+      animRef.current = null;
+      prevPreset.current = cameraPreset;
+      onAnimDone();
+      return;
+    }
     const preset = CAMERA_PRESETS[cameraPreset];
     if (!preset) return;
 
@@ -211,6 +265,37 @@ function CameraPresetAnimator({
   return null;
 }
 
+function BookOrientationGroup({
+  cameraPreset,
+  bookPose,
+  lockBackCoverOrientation,
+  children,
+}: {
+  cameraPreset: CameraPreset;
+  bookPose: BookPose;
+  lockBackCoverOrientation: boolean;
+  children: ReactNode;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const targetRotationY =
+    bookPose === 'closedBack' || lockBackCoverOrientation
+      ? 0
+      : cameraPreset === 'back'
+      ? Math.PI
+      : cameraPreset === 'spine'
+        ? Math.PI / 2
+        : 0;
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    const current = groupRef.current.rotation.y;
+    const diff = Math.atan2(Math.sin(targetRotationY - current), Math.cos(targetRotationY - current));
+    groupRef.current.rotation.y = current + diff * Math.min(delta * 3.8, 1);
+  });
+
+  return <group ref={groupRef}>{children}</group>;
+}
+
 // ---------------------------------------------------------------------------
 // Scene Content — Renders the appropriate book model
 // ---------------------------------------------------------------------------
@@ -235,6 +320,14 @@ function SceneContent({
   const trimWidth = safeVec(measurements.trimWidthIn * scale, 1.8);
   const trimHeight = safeVec(measurements.trimHeightIn * scale, 2.7);
   const spineWidth = safeVec(measurements.spineWidthIn * scale, 0.05);
+  const lastSpread = bookConfig.pageCount <= 1 ? 1 : bookConfig.pageCount % 2 === 0 ? bookConfig.pageCount : bookConfig.pageCount - 1;
+  const isOpeningBackCoverFromClosed =
+    state.bookPose === 'open' &&
+    state.isFlipping &&
+    state.flipDirection === 'backward' &&
+    state.cameraPreset === 'back' &&
+    state.targetPage === state.currentPage &&
+    state.currentPage >= lastSpread;
 
   return (
     <>
@@ -262,51 +355,61 @@ function SceneContent({
       />
 
       {/* Book Model */}
-      {state.bookType === 'kindle' ? (
-        <KindleDevice
-          currentPage={state.currentPage}
-          totalPages={bookConfig.pageCount}
-          pageTextures={pageTextures}
-          deviceType={state.kindleDevice}
-          darkMode={state.darkMode}
-        />
-      ) : state.bookType === 'hardcover' ? (
-        <HardcoverBook
-          trimWidth={trimWidth}
-          trimHeight={trimHeight}
-          spineWidth={spineWidth}
-          pageCount={bookConfig.pageCount}
-          currentPage={state.currentPage}
-          bookPose={state.bookPose}
-          flipProgress={state.flipProgress}
-          isFlipping={state.isFlipping}
-          isFlippingForward={state.flipDirection === 'forward'}
-          pageTextures={pageTextures}
-          coverTextures={coverTextures}
-          coverFinish={bookConfig.coverFinish}
-          bleedEnabled={bookConfig.bleed === 'bleed'}
-          overlays={overlays}
-          safeInset={safeVec(bookConfig.bleed === 'bleed' ? measurements.safeAreaIn * scale : measurements.safeAreaIn * scale, 0.08)}
-        />
-      ) : (
-        <PaperbackBook
-          trimWidth={trimWidth}
-          trimHeight={trimHeight}
-          spineWidth={spineWidth}
-          pageCount={bookConfig.pageCount}
-          currentPage={state.currentPage}
-          bookPose={state.bookPose}
-          flipProgress={state.flipProgress}
-          isFlipping={state.isFlipping}
-          isFlippingForward={state.flipDirection === 'forward'}
-          pageTextures={pageTextures}
-          coverTextures={coverTextures}
-          coverFinish={bookConfig.coverFinish}
-          bleedEnabled={bookConfig.bleed === 'bleed'}
-          overlays={overlays}
-          safeInset={safeVec(measurements.safeAreaIn * scale, 0.08)}
-        />
-      )}
+      <BookOrientationGroup
+        cameraPreset={state.cameraPreset}
+        bookPose={state.bookPose}
+        lockBackCoverOrientation={isOpeningBackCoverFromClosed}
+      >
+        {state.bookType === 'kindle' ? (
+          <KindleDevice
+            currentPage={state.currentPage}
+            totalPages={bookConfig.pageCount}
+            pageTextures={pageTextures}
+            deviceType={state.kindleDevice}
+            darkMode={state.darkMode}
+          />
+        ) : state.bookType === 'hardcover' ? (
+          <HardcoverBook
+            trimWidth={trimWidth}
+            trimHeight={trimHeight}
+            spineWidth={spineWidth}
+            pageCount={bookConfig.pageCount}
+            currentPage={state.currentPage}
+            targetPage={state.targetPage}
+            bookPose={state.bookPose}
+            flipProgress={state.flipProgress}
+            isFlipping={state.isFlipping}
+            isFlippingForward={state.flipDirection === 'forward'}
+            pageTextures={pageTextures}
+            coverTextures={coverTextures}
+            coverFinish={bookConfig.coverFinish}
+            paperType={bookConfig.paper}
+            bleedEnabled={bookConfig.bleed === 'bleed'}
+            overlays={overlays}
+            safeInset={safeVec(bookConfig.bleed === 'bleed' ? measurements.safeAreaIn * scale : measurements.safeAreaIn * scale, 0.08)}
+          />
+        ) : (
+          <PaperbackBook
+            trimWidth={trimWidth}
+            trimHeight={trimHeight}
+            spineWidth={spineWidth}
+            pageCount={bookConfig.pageCount}
+            currentPage={state.currentPage}
+            targetPage={state.targetPage}
+            bookPose={state.bookPose}
+            flipProgress={state.flipProgress}
+            isFlipping={state.isFlipping}
+            isFlippingForward={state.flipDirection === 'forward'}
+            pageTextures={pageTextures}
+            coverTextures={coverTextures}
+            coverFinish={bookConfig.coverFinish}
+            paperType={bookConfig.paper}
+            bleedEnabled={bookConfig.bleed === 'bleed'}
+            overlays={overlays}
+            safeInset={safeVec(measurements.safeAreaIn * scale, 0.08)}
+          />
+        )}
+      </BookOrientationGroup>
 
       {/* Ground shadow */}
       <ContactShadows
@@ -414,7 +517,13 @@ export default function BookPreview3D({
 }: BookPreview3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const internalCaptureRef = useRef<((filename: string) => void) | null>(null);
-  const { pdfPageDataUrls, coverDataUrl } = useAppStore();
+  const { pdfPageDataUrls, coverDataUrl, bookConfig, measurements } = useAppStore();
+  const interior = bookConfig?.interior ?? DEFAULT_BOOK_CONFIG.interior;
+  const effectiveConfig = bookConfig ?? DEFAULT_BOOK_CONFIG;
+  const effectiveMeasurements = useMemo(
+    () => measurements ?? calculateMeasurements(effectiveConfig),
+    [effectiveConfig, measurements],
+  );
 
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -440,6 +549,16 @@ export default function BookPreview3D({
     spine: null,
   });
   const [pageTextures, setPageTextures] = useState<Map<number, THREE.Texture | null>>(new Map());
+  const pageTexturesRef = useRef(pageTextures);
+
+  useEffect(() => {
+    pageTexturesRef.current = pageTextures;
+  }, [pageTextures]);
+
+  useEffect(() => {
+    setPageTextures(new Map());
+    pageTexturesRef.current = new Map();
+  }, [interior]);
 
   const isFlippingRef = useRef(false);
 
@@ -457,7 +576,24 @@ export default function BookPreview3D({
         backUrl = coverSegments.backDataUrl;
         spineUrl = coverSegments.spineDataUrl;
       } else if (coverUrl || coverDataUrl) {
-        frontUrl = coverUrl || coverDataUrl;
+        const sourceUrl = coverUrl || coverDataUrl;
+        if (sourceUrl && effectiveConfig.bookType !== 'kindle') {
+          try {
+            const segments = await sliceCoverTextures(
+              sourceUrl,
+              effectiveMeasurements,
+              effectiveConfig.bookType === 'hardcover' ? 'hardcover' : 'paperback',
+            );
+            frontUrl = segments.frontDataUrl;
+            backUrl = segments.backDataUrl;
+            spineUrl = segments.spineDataUrl;
+          } catch (err) {
+            console.error('Error slicing fallback cover texture:', err);
+            frontUrl = sourceUrl;
+          }
+        } else {
+          frontUrl = sourceUrl;
+        }
       }
 
       if (!frontUrl) return;
@@ -479,55 +615,68 @@ export default function BookPreview3D({
 
     loadCoverTextures();
     return () => { cancelled = true; };
-  }, [coverSegments, coverUrl, coverDataUrl]);
+  }, [coverSegments, coverUrl, coverDataUrl, effectiveConfig.bookType, effectiveMeasurements]);
 
-  // ---- Stream page textures (current spread + neighbor spreads only) ----
+  // ---- Stream page textures.
+  // Priority pages are loaded first so a flip never reaches a blank back face.
   useEffect(() => {
     let cancelled = false;
 
     async function streamPages() {
       const currentPage = state.currentPage;
-      const range = 3;
-      const newTextures = new Map(pageTextures);
-
-      // Load nearby pages
-      const pagesToLoad: number[] = [];
-      for (let i = Math.max(0, currentPage - 1 - range); i <= currentPage - 1 + range; i++) {
-        if (pdfPageDataUrls.has(i) && !newTextures.has(i)) {
-          pagesToLoad.push(i);
+      const allIndices = Array.from(pdfPageDataUrls.keys()).sort((a, b) => a - b);
+      const priority = new Set<number>();
+      const addRange = (from: number, to: number) => {
+        for (let i = Math.max(0, from); i <= to; i += 1) {
+          if (pdfPageDataUrls.has(i)) priority.add(i);
         }
-      }
+      };
 
-      for (const pageIndex of pagesToLoad) {
-        if (cancelled) break;
+      // Current spread, previous spread, next two spreads. The extra forward
+      // spread covers the back face that appears near the end of a turn.
+      addRange(currentPage - 5, currentPage + 7);
+
+      const loadIndex = async (pageIndex: number) => {
+        if (cancelled) return;
+        if (pageTexturesRef.current.has(pageIndex)) return;
         const dataUrl = pdfPageDataUrls.get(pageIndex);
-        if (!dataUrl) continue;
+        if (!dataUrl) return;
         try {
-          const tex = await globalTextureCache.load(dataUrl);
+          const tex = await loadInteriorTexture(dataUrl, interior);
           if (!cancelled) {
-            newTextures.set(pageIndex, tex);
+            setPageTextures((prev) => {
+              if (prev.has(pageIndex)) return prev;
+              const next = new Map(prev);
+              next.set(pageIndex, tex);
+              pageTexturesRef.current = next;
+              return next;
+            });
           }
         } catch {
-          newTextures.set(pageIndex, null);
+          setPageTextures((prev) => {
+            if (prev.has(pageIndex)) return prev;
+            const next = new Map(prev);
+            next.set(pageIndex, null);
+            pageTexturesRef.current = next;
+            return next;
+          });
         }
-      }
+      };
 
-      // Evict distant pages (beyond ±20) — but DON'T dispose textures (cache manages them)
-      const evictionRange = 8;
-      for (const [key] of newTextures) {
-        if (Math.abs(key - (currentPage - 1)) > evictionRange) {
-          newTextures.delete(key);
-        }
-      }
+      await Promise.all(Array.from(priority).map(loadIndex));
 
-      if (!cancelled) {
-        setPageTextures(newTextures);
+      // Warm the rest in the background with low concurrency. Textures remain
+      // cached globally, but only loaded keys are retained in React state.
+      const rest = allIndices.filter((index) => !priority.has(index));
+      for (let i = 0; i < rest.length && !cancelled; i += 2) {
+        await Promise.all(rest.slice(i, i + 2).map(loadIndex));
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 16));
       }
     }
 
     streamPages();
     return () => { cancelled = true; };
-  }, [state.currentPage, pdfPageDataUrls]);
+  }, [interior, state.currentPage, pdfPageDataUrls]);
 
   // ---- Page flip completion timer
   // The visual page animation runs inside the Three scene with useFrame. Keeping
@@ -540,27 +689,68 @@ export default function BookPreview3D({
       currentPage: newPage,
       targetPage: null,
       bookPose: pose,
-      cameraPreset: pose === 'closedBack' ? 'back' : 'open-spread',
+      cameraPreset: pose === 'closedBack' ? state.cameraPreset : pose === 'closedFront' ? 'front' : 'open-spread',
     });
-  }, [onStateChange]);
+  }, [onStateChange, state.cameraPreset]);
 
   useEffect(() => {
     if (!state.isFlipping) return;
     if (isFlippingRef.current) return;
     isFlippingRef.current = true;
 
-    const duration = 920; // ms — slower, more book-like page turn
+    const duration = 680;
 
-    window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       const maxPage = useAppStore.getState().bookConfig.pageCount;
-      const targetPage = state.targetPage ?? (state.flipDirection === 'forward' ? state.currentPage + 2 : state.currentPage - 2);
-      const newPage = Math.max(1, Math.min(targetPage, maxPage));
       const lastSpread = maxPage <= 1 ? 1 : maxPage % 2 === 0 ? maxPage : maxPage - 1;
       const shouldCloseBack = state.flipDirection === 'forward' && state.targetPage === null && state.currentPage >= lastSpread;
+      const shouldCloseFront = state.flipDirection === 'backward' && state.targetPage === null && state.currentPage <= 1;
+
+      if (state.targetPage !== null) {
+        const finalTarget = Math.max(1, Math.min(state.targetPage, maxPage));
+        const targetDelta = finalTarget - state.currentPage;
+        const isTargetInDirection = state.flipDirection === 'forward' ? targetDelta > 0 : targetDelta < 0;
+
+        if (!isTargetInDirection) {
+          onFlipComplete(state.currentPage, 'open');
+          return;
+        }
+
+        const step = state.flipDirection === 'forward' ? 2 : -2;
+        const nextPage =
+          state.flipDirection === 'forward'
+            ? Math.min(state.currentPage + step, finalTarget)
+            : Math.max(state.currentPage + step, finalTarget);
+        const reachedTarget = nextPage === finalTarget;
+
+        if (reachedTarget) {
+          onFlipComplete(finalTarget, 'open');
+          return;
+        }
+
+        isFlippingRef.current = false;
+        onStateChange({
+          currentPage: nextPage,
+          isFlipping: true,
+          flipProgress: 0,
+          targetPage: finalTarget,
+          bookPose: 'open',
+          cameraPreset: 'open-spread',
+        });
+        return;
+      }
+
+      const targetPage = state.flipDirection === 'forward' ? state.currentPage + 2 : state.currentPage - 2;
+      const newPage = Math.max(1, Math.min(targetPage, maxPage));
+      if (shouldCloseFront) {
+        onFlipComplete(1, 'closedFront');
+        return;
+      }
       onFlipComplete(shouldCloseBack ? lastSpread : newPage, shouldCloseBack ? 'closedBack' : 'open');
     }, duration);
 
     return () => {
+      window.clearTimeout(timeoutId);
       isFlippingRef.current = false;
     };
   }, [state.isFlipping, onStateChange, state.flipDirection, state.currentPage, state.targetPage, onFlipComplete]);

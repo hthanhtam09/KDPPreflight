@@ -23,7 +23,6 @@ import type {
   DetectedConfig,
   InteriorType,
   PaperType,
-  ReadingDirection,
   TrimSizeKey,
 } from '@/types/kdp';
 
@@ -47,8 +46,9 @@ export default function PreviewConfigPanel() {
   const [pageCountInput, setPageCountInput] = useState(() => String(bookConfig.pageCount));
   const [isEditingPageCount, setIsEditingPageCount] = useState(false);
 
-  const isKindle = bookType === 'kindle';
-  const isHardcover = bookType === 'hardcover';
+  const effectiveBookType = bookConfig.bookType || bookType;
+  const isKindle = effectiveBookType === 'kindle';
+  const isHardcover = effectiveBookType === 'hardcover';
   const trimKeys = isHardcover ? HARDCOVER_TRIMS : PAPERBACK_TRIMS;
   const maxPages = MAX_PAGE_COUNT_PAPERBACK;
   const pageCountDraft = Number.parseInt(pageCountInput, 10);
@@ -154,7 +154,7 @@ export default function PreviewConfigPanel() {
                 key={type}
                 onClick={() => handleBookType(type)}
                 className={`ds-focus flex flex-col items-center gap-1.5 rounded-lg px-1 py-2 text-[11px] font-semibold transition-colors ${
-                  bookType === type
+                  effectiveBookType === type
                     ? 'bg-surface text-primary shadow-soft'
                     : 'text-muted-foreground hover:bg-surface/55 hover:text-foreground'
                 }`}
@@ -333,17 +333,6 @@ export default function PreviewConfigPanel() {
                     >
                       <option value="matte">Matte</option>
                       <option value="glossy">Glossy</option>
-                    </select>
-                  </div>
-                  <div>
-                    <FieldLabel label="Reading direction" />
-                    <select
-                      value={bookConfig.readingDirection || 'ltr'}
-                      onChange={(e) => updateBookConfig({ readingDirection: e.target.value as ReadingDirection })}
-                      className="ds-control ds-focus mt-1 min-h-9 w-full rounded-lg px-3 text-xs"
-                    >
-                      <option value="ltr">Left to right (LTR)</option>
-                      <option value="rtl">Right to left (RTL)</option>
                     </select>
                   </div>
                 </div>

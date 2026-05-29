@@ -1,11 +1,11 @@
 'use client'
 
 import { CoverSegments } from '@/engine/cover-parser'
-import { calculateMeasurements, DEFAULT_BOOK_CONFIG } from '@/engine/kdp-constants'
+import { DEFAULT_BOOK_CONFIG } from '@/engine/kdp-constants'
 import { useAppStore } from '@/store/use-app-store'
 import { CameraPreset, PreviewFlowStep } from '@/types/kdp'
 import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion'
-import { ArrowLeft, Check, Circle, Loader2 } from 'lucide-react'
+import { ArrowLeft, Check, Circle, Download, Loader2, Settings, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Preview3DActions, Preview3DOverlays, Preview3DState } from './BookPreview3D'
@@ -13,6 +13,7 @@ import ImportStep from './ImportStep'
 import PreviewToolbar from './PreviewToolbar'
 import PreviewWorkspace from './PreviewWorkspace'
 import GenerateStep from './GenerateStep'
+import PreviewConfigPanel from './PreviewConfigPanel'
 
 // Dynamic imports to avoid SSR issues with Three.js
 const BookPreview3D = dynamic(() => import('./BookPreview3D'), { ssr: false })
@@ -49,7 +50,6 @@ export default function PreviewFeature() {
     previewFlowStep,
     setPreviewFlowStep,
     uploadedCover,
-    measurements,
     bookConfig,
     coverDataUrl,
     isProcessing,
@@ -58,11 +58,16 @@ export default function PreviewFeature() {
     activateFeatureWorkspace,
   } = useAppStore()
   const safeBookConfig = bookConfig ?? DEFAULT_BOOK_CONFIG
-  const safeMeasurements = measurements ?? calculateMeasurements(safeBookConfig)
 
   const [coverSegments, setCoverSegments] = useState<CoverSegments | null>(null)
   const exportRef = useRef<(() => void) | null>(null)
   const [isConfigOpen, setIsConfigOpen] = useState(false)
+  const previewTitle =
+    safeBookConfig.bookType === 'kindle'
+      ? 'Kindle Preview'
+      : safeBookConfig.bookType === 'hardcover'
+        ? 'Hardcover Preview'
+        : 'Paperback Preview'
 
   useEffect(() => {
     activateFeatureWorkspace('preview')
@@ -108,11 +113,49 @@ export default function PreviewFeature() {
     [previewState, safeBookConfig.bookType]
   )
 
+  useEffect(() => {
+    const lastSpread =
+      safeBookConfig.pageCount <= 1
+        ? 1
+        : safeBookConfig.pageCount % 2 === 0
+          ? safeBookConfig.pageCount
+          : safeBookConfig.pageCount - 1
+
+    setPreviewState((prev) => {
+      const currentPage =
+        prev.bookPose === 'closedBack'
+          ? lastSpread
+          : Math.max(1, Math.min(prev.currentPage, safeBookConfig.pageCount))
+
+      if (currentPage === prev.currentPage) return prev
+      return { ...prev, currentPage }
+    })
+  }, [safeBookConfig.pageCount])
+
   // ---- 3D Actions ----
   const actions: Preview3DActions = {
     nextPage: useCallback(() => {
       setPreviewState((prev) => {
         if (prev.isFlipping || prev.bookPose === 'closedBack') return prev
+        const lastSpread =
+          safeBookConfig.pageCount <= 1
+            ? 1
+            : safeBookConfig.pageCount % 2 === 0
+              ? safeBookConfig.pageCount
+              : safeBookConfig.pageCount - 1
+        const isClosingBackCover = prev.bookPose === 'open' && prev.currentPage >= lastSpread
+        if (prev.bookPose === 'closedFront' || prev.bookPose === 'closedSpine') {
+          return {
+            ...prev,
+            currentPage: 1,
+            isFlipping: true,
+            flipProgress: 0,
+            flipDirection: 'forward',
+            targetPage: 1,
+            bookPose: 'closedFront',
+            cameraPreset: 'open-spread',
+          }
+        }
         return {
           ...prev,
           isFlipping: true,
@@ -120,13 +163,13 @@ export default function PreviewFeature() {
           flipDirection: 'forward',
           targetPage: null,
           bookPose: 'open',
-          cameraPreset: 'open-spread',
+          cameraPreset: isClosingBackCover ? prev.cameraPreset : 'open-spread',
         }
       })
     }, [safeBookConfig.pageCount]),
     prevPage: useCallback(() => {
       setPreviewState((prev) => {
-        if (prev.isFlipping || (prev.bookPose === 'open' && prev.currentPage <= 1)) return prev
+        if (prev.isFlipping || prev.bookPose === 'closedFront') return prev
         const fromBackCover = prev.bookPose === 'closedBack'
         const lastSpread =
           safeBookConfig.pageCount <= 1
@@ -142,34 +185,22 @@ export default function PreviewFeature() {
           targetPage: fromBackCover ? lastSpread : null,
           currentPage: fromBackCover ? lastSpread : prev.currentPage,
           bookPose: 'open',
-          cameraPreset: 'open-spread',
+          cameraPreset: fromBackCover ? prev.cameraPreset : 'open-spread',
         }
       })
     }, [safeBookConfig.pageCount]),
     goToPage: useCallback(
       (page: number) => {
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
         const clamped = Math.max(1, Math.min(Math.round(page), safeBookConfig.pageCount))
         const normalized = clamped === 1 ? 1 : clamped % 2 === 0 ? clamped : clamped - 1
         setPreviewState((prev) => {
           if (prev.isFlipping) return prev
-          if (reducedMotion || normalized === prev.currentPage) {
-            return {
-              ...prev,
-              currentPage: normalized,
-              targetPage: null,
-              isFlipping: false,
-              flipProgress: 0,
-              bookPose: 'open',
-              cameraPreset: 'open-spread',
-            }
-          }
           return {
             ...prev,
-            isFlipping: true,
+            currentPage: normalized,
+            targetPage: null,
+            isFlipping: false,
             flipProgress: 0,
-            flipDirection: normalized > prev.currentPage ? 'forward' : 'backward',
-            targetPage: normalized,
             bookPose: 'open',
             cameraPreset: 'open-spread',
           }
@@ -182,36 +213,48 @@ export default function PreviewFeature() {
     }, []),
     setCameraPreset: useCallback((preset: CameraPreset) => {
       setPreviewState((prev) => {
+        const lastSpread =
+          safeBookConfig.pageCount <= 1
+            ? 1
+            : safeBookConfig.pageCount % 2 === 0
+              ? safeBookConfig.pageCount
+              : safeBookConfig.pageCount - 1
         if (preset === 'front')
           return {
             ...prev,
+            currentPage: 1,
             bookPose: 'closedFront',
             isFlipping: false,
             flipProgress: 0,
+            flipDirection: 'forward',
             targetPage: null,
             cameraPreset: 'front',
           }
         if (preset === 'back')
           return {
             ...prev,
+            currentPage: lastSpread,
             bookPose: 'closedBack',
             isFlipping: false,
             flipProgress: 0,
+            flipDirection: 'backward',
             targetPage: null,
             cameraPreset: 'back',
           }
         if (preset === 'spine')
           return {
             ...prev,
+            currentPage: 1,
             bookPose: 'closedSpine',
             isFlipping: false,
             flipProgress: 0,
+            flipDirection: 'forward',
             targetPage: null,
             cameraPreset: 'spine',
           }
         return { ...prev, cameraPreset: preset }
       })
-    }, []),
+    }, [safeBookConfig.pageCount]),
     toggleConfig: useCallback(() => setIsConfigOpen((prev) => !prev), []),
   }
 
@@ -391,23 +434,78 @@ export default function PreviewFeature() {
               transition={{ duration: 0.3 }}
               className="relative h-full min-h-0 overflow-hidden bg-[#eef2f7]"
             >
-              {effectivePreviewState.bookType === 'kindle' ? (
-                <KindlePreview
-                  currentPage={effectivePreviewState.currentPage}
-                  totalPages={safeBookConfig.pageCount}
-                  onPrev={kindlePrevPage}
-                  onNext={kindleNextPage}
-                  onGoToPage={kindleGoToPage}
-                  onBack={() => setPreviewFlowStep('config')}
-                  measurements={{
-                    pageCount: safeBookConfig.pageCount,
-                    bookType: safeBookConfig.bookType,
-                    coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
-                    pageSource: `${safeBookConfig.pageCount} rendered pages`,
-                  }}
-                />
-              ) : (
-                <div className="h-full min-h-0 bg-[#eef2f7]">
+              <button
+                onClick={() => setPreviewFlowStep('config')}
+                className="ds-focus ds-control absolute left-3 top-3 z-20 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:left-4"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back
+              </button>
+              <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 text-sm font-semibold tracking-wide text-foreground/60">
+                {previewTitle}
+              </div>
+              <div className="absolute right-3 top-3 z-20 flex items-center gap-2 sm:right-4">
+                <button
+                  type="button"
+                  onClick={() => setIsConfigOpen((prev) => !prev)}
+                  aria-label="Book settings"
+                  title="Book settings"
+                  className={`ds-focus grid h-10 w-10 shrink-0 place-items-center rounded-lg transition-all ${
+                    isConfigOpen
+                      ? 'bg-primary text-primary-foreground shadow-soft'
+                      : 'border border-white/20 bg-background/70 text-muted-foreground backdrop-blur-xl hover:text-foreground'
+                  }`}
+                >
+                  <Settings className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => exportRef.current?.()}
+                  aria-label="Export current view"
+                  title="Export current view"
+                  className="ds-focus grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground shadow-soft"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+              </div>
+              <AnimatePresence>
+                {isConfigOpen && (
+                  <m.aside
+                    initial={{ x: 340, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 340, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                    className="absolute right-3 top-16 z-30 h-[min(720px,calc(100%-6rem))] w-[min(360px,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-white/20 bg-background/92 shadow-soft backdrop-blur-xl sm:right-4"
+                  >
+                    <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                      <p className="text-sm font-semibold text-foreground">Book settings</p>
+                      <button
+                        type="button"
+                        onClick={() => setIsConfigOpen(false)}
+                        className="ds-focus grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        aria-label="Close settings"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="h-[calc(100%-3.5rem)] min-h-0 overflow-hidden">
+                      <PreviewConfigPanel />
+                    </div>
+                  </m.aside>
+                )}
+              </AnimatePresence>
+              <div className="h-full min-h-0 bg-[#eef2f7]">
+                {effectivePreviewState.bookType === 'kindle' ? (
+                  <KindlePreview
+                    currentPage={effectivePreviewState.currentPage}
+                    totalPages={safeBookConfig.pageCount}
+                    onPrev={kindlePrevPage}
+                    onNext={kindleNextPage}
+                    onGoToPage={kindleGoToPage}
+                    onExportRef={exportRef}
+                  />
+                ) : (
+                  <>
                   <BookPreview3D
                     coverUrl={coverUrl}
                     coverSegments={coverSegments}
@@ -420,26 +518,9 @@ export default function PreviewFeature() {
                     state={effectivePreviewState}
                     actions={actions}
                     totalPages={safeBookConfig.pageCount}
-                    isConfigOpen={isConfigOpen}
-                    onCloseConfig={() => setIsConfigOpen(false)}
-                    measurements={{
-                      trimWidth: safeMeasurements.trimWidthIn.toFixed(2),
-                      trimHeight: safeMeasurements.trimHeightIn.toFixed(2),
-                      spine: safeMeasurements.spineWidthIn.toFixed(3),
-                      pageCount: safeBookConfig.pageCount,
-                      bookType: safeBookConfig.bookType,
-                      coverSource: uploadedCover?.name || (coverDataUrl ? 'Imported cover' : 'Not loaded'),
-                      pageSource: `${safeBookConfig.pageCount} rendered pages`,
-                      paperType: safeBookConfig.paper,
-                    }}
                   />
-                  <button
-                    onClick={() => setPreviewFlowStep('config')}
-                    className="ds-focus ds-control absolute left-3 top-3 z-20 flex items-center gap-2 rounded-xl px-3 py-2 text-xs sm:left-4"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Config
-                  </button>
+                  </>
+                )}
                   {isProcessing && (
                     <div className="absolute inset-0 z-30 flex items-center justify-center bg-overlay backdrop-blur-sm">
                       <div className="ds-card-glass flex items-center gap-3 px-6 py-4">
@@ -458,8 +539,7 @@ export default function PreviewFeature() {
                       </div>
                     </div>
                   )}
-                </div>
-              )}
+              </div>
             </m.div>
           )}
         </AnimatePresence>
