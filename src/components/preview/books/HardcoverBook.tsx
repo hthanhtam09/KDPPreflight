@@ -2,6 +2,7 @@
 
 import * as THREE from 'three';
 import type { CoverTextures, Preview3DOverlays, Preview3DState } from '../BookPreview3D';
+import type { PaperType } from '@/types/kdp';
 import PhysicalBook from './PhysicalBook';
 
 interface HardcoverBookProps {
@@ -10,6 +11,7 @@ interface HardcoverBookProps {
   spineWidth: number;
   pageCount: number;
   currentPage: number;
+  targetPage: number | null;
   bookPose: Preview3DState['bookPose'];
   flipProgress: number;
   isFlipping: boolean;
@@ -17,6 +19,7 @@ interface HardcoverBookProps {
   pageTextures: Map<number, THREE.Texture | null>;
   coverTextures: CoverTextures;
   coverFinish?: 'matte' | 'glossy';
+  paperType: PaperType;
   bleedEnabled: boolean;
   overlays: Preview3DOverlays;
   safeInset: number;

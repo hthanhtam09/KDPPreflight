@@ -292,7 +292,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((state) => {
       const newConfig = { ...state.bookConfig, ...updates }
       const newMeasurements = calculateMeasurements(newConfig)
-      return { bookConfig: newConfig, measurements: newMeasurements }
+      return {
+        bookConfig: newConfig,
+        measurements: newMeasurements,
+        ...(updates.bookType ? { bookType: updates.bookType } : {}),
+      }
     }),
 
   // Uploaded Files

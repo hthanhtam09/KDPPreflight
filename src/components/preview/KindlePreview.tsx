@@ -1,15 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MutableRefObject } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ArrowLeft,
-  Camera,
   ChevronLeft,
   ChevronRight,
-  Loader2,
-  Settings,
-  X,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
@@ -86,13 +82,7 @@ interface KindlePreviewProps {
   onPrev: () => void;
   onNext: () => void;
   onGoToPage: (page: number) => void;
-  onBack: () => void;
-  measurements: {
-    pageCount: number;
-    bookType: string;
-    coverSource: string;
-    pageSource: string;
-  };
+  onExportRef?: MutableRefObject<(() => void) | null>;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,13 +95,10 @@ export default function KindlePreview({
   onPrev,
   onNext,
   onGoToPage,
-  onBack,
-  measurements,
+  onExportRef,
 }: KindlePreviewProps) {
   const { pdfPageDataUrls } = useAppStore();
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [zoom, setZoom] = useState(1.0);
-  const [isCapturing, setIsCapturing] = useState(false);
   const deviceAreaRef = useRef<HTMLDivElement>(null);
 
   // Wheel-to-zoom — non-passive to allow preventDefault
@@ -141,7 +128,6 @@ export default function KindlePreview({
   // ---- Canvas export ----
   const capture = useCallback(async () => {
     const url = pdfPageDataUrls.get(currentPage - 1) ?? null;
-    setIsCapturing(true);
     try {
       const canvas = document.createElement('canvas');
       canvas.width = EXP_W;
@@ -252,10 +238,16 @@ export default function KindlePreview({
           resolve();
         }, 'image/png');
       });
-    } finally {
-      setIsCapturing(false);
+    } catch (err) {
+      console.error('Kindle export failed:', err);
     }
   }, [currentPage, pdfPageDataUrls]);
+
+  useEffect(() => {
+    if (onExportRef) {
+      onExportRef.current = () => { void capture(); };
+    }
+  }, [capture, onExportRef]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -269,52 +261,7 @@ export default function KindlePreview({
   };
 
   return (
-    <div className="relative flex h-full flex-col bg-gradient-to-b from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900">
-      {/* Top bar */}
-      <div className="flex shrink-0 items-center justify-between px-4 py-3">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Config
-        </button>
-
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-xs font-semibold tracking-wide text-foreground/60">
-            Kindle Preview
-          </span>
-        </div>
-
-        {/* Top-right actions */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={capture}
-            disabled={!pageUrl || isCapturing}
-            aria-label="Export device as PNG"
-            title="Export Kindle device as PNG"
-            className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-all hover:bg-foreground/10 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            {isCapturing
-              ? <Loader2 className="h-4 w-4 animate-spin" />
-              : <Camera className="h-4 w-4" />
-            }
-          </button>
-          <button
-            onClick={() => setIsConfigOpen(p => !p)}
-            aria-label="Toggle settings"
-            title="Settings"
-            className={`grid h-8 w-8 place-items-center rounded-lg transition-all ${
-              isConfigOpen
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:bg-foreground/10 hover:text-foreground'
-            }`}
-          >
-            <Settings className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
+    <div className="relative flex h-full flex-col bg-transparent">
       {/* Kindle device centered */}
       <div
         ref={deviceAreaRef}
@@ -476,48 +423,6 @@ export default function KindlePreview({
         </div>
       </div>
 
-      {/* Config slide-over */}
-      <AnimatePresence>
-        {isConfigOpen && (
-          <motion.aside
-            initial={{ x: 340, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 340, opacity: 0 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="absolute right-3 top-14 z-20 max-h-[calc(100%-5rem)] w-[min(320px,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-foreground/10 bg-background/90 shadow-xl backdrop-blur-xl"
-          >
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <p className="text-sm font-semibold text-foreground">Config</p>
-              <button
-                onClick={() => setIsConfigOpen(false)}
-                aria-label="Close config"
-                className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="space-y-2 overflow-y-auto p-3">
-              <InfoRow label="Book type"            value={measurements.bookType} />
-              <InfoRow label="Page count"           value={String(measurements.pageCount)} />
-              <InfoRow label="Cover source"         value={measurements.coverSource} />
-              <InfoRow label="Page source"          value={measurements.pageSource} />
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-function InfoRow({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (
-    <div className="rounded-lg border border-border bg-surface px-3 py-2">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 break-words text-sm text-foreground">{value}</p>
     </div>
   );
 }
