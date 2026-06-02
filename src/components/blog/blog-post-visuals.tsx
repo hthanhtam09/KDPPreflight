@@ -3041,3 +3041,404 @@ export function KdpBordersPrintUnevenlyVisual({ compact = false }: { compact?: b
     </g>
   );
 }
+
+export function KdpMarginTooSmallVisual({ compact = false }: { compact?: boolean }) {
+  const pageX = compact ? 250 : 112;
+  const pageY = compact ? 82 : 104;
+  const pageW = compact ? 300 : 230;
+  const pageH = compact ? 300 : 290;
+
+  return (
+    <g>
+      {!compact && (
+        <>
+          <rect x={98} y={46} width={214} height={36} rx={18} fill="var(--card)" stroke="var(--danger)" strokeWidth={2} />
+          <text x={205} y={70} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={950} letterSpacing={1.5}>
+            MARGIN WARNING
+          </text>
+          <rect x={332} y={46} width={218} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={441} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>
+            trim · safe area · gutter
+          </text>
+        </>
+      )}
+
+      <rect x={pageX} y={pageY} width={pageW} height={pageH} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={3} />
+      <rect
+        x={pageX + 16}
+        y={pageY + 16}
+        width={pageW - 32}
+        height={pageH - 32}
+        rx={10}
+        fill="transparent"
+        stroke="var(--danger)"
+        strokeDasharray="8 7"
+        strokeWidth={2.5}
+      />
+      <rect
+        x={pageX + 42}
+        y={pageY + 44}
+        width={pageW - 84}
+        height={pageH - 88}
+        rx={8}
+        fill="transparent"
+        stroke="var(--success)"
+        strokeDasharray="7 6"
+        strokeWidth={2.5}
+      />
+      <rect x={pageX + 52} y={pageY + 70} width={pageW - 104} height={13} rx={6} fill="var(--foreground)" opacity={0.22} />
+      <rect x={pageX + 52} y={pageY + 98} width={pageW - 126} height={9} rx={5} fill="var(--muted-foreground)" opacity={0.26} />
+      <rect x={pageX + 52} y={pageY + pageH - 48} width={pageW - 104} height={11} rx={6} fill="var(--danger)" opacity={0.8} />
+
+      <circle cx={pageX + pageW - 28} cy={pageY + pageH - 42} r={18} fill="color-mix(in srgb, var(--danger) 16%, var(--card))" stroke="var(--danger)" strokeWidth={3} />
+      <text x={pageX + pageW - 28} y={pageY + pageH - 35} textAnchor="middle" fill="var(--danger)" fontSize={22} fontWeight={950}>!</text>
+
+      {!compact && (
+        <>
+          <rect x={408} y={118} width={254} height={72} rx={18} fill="color-mix(in srgb, var(--danger) 10%, var(--card))" stroke="var(--danger)" strokeWidth={3} />
+          <text x={535} y={148} textAnchor="middle" fill="var(--danger)" fontSize={17} fontWeight={950}>
+            Margin Too Small
+          </text>
+          <text x={535} y={171} textAnchor="middle" fill="var(--muted-foreground)" fontSize={12} fontWeight={800}>
+            content too close to edge
+          </text>
+          <path d="M408 154H342" stroke="var(--danger)" strokeWidth={3} strokeLinecap="round" />
+          <path d="M354 142l-14 12 14 12" fill="none" stroke="var(--danger)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+
+          {[
+            { label: 'trim size', x: 420, y: 236, color: 'var(--primary)' },
+            { label: 'safe area', x: 560, y: 236, color: 'var(--success)' },
+            { label: 'gutter', x: 420, y: 296, color: 'var(--warning)' },
+            { label: 'PDF export', x: 560, y: 296, color: 'var(--primary)' },
+          ].map(({ label, x, y, color }) => (
+            <g key={label}>
+              <rect x={x} y={y} width={112} height={34} rx={10} fill="var(--card)" stroke={color} strokeWidth={2} />
+              <text x={x + 56} y={y + 22} textAnchor="middle" fill={color} fontSize={11} fontWeight={950}>
+                {label}
+              </text>
+            </g>
+          ))}
+
+          <rect x={176} y={416} width={448} height={26} rx={10} fill="color-mix(in srgb, var(--success) 9%, var(--card))" stroke="var(--success)" strokeWidth={1.5} />
+          <text x={400} y={434} textAnchor="middle" fill="var(--success)" fontSize={12} fontWeight={850}>
+            move important content inward, then export and upload again
+          </text>
+        </>
+      )}
+    </g>
+  );
+}
+
+export function KdpPdfRejectedVisual({ compact = false }: { compact?: boolean }) {
+  const cx = compact ? 400 : 236;
+  const cy = compact ? 226 : 220;
+
+  return (
+    <g>
+      {!compact && (
+        <>
+          <rect x={96} y={46} width={178} height={36} rx={18} fill="var(--card)" stroke="var(--danger)" strokeWidth={2} />
+          <text x={185} y={70} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={950} letterSpacing={1.5}>
+            PDF REJECTED
+          </text>
+          <rect x={294} y={46} width={272} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={430} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>
+            validation · preview · print check
+          </text>
+        </>
+      )}
+
+      <g transform={`translate(${cx - 78} ${cy - 104})`}>
+        <rect x={0} y={0} width={156} height={208} rx={16} fill="var(--card)" stroke="var(--border)" strokeWidth={3} />
+        <path d="M116 0l40 40h-40Z" fill="color-mix(in srgb, var(--muted) 55%, transparent)" stroke="var(--border)" strokeWidth={2} />
+        <rect x={26} y={62} width={92} height={10} rx={5} fill="var(--foreground)" opacity={0.2} />
+        <rect x={26} y={88} width={78} height={8} rx={4} fill="var(--muted-foreground)" opacity={0.24} />
+        <rect x={26} y={110} width={88} height={8} rx={4} fill="var(--muted-foreground)" opacity={0.18} />
+        <circle cx={124} cy={174} r={23} fill="color-mix(in srgb, var(--danger) 16%, var(--card))" stroke="var(--danger)" strokeWidth={3} />
+        <text x={124} y={183} textAnchor="middle" fill="var(--danger)" fontSize={28} fontWeight={950}>!</text>
+      </g>
+
+      {!compact && (
+        <>
+          <rect x={408} y={112} width={238} height={68} rx={18} fill="color-mix(in srgb, var(--danger) 10%, var(--card))" stroke="var(--danger)" strokeWidth={3} />
+          <text x={527} y={141} textAnchor="middle" fill="var(--danger)" fontSize={17} fontWeight={950}>Rejected again</text>
+          <text x={527} y={162} textAnchor="middle" fill="var(--muted-foreground)" fontSize={11} fontWeight={800}>hidden PDF issue</text>
+          <path d="M408 146h-62m14-12-14 12 14 12" fill="none" stroke="var(--danger)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+
+          {[
+            { label: 'trim', x: 414, y: 220, color: 'var(--primary)' },
+            { label: 'bleed', x: 544, y: 220, color: 'var(--primary)' },
+            { label: 'fonts', x: 414, y: 278, color: 'var(--warning)' },
+            { label: 'layers', x: 544, y: 278, color: 'var(--danger)' },
+          ].map((item) => (
+            <g key={item.label}>
+              <rect x={item.x} y={item.y} width={96} height={34} rx={10} fill="var(--card)" stroke={item.color} strokeWidth={2} />
+              <text x={item.x + 48} y={item.y + 22} textAnchor="middle" fill={item.color} fontSize={11} fontWeight={950}>{item.label}</text>
+            </g>
+          ))}
+
+          <rect x={164} y={410} width={472} height={28} rx={10} fill="color-mix(in srgb, var(--success) 9%, var(--card))" stroke="var(--success)" strokeWidth={1.5} />
+          <text x={400} y={429} textAnchor="middle" fill="var(--success)" fontSize={12} fontWeight={850}>
+            diagnose the PDF before another upload attempt
+          </text>
+        </>
+      )}
+    </g>
+  );
+}
+
+export function KdpFileUploadFailedVisual({ compact = false }: { compact?: boolean }) {
+  const panelX = compact ? 228 : 96;
+  const panelY = compact ? 98 : 118;
+  const panelW = compact ? 344 : 270;
+  const panelH = compact ? 220 : 178;
+
+  return (
+    <g>
+      {!compact && (
+        <>
+          <rect x={96} y={46} width={184} height={36} rx={18} fill="var(--card)" stroke="var(--danger)" strokeWidth={2} />
+          <text x={188} y={70} textAnchor="middle" fill="var(--danger)" fontSize={13} fontWeight={950} letterSpacing={1.5}>
+            UPLOAD FAILED
+          </text>
+          <rect x={300} y={46} width={238} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={419} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>
+            file · browser · network
+          </text>
+        </>
+      )}
+
+      <rect x={panelX} y={panelY} width={panelW} height={panelH} rx={22} fill="var(--card)" stroke="var(--border)" strokeWidth={3} />
+      <rect x={panelX + 34} y={panelY + 54} width={panelW - 68} height={18} rx={9} fill="color-mix(in srgb, var(--danger) 12%, transparent)" />
+      <rect x={panelX + 34} y={panelY + 54} width={compact ? 108 : 82} height={18} rx={9} fill="var(--danger)" opacity={0.78} />
+      <text x={panelX + panelW / 2} y={panelY + 112} textAnchor="middle" fill="var(--danger)" fontSize={compact ? 18 : 16} fontWeight={950}>
+        upload stopped
+      </text>
+      <text x={panelX + panelW / 2} y={panelY + 138} textAnchor="middle" fill="var(--muted-foreground)" fontSize={compact ? 12 : 11} fontWeight={800}>
+        check file, browser, and connection
+      </text>
+
+      <g transform={`translate(${compact ? 584 : 430} ${compact ? 126 : 130})`}>
+        <rect x={0} y={0} width={118} height={154} rx={12} fill="var(--card)" stroke="var(--danger)" strokeWidth={2.5} />
+        <path d="M88 0l30 30h-30Z" fill="color-mix(in srgb, var(--muted) 55%, transparent)" stroke="var(--border)" strokeWidth={1.5} />
+        <rect x={22} y={48} width={74} height={8} rx={4} fill="var(--foreground)" opacity={0.16} />
+        <rect x={22} y={68} width={60} height={7} rx={4} fill="var(--muted-foreground)" opacity={0.2} />
+        <circle cx={94} cy={128} r={18} fill="color-mix(in srgb, var(--danger) 16%, var(--card))" stroke="var(--danger)" strokeWidth={3} />
+        <text x={94} y={135} textAnchor="middle" fill="var(--danger)" fontSize={22} fontWeight={950}>!</text>
+      </g>
+
+      {!compact && (
+        <>
+          {[
+            { label: 'format', x: 128, y: 342, color: 'var(--primary)' },
+            { label: 'file size', x: 260, y: 342, color: 'var(--warning)' },
+            { label: 'browser', x: 392, y: 342, color: 'var(--primary)' },
+            { label: 'internet', x: 524, y: 342, color: 'var(--danger)' },
+          ].map((item) => (
+            <g key={item.label}>
+              <rect x={item.x} y={item.y} width={98} height={34} rx={10} fill="var(--card)" stroke={item.color} strokeWidth={2} />
+              <text x={item.x + 49} y={item.y + 22} textAnchor="middle" fill={item.color} fontSize={11} fontWeight={950}>{item.label}</text>
+            </g>
+          ))}
+          <rect x={188} y={410} width={424} height={28} rx={10} fill="color-mix(in srgb, var(--success) 9%, var(--card))" stroke="var(--success)" strokeWidth={1.5} />
+          <text x={400} y={429} textAnchor="middle" fill="var(--success)" fontSize={12} fontWeight={850}>
+            diagnose the upload stage before rebuilding the book
+          </text>
+        </>
+      )}
+    </g>
+  );
+}
+
+export function KdpPdfRequirementsVisual({ compact = false }: { compact?: boolean }) {
+  const docX = compact ? 292 : 132;
+  const docY = compact ? 86 : 104;
+  const docW = compact ? 216 : 172;
+  const docH = compact ? 278 : 244;
+
+  return (
+    <g>
+      {!compact && (
+        <>
+          <rect x={96} y={46} width={214} height={36} rx={18} fill="var(--card)" stroke="var(--primary)" strokeWidth={2} />
+          <text x={203} y={70} textAnchor="middle" fill="var(--primary)" fontSize={13} fontWeight={950} letterSpacing={1.4}>
+            PDF REQUIREMENTS
+          </text>
+          <rect x={330} y={46} width={230} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={445} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>
+            trim · bleed · fonts
+          </text>
+        </>
+      )}
+
+      <rect x={docX} y={docY} width={docW} height={docH} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={3} />
+      <rect x={docX + 18} y={docY + 18} width={docW - 36} height={docH - 36} rx={10} fill="transparent" stroke="var(--success)" strokeDasharray="7 6" strokeWidth={2.5} />
+      <rect x={docX + 40} y={docY + 56} width={docW - 80} height={12} rx={6} fill="var(--foreground)" opacity={0.2} />
+      <rect x={docX + 40} y={docY + 88} width={docW - 104} height={9} rx={5} fill="var(--muted-foreground)" opacity={0.23} />
+      <rect x={docX + 40} y={docY + 112} width={docW - 92} height={9} rx={5} fill="var(--muted-foreground)" opacity={0.18} />
+      <circle cx={docX + docW - 34} cy={docY + docH - 42} r={18} fill="color-mix(in srgb, var(--success) 16%, var(--card))" stroke="var(--success)" strokeWidth={3} />
+      <path d={`M${docX + docW - 43} ${docY + docH - 43}l6 7 13-15`} fill="none" stroke="var(--success)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+
+      {!compact && (
+        <>
+          {[
+            { label: 'trim', x: 404, y: 126, color: 'var(--primary)' },
+            { label: 'bleed', x: 548, y: 126, color: 'var(--danger)' },
+            { label: 'safe area', x: 404, y: 188, color: 'var(--success)' },
+            { label: '300 DPI', x: 548, y: 188, color: 'var(--warning)' },
+            { label: 'fonts', x: 404, y: 250, color: 'var(--primary)' },
+            { label: 'spine', x: 548, y: 250, color: 'var(--success)' },
+          ].map((item) => (
+            <g key={item.label}>
+              <rect x={item.x} y={item.y} width={112} height={36} rx={10} fill="var(--card)" stroke={item.color} strokeWidth={2} />
+              <text x={item.x + 56} y={item.y + 23} textAnchor="middle" fill={item.color} fontSize={11} fontWeight={950}>{item.label}</text>
+            </g>
+          ))}
+          <rect x={182} y={410} width={436} height={28} rx={10} fill="color-mix(in srgb, var(--success) 9%, var(--card))" stroke="var(--success)" strokeWidth={1.5} />
+          <text x={400} y={429} textAnchor="middle" fill="var(--success)" fontSize={12} fontWeight={850}>
+            validate the final PDF before upload
+          </text>
+        </>
+      )}
+    </g>
+  );
+}
+
+export function AmazonKdpPublishingChecklistVisual({ compact = false }: { compact?: boolean }) {
+  const centerX = compact ? 400 : 238;
+  const centerY = compact ? 210 : 216;
+
+  return (
+    <g>
+      {!compact && (
+        <>
+          <rect x={96} y={46} width={224} height={36} rx={18} fill="var(--card)" stroke="var(--primary)" strokeWidth={2} />
+          <text x={208} y={70} textAnchor="middle" fill="var(--primary)" fontSize={13} fontWeight={950} letterSpacing={1.3}>
+            PUBLISH CHECKLIST
+          </text>
+          <rect x={340} y={46} width={228} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={454} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>
+            files · metadata · preview
+          </text>
+        </>
+      )}
+
+      <rect x={centerX - 72} y={centerY - 98} width={144} height={196} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={3} />
+      {[0, 1, 2, 3, 4].map((i) => {
+        const y = centerY - 54 + i * 28;
+        return (
+          <g key={i}>
+            <circle cx={centerX - 38} cy={y} r={8} fill="color-mix(in srgb, var(--success) 14%, transparent)" stroke="var(--success)" strokeWidth={1.8} />
+            <path d={`M${centerX - 42} ${y}l3 4 7-8`} fill="none" stroke="var(--success)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+            <rect x={centerX - 22} y={y - 5} width={58} height={10} rx={5} fill="var(--foreground)" opacity={0.15} />
+          </g>
+        );
+      })}
+
+      {!compact && (
+        <>
+          {[
+            { label: 'manuscript', x: 424, y: 112, color: 'var(--primary)' },
+            { label: 'cover', x: 562, y: 112, color: 'var(--success)' },
+            { label: 'keywords', x: 424, y: 178, color: 'var(--warning)' },
+            { label: 'pricing', x: 562, y: 178, color: 'var(--primary)' },
+            { label: 'preview', x: 424, y: 244, color: 'var(--success)' },
+            { label: 'proof', x: 562, y: 244, color: 'var(--danger)' },
+          ].map((item) => (
+            <g key={item.label}>
+              <rect x={item.x} y={item.y} width={112} height={36} rx={10} fill="var(--card)" stroke={item.color} strokeWidth={2} />
+              <text x={item.x + 56} y={item.y + 23} textAnchor="middle" fill={item.color} fontSize={11} fontWeight={950}>{item.label}</text>
+            </g>
+          ))}
+          <rect x={176} y={410} width={448} height={28} rx={10} fill="color-mix(in srgb, var(--success) 9%, var(--card))" stroke="var(--success)" strokeWidth={1.5} />
+          <text x={400} y={429} textAnchor="middle" fill="var(--success)" fontSize={12} fontWeight={850}>
+            publish after every check is complete
+          </text>
+        </>
+      )}
+    </g>
+  );
+}
+
+export function KdpCoverTemplateExplainedVisual({ compact = false }: { compact?: boolean }) {
+  const x = compact ? 104 : 84;
+  const y = compact ? 120 : 122;
+  const w = compact ? 592 : 620;
+  const h = compact ? 196 : 198;
+
+  return (
+    <g>
+      {!compact && (
+        <>
+          <rect x={96} y={46} width={204} height={36} rx={18} fill="var(--card)" stroke="var(--primary)" strokeWidth={2} />
+          <text x={198} y={70} textAnchor="middle" fill="var(--primary)" fontSize={13} fontWeight={950} letterSpacing={1.4}>
+            COVER TEMPLATE
+          </text>
+          <rect x={320} y={46} width={250} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={445} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>
+            back · spine · front · bleed
+          </text>
+        </>
+      )}
+
+      <rect x={x} y={y} width={w} height={h} rx={24} fill="color-mix(in srgb, var(--danger) 5%, transparent)" stroke="var(--danger)" strokeDasharray="10 8" strokeWidth={2.6} />
+      <rect x={x + 30} y={y + 30} width={w - 60} height={h - 60} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2.8} />
+      <rect x={x + 48} y={y + 48} width={(w - 128) / 2} height={h - 96} rx={12} fill="color-mix(in srgb, var(--muted) 62%, transparent)" stroke="var(--success)" strokeDasharray="7 6" strokeWidth={2} />
+      <rect x={x + w / 2 - 42} y={y + 30} width={84} height={h - 60} fill="color-mix(in srgb, var(--primary) 13%, transparent)" stroke="var(--primary)" strokeWidth={2.5} />
+      <rect x={x + w / 2 + 66} y={y + 48} width={(w - 164) / 2} height={h - 96} rx={12} fill="transparent" stroke="var(--success)" strokeDasharray="7 6" strokeWidth={2} />
+      <rect x={x + w - 116} y={y + h - 88} width={62} height={40} rx={6} fill="color-mix(in srgb, var(--danger) 10%, var(--card))" stroke="var(--danger)" strokeWidth={2} />
+      {!compact && (
+        <>
+          <rect x={172} y={378} width={108} height={30} rx={10} fill="var(--card)" stroke="var(--success)" strokeWidth={2} />
+          <text x={226} y={398} textAnchor="middle" fill="var(--success)" fontSize={11} fontWeight={950}>safe area</text>
+          <rect x={346} y={378} width={108} height={30} rx={10} fill="var(--card)" stroke="var(--primary)" strokeWidth={2} />
+          <text x={400} y={398} textAnchor="middle" fill="var(--primary)" fontSize={11} fontWeight={950}>spine</text>
+          <rect x={520} y={378} width={108} height={30} rx={10} fill="var(--card)" stroke="var(--danger)" strokeWidth={2} />
+          <text x={574} y={398} textAnchor="middle" fill="var(--danger)" fontSize={11} fontWeight={950}>barcode</text>
+        </>
+      )}
+    </g>
+  );
+}
+
+export function KdpPrintPreviewerLabVisual({ compact = false }: { compact?: boolean }) {
+  return (
+    <g>
+      {!compact && (
+        <>
+          <rect x={96} y={46} width={204} height={36} rx={18} fill="var(--card)" stroke="var(--primary)" strokeWidth={2} />
+          <text x={198} y={70} textAnchor="middle" fill="var(--primary)" fontSize={13} fontWeight={950} letterSpacing={1.3}>
+            PRINT PREVIEWER
+          </text>
+          <rect x={320} y={46} width={242} height={36} rx={18} fill="var(--card)" stroke="var(--border)" strokeWidth={2} />
+          <text x={441} y={70} textAnchor="middle" fill="var(--muted-foreground)" fontSize={13} fontWeight={850}>
+            digital inspection lab
+          </text>
+        </>
+      )}
+      <rect x={compact ? 108 : 108} y={compact ? 94 : 100} width={compact ? 584 : 584} height={compact ? 276 : 270} rx={28} fill="color-mix(in srgb, var(--primary) 6%, var(--card))" stroke="var(--border)" strokeWidth={2.6} />
+      <rect x={168} y={292} width={464} height={42} rx={17} fill="color-mix(in srgb, var(--foreground) 8%, transparent)" />
+      <path d="M250 166c54-26 102-18 144 14v144c-44-26-92-30-144-8Z" fill="var(--card)" stroke="var(--border)" strokeWidth={2.5} />
+      <path d="M394 180c42-32 90-40 144-14v150c-52-22-100-18-144 8Z" fill="var(--card)" stroke="var(--border)" strokeWidth={2.5} />
+      <path d="M394 180v144" stroke="var(--primary)" strokeWidth={2.3} />
+      <rect x={322} y={94} width={156} height={28} rx={12} fill="var(--card)" stroke="var(--primary)" strokeWidth={2} />
+      <path d="M400 122v36" stroke="var(--primary)" strokeWidth={4} strokeLinecap="round" opacity={0.62} />
+      <circle cx={400} cy={160} r={24} fill="color-mix(in srgb, var(--primary) 14%, transparent)" stroke="var(--primary)" strokeWidth={2.5} />
+      {!compact && (
+        <>
+          {[
+            { label: 'margins', x: 136, y: 382, color: 'var(--primary)' },
+            { label: 'bleed', x: 286, y: 382, color: 'var(--danger)' },
+            { label: 'warnings', x: 436, y: 382, color: 'var(--warning)' },
+            { label: 'proof copy', x: 586, y: 382, color: 'var(--success)' },
+          ].map((item) => (
+            <g key={item.label}>
+              <rect x={item.x} y={item.y} width={104} height={32} rx={10} fill="var(--card)" stroke={item.color} strokeWidth={2} />
+              <text x={item.x + 52} y={item.y + 21} textAnchor="middle" fill={item.color} fontSize={10.5} fontWeight={950}>{item.label}</text>
+            </g>
+          ))}
+        </>
+      )}
+    </g>
+  );
+}

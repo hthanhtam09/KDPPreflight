@@ -22,11 +22,13 @@ import {
   slugifyHeading,
 } from '@/lib/blog'
 import { getBlogPostMetadata } from '@/lib/blog/metadata'
+import { getArticleVisualLayout } from '@/lib/blog/visual-layout'
 import { articleSchema, blogPostingSchema, breadcrumbSchema, faqSchema, howToSchema, SITE_URL } from '@/lib/schema'
 import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock, ExternalLink } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Fragment } from 'react'
 import type React from 'react'
 import ReactMarkdown from 'react-markdown'
 
@@ -57,6 +59,8 @@ export default async function BlogPostPage({ params }: Props) {
   const relatedPosts = getRelatedPosts(post)
   const relatedTools = post.relatedTools
   const category = getBlogCategory(post.category)
+  const visualLayout = getArticleVisualLayout(post)
+  const articleSections = splitArticleByH2(post.content)
 
   return (
     <>
@@ -191,19 +195,37 @@ export default async function BlogPostPage({ params }: Props) {
               {post.shortAnswer}
             </ArticleCallout>
 
+            {visualLayout.diagramsBySlot.afterQuickAnswer.map((diagram) => (
+              <ArticleDiagram key={`quick-answer-${diagram}`} type={diagram} />
+            ))}
+
             <BlogJumpLinks items={toc} />
 
-            {post.diagrams.slice(0, 2).map((diagram) => (
-              <ArticleDiagram key={diagram} type={diagram} />
+            {articleSections.intro ? (
+              <div className="blog-article">
+                {renderMarkdownWithTables(articleSections.intro)}
+              </div>
+            ) : null}
+
+            {visualLayout.diagramsBySlot.afterIntro.map((diagram) => (
+              <ArticleDiagram key={`intro-${diagram}`} type={diagram} />
             ))}
 
-            <div className="blog-article">
-              {renderMarkdownWithTables(post.content)}
-            </div>
+            {articleSections.sections.map((section, index) => {
+              const sectionIndex = index + 1
+              const diagrams = visualLayout.diagramsBySlot.afterSection[sectionIndex] ?? []
 
-            {post.diagrams.slice(2).map((diagram) => (
-              <ArticleDiagram key={diagram} type={diagram} />
-            ))}
+              return (
+                <Fragment key={`${section.heading}-${sectionIndex}`}>
+                  <div className="blog-article">
+                    {renderMarkdownWithTables(section.content)}
+                  </div>
+                  {diagrams.map((diagram) => (
+                    <ArticleDiagram key={`${sectionIndex}-${diagram}`} type={diagram} />
+                  ))}
+                </Fragment>
+              )
+            })}
 
             <ArticleChecklist items={post.checklist} />
 
@@ -297,6 +319,29 @@ const markdownComponents = {
   },
 }
 
+type ArticleContentSection = {
+  heading: string
+  content: string
+}
+
+function splitArticleByH2(content: string): { intro: string; sections: ArticleContentSection[] } {
+  const matches = [...content.matchAll(/^##\s+(.+)$/gm)]
+  if (!matches.length) return { intro: content, sections: [] }
+
+  const intro = content.slice(0, matches[0].index).trim()
+  const sections = matches.map((match, index) => {
+    const start = match.index ?? 0
+    const end = matches[index + 1]?.index ?? content.length
+
+    return {
+      heading: match[1].replace(/\*\*/g, '').trim(),
+      content: content.slice(start, end).trim(),
+    }
+  })
+
+  return { intro, sections }
+}
+
 function renderMarkdownWithTables(content: string): React.ReactNode[] {
   return splitMarkdownTables(content).map((segment, index) => {
     if (segment.type === 'table') return <MarkdownTable key={`table-${index}`} value={segment.value} />
@@ -376,7 +421,8 @@ function isMarkdownTableRow(line: string): boolean {
 }
 
 function isMarkdownTableSeparator(line: string): boolean {
-  return /^\s*\|?(?:\s*:?-{3,}:?\s*\|){2,}\s*:?-{3,}:?\s*\|?\s*$/.test(line)
+  const cells = parseMarkdownTableRow(line)
+  return cells.length >= 2 && cells.every((cell) => /^:?-{3,}:?$/.test(cell))
 }
 
 function MarkdownTable({ value }: { value: string }) {

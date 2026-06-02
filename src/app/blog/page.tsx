@@ -11,6 +11,7 @@ import { blogCategories, blogPosts, getFeaturedPost, topicClusters } from '@/lib
 import { paginateItems } from '@/lib/blog/pagination';
 import { generatePageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, itemListSchema, SITE_URL } from '@/lib/schema';
+import type { BlogPost } from '@/types/blog';
 
 export const metadata: Metadata = generatePageMetadata({
   title: 'KDP Preflight Blog | Amazon KDP Cover, Bleed, Trim & Spine Guides',
@@ -29,7 +30,8 @@ export const metadata: Metadata = generatePageMetadata({
 
 export default function BlogIndexPage() {
   const featuredPost = getFeaturedPost();
-  const { items: gridPosts, totalPages } = paginateItems(blogPosts, 1);
+  const { items, totalPages } = paginateItems(blogPosts, 1);
+  const gridPosts = items.map(toBlogIndexPost);
 
   return (
     <>
@@ -157,4 +159,20 @@ export default function BlogIndexPage() {
       </main>
     </>
   );
+}
+
+function toBlogIndexPost(post: BlogPost) {
+  return {
+    slug: post.slug,
+    title: post.title,
+    description: post.description,
+    excerpt: post.excerpt,
+    category: post.category,
+    tags: post.tags,
+    keywords: post.keywords,
+    updatedAt: post.updatedAt,
+    publishedAt: post.publishedAt,
+    readingTime: post.readingTime,
+    author: post.author,
+  };
 }
