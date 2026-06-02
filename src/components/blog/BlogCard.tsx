@@ -5,7 +5,12 @@ import { formatBlogDate } from '@/lib/blog/blog-utils';
 import type { BlogPost } from '@/types/blog';
 import { BlogPostVisual } from './BlogPostVisual';
 
-export function BlogCard({ post }: { post: BlogPost }) {
+export type BlogCardPost = Pick<
+  BlogPost,
+  'slug' | 'title' | 'excerpt' | 'category' | 'updatedAt' | 'publishedAt' | 'readingTime' | 'author'
+>;
+
+export function BlogCard({ post }: { post: BlogCardPost }) {
   const category = getBlogCategory(post.category);
 
   return (

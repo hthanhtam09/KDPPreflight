@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { BlogCategory } from '@/lib/blog-categories';
 import {
   BackgroundBleedVisual,
+  AmazonKdpPublishingChecklistVisual,
   BarcodeAreaVisual,
   BleedVsNoBleedVisual,
   BlurryCoverVisual,
@@ -17,6 +18,12 @@ import {
   ForgotBleedVisual,
   GenericCoverVisual,
   KdpBordersPrintUnevenlyVisual,
+  KdpCoverTemplateExplainedVisual,
+  KdpFileUploadFailedVisual,
+  KdpMarginTooSmallVisual,
+  KdpPdfRequirementsVisual,
+  KdpPdfRejectedVisual,
+  KdpPrintPreviewerLabVisual,
   KdpSpineWidthWrongVisual,
   LowContentBookVisual,
   PreviewerFrozenVisual,
@@ -46,6 +53,7 @@ const visualBySlug: Record<string, ComponentType<BlogVisualProps>> = {
   'fix-barcode-area-contains-text-kdp': BarcodeAreaVisual,
   'why-your-kdp-cover-looks-blurry-after-upload': BlurryCoverVisual,
   'kdp-cover-colors-look-different-after-printing': ColorShiftVisual,
+  'kdp-cover-calculator': KdpSpineWidthWrongVisual,
   'kdp-pdf-looks-fine-on-screen-but-prints-wrong': ScreenPrintMismatchVisual,
   'canva-to-kdp-export-settings': CanvaToKdpExportVisual,
   'what-is-a-low-content-book-on-kdp': LowContentBookVisual,
@@ -67,6 +75,13 @@ const visualBySlug: Record<string, ComponentType<BlogVisualProps>> = {
   'kdp-previewer-not-loading': PreviewerFrozenVisual,
   'white-lines-on-kdp-cover': WhiteLinesVisual,
   'kdp-borders-print-unevenly': KdpBordersPrintUnevenlyVisual,
+  'fix-kdp-margin-too-small-error': KdpMarginTooSmallVisual,
+  'why-amazon-kdp-keeps-rejecting-my-pdf': KdpPdfRejectedVisual,
+  'kdp-file-upload-failed': KdpFileUploadFailedVisual,
+  'kdp-pdf-requirements': KdpPdfRequirementsVisual,
+  'amazon-kdp-publishing-checklist': AmazonKdpPublishingChecklistVisual,
+  'kdp-cover-template': KdpCoverTemplateExplainedVisual,
+  'kdp-print-previewer': KdpPrintPreviewerLabVisual,
 };
 
 export function BlogPostVisual({ postSlug, variant = 'card' }: BlogPostVisualProps) {

@@ -10,6 +10,7 @@ import { blogCategories, blogPosts, topicClusters } from '@/lib/blog';
 import { getBlogPageCount, paginateItems } from '@/lib/blog/pagination';
 import { generatePageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, itemListSchema, SITE_URL } from '@/lib/schema';
+import type { BlogPost } from '@/types/blog';
 
 interface Props {
   params: Promise<{ page: string }>;
@@ -39,7 +40,8 @@ export default async function BlogPaginatedPage({ params }: Props) {
   const { page } = await params;
   const pageNum = parseInt(page, 10);
 
-  const { items: gridPosts, totalPages, currentPage } = paginateItems(blogPosts, pageNum);
+  const { items, totalPages, currentPage } = paginateItems(blogPosts, pageNum);
+  const gridPosts = items.map(toBlogIndexPost);
 
   if (isNaN(pageNum) || pageNum < 2 || pageNum > totalPages) notFound();
 
@@ -154,4 +156,20 @@ export default async function BlogPaginatedPage({ params }: Props) {
       </main>
     </>
   );
+}
+
+function toBlogIndexPost(post: BlogPost) {
+  return {
+    slug: post.slug,
+    title: post.title,
+    description: post.description,
+    excerpt: post.excerpt,
+    category: post.category,
+    tags: post.tags,
+    keywords: post.keywords,
+    updatedAt: post.updatedAt,
+    publishedAt: post.publishedAt,
+    readingTime: post.readingTime,
+    author: post.author,
+  };
 }

@@ -6,6 +6,13 @@ import { SpineMisalignment, SpineAlignmentAnatomy, SpineCommonMistakes, ThinVsSa
 import { LowContentVsRegular, LowContentClassificationFlow, ColoringBookGrayArea, LowContentPrintRiskMap, DigitalVsProofCopy, CheapVsPremiumLayout, ProofCopyIterationFlow, DarkColoringDigitalVsPrint, MatteVsGlossyColoringContrast, PureBlackVsDarkGray, MuddyVsCleanColoringPages } from './diagrams/low-content-diagrams';
 import { KdpPreviewPipeline, KdpPdfSizeOptimization, KdpPreviewTroubleshootingFlow, KdpUploadProcessingPipeline, FileSizeByBookType, CanvaBloatExplained, TransparencyFlattenWorkflow, SplitTestMethod } from './diagrams/preview-upload-diagrams';
 import { KdpTrimShiftBorderVisualization, ThinVsThickBorderTolerance, CanvaCenteringVsPrintCentering, SafeVsRiskyBorderPositions, SpineWraparoundBorderShift, ProofCopyBorderBeforeAfter, HighRiskBorderLayoutTypes, SaferBorderAlternativesComparison } from './diagrams/border-diagrams';
+import { MarginErrorScreenVsKdp, MarginPageAnatomy, MarginSafeBleedComparison, MarginCommonCausesMap, CanvaMarginFixWorkflow, ColoringBookMarginBeforeAfter, GutterMarginExample, CoverMarginRiskMap, MarginTroubleshootingFlow, FinalMarginChecklistDiagram } from './diagrams/margin-error-diagrams';
+import { PdfLooksFineRejected, KdpPdfValidationPipeline, PdfRejectionCauseMap, WrongTrimSizePdfExample, PdfBleedErrorBeforeAfter, PdfSafeAreaCorrection, FontEmbeddingProblem, TransparencyLayerRejection, PdfRejectionTroubleshootingFlow, PdfRejectionPreventionChecklist } from './diagrams/pdf-rejection-diagrams';
+import { UploadProcessFailurePoints, UploadFailedVsRejected, UploadFailureCauseMap, LargePdfUploadProblem, FilenameProblemExample, BrowserUploadTroubleshooting, ColoringBookUploadIssues, UploadTroubleshootingFlowchart, UploadChecklistDiagram } from './diagrams/upload-failure-diagrams';
+import { PdfRequirementsValidationPipeline, ManuscriptPdfRequirementsMap, CoverPdfRequirementsMap, TrimSizeRequirementComparison, BleedRequirementComparison, SafeAreaRequirementExample, ImageResolutionRequirement, FontEmbeddingRequirement, ColorPrintRequirement, FileSizeRequirement, ColoringBookPdfRequirement, CommonPdfMistakesMap, PdfValidationWorkflow, UltimatePdfChecklistDiagram } from './diagrams/pdf-requirements-diagrams';
+import { PublishingWorkflowDiagram, ManuscriptChecklistDiagram, CoverChecklistDiagram, PdfValidationChecklistDiagram, MetadataChecklistDiagram, KeywordResearchDiagram, CategorySelectionDiagram, PricingChecklistDiagram, PreviewerChecklistDiagram, ColoringBookPublishingChecklistDiagram, BeginnerMistakesMap, UltimatePublishChecklistDiagram } from './diagrams/publishing-checklist-diagrams';
+import { CoverTemplateAnatomyDiagram, TemplateGenerationProcessDiagram, FrontCoverTemplateGuide, BackCoverTemplateGuide, SpineWidthTemplateGuide, CoverBleedTemplateGuide, CoverSafeAreaTemplateGuide, BarcodeAreaTemplateGuide, CoverTemplateMistakesMap, ColoringBookCoverTemplateGuide, UltimateCoverTemplateChecklist } from './diagrams/cover-template-diagrams';
+import { PrintLabHeroScene, PreviewGenerationMachine, MarginInspectionStation, BleedTestingChamber, SafeAreaScannerLab, BlankPageDetectorLab, CoverAlignmentTestRig, PreviewerFailureInvestigationRoom, DigitalVsPhysicalLab, FinalApprovalRoom } from './diagrams/print-previewer-lab-diagrams';
 
 export type ArticleDiagramType =
   | 'bleed-layers'
@@ -138,7 +145,83 @@ export type ArticleDiagramType =
   | 'spine-wraparound-border-shift'
   | 'proof-copy-border-before-after'
   | 'high-risk-border-layout-types'
-  | 'safer-border-alternatives-comparison';
+  | 'safer-border-alternatives-comparison'
+  | 'margin-error-screen-vs-kdp'
+  | 'margin-page-anatomy'
+  | 'margin-safe-bleed-comparison'
+  | 'margin-common-causes-map'
+  | 'canva-margin-fix-workflow'
+  | 'coloring-book-margin-before-after'
+  | 'gutter-margin-example'
+  | 'cover-margin-risk-map'
+  | 'margin-troubleshooting-flow'
+  | 'final-margin-checklist'
+  | 'pdf-looks-fine-rejected'
+  | 'kdp-pdf-validation-pipeline'
+  | 'pdf-rejection-cause-map'
+  | 'wrong-trim-size-pdf-example'
+  | 'pdf-bleed-error-before-after'
+  | 'pdf-safe-area-correction'
+  | 'font-embedding-problem'
+  | 'transparency-layer-rejection'
+  | 'pdf-rejection-troubleshooting-flow'
+  | 'pdf-rejection-prevention-checklist'
+  | 'upload-process-failure-points'
+  | 'upload-failed-vs-rejected'
+  | 'upload-failure-cause-map'
+  | 'large-pdf-upload-problem'
+  | 'filename-problem-example'
+  | 'browser-upload-troubleshooting'
+  | 'coloring-book-upload-issues'
+  | 'upload-troubleshooting-flowchart'
+  | 'upload-checklist'
+  | 'pdf-requirements-validation-pipeline'
+  | 'manuscript-pdf-requirements-map'
+  | 'cover-pdf-requirements-map'
+  | 'trim-size-requirement-comparison'
+  | 'bleed-requirement-comparison'
+  | 'safe-area-requirement-example'
+  | 'image-resolution-requirement'
+  | 'font-embedding-requirement'
+  | 'color-print-requirement'
+  | 'file-size-requirement'
+  | 'coloring-book-pdf-requirement'
+  | 'common-pdf-mistakes-map'
+  | 'pdf-validation-workflow'
+  | 'ultimate-pdf-checklist'
+  | 'publishing-workflow-diagram'
+  | 'manuscript-checklist-diagram'
+  | 'cover-checklist-diagram'
+  | 'pdf-validation-checklist-diagram'
+  | 'metadata-checklist-diagram'
+  | 'keyword-research-diagram'
+  | 'category-selection-diagram'
+  | 'pricing-checklist-diagram'
+  | 'previewer-checklist-diagram'
+  | 'coloring-book-publishing-checklist-diagram'
+  | 'beginner-mistakes-map'
+  | 'ultimate-publish-checklist-diagram'
+  | 'cover-template-anatomy-diagram'
+  | 'template-generation-process-diagram'
+  | 'front-cover-template-guide'
+  | 'back-cover-template-guide'
+  | 'spine-width-template-guide'
+  | 'cover-bleed-template-guide'
+  | 'cover-safe-area-template-guide'
+  | 'barcode-area-template-guide'
+  | 'cover-template-mistakes-map'
+  | 'coloring-book-cover-template-guide'
+  | 'ultimate-cover-template-checklist'
+  | 'print-lab-hero-scene'
+  | 'preview-generation-machine'
+  | 'margin-inspection-station'
+  | 'bleed-testing-chamber'
+  | 'safe-area-scanner-lab'
+  | 'blank-page-detector-lab'
+  | 'cover-alignment-test-rig'
+  | 'previewer-failure-investigation-room'
+  | 'digital-vs-physical-lab'
+  | 'final-approval-room';
 
 export type ArticleDiagramProps = {
   type: ArticleDiagramType;
@@ -277,6 +360,82 @@ const captions: Record<ArticleDiagramType, string> = {
   'proof-copy-border-before-after': 'Moving a thin border inward and increasing its weight produces a balanced result on the physical proof copy.',
   'high-risk-border-layout-types': 'Layouts with thin full-perimeter frames, mirrored elements, and edge-hugging geometry are the most likely to print unevenly.',
   'safer-border-alternatives-comparison': 'Faded gradients, shadow framing, thick interior panels, and partial frames communicate visual containment without depending on precise trim alignment.',
+  'margin-error-screen-vs-kdp': 'A PDF can look centered on screen while KDP flags content that sits too close to the physical trim edge.',
+  'margin-page-anatomy': 'Margin errors are easier to fix when you separate bleed, trim, safe area, margin, and gutter.',
+  'margin-safe-bleed-comparison': 'Margin, safe-area, and bleed warnings describe different print-production risks.',
+  'margin-common-causes-map': 'The same KDP margin warning can come from trim size, page numbers, borders, gutter, bleed, or hidden objects.',
+  'canva-margin-fix-workflow': 'In Canva, fix margin warnings by checking size, adding guides, moving text inward, and exporting PDF Print.',
+  'coloring-book-margin-before-after': 'Coloring book borders should move inward so normal trimming does not make them uneven or clipped.',
+  'gutter-margin-example': 'Thick books need extra gutter space because binding hides content near the spine.',
+  'cover-margin-risk-map': 'Cover margin problems often involve spine text, barcode space, safe areas, and trim-edge placement.',
+  'margin-troubleshooting-flow': 'A reliable troubleshooting path checks page size, trim, bleed, safe area, gutter, export, and upload.',
+  'final-margin-checklist': 'Verify the final PDF before upload: dimensions, bleed, safe area, gutter, page numbers, and export settings.',
+  'pdf-looks-fine-rejected': 'A PDF can open normally in a viewer while failing KDP print validation.',
+  'kdp-pdf-validation-pipeline': 'KDP runs upload, automated validation, preview generation, print checks, and review before a file is approved.',
+  'pdf-rejection-cause-map': 'Most KDP PDF rejections trace back to trim, bleed, safe area, resolution, fonts, transparency, file size, or barcode conflicts.',
+  'wrong-trim-size-pdf-example': 'A PDF built for the wrong trim size can fail even when the design appears centered.',
+  'pdf-bleed-error-before-after': 'Bleed errors are fixed by extending background artwork outward while keeping important content inward.',
+  'pdf-safe-area-correction': 'Safe-area rejection is fixed by moving important text and graphics away from trim edges.',
+  'font-embedding-problem': 'Embedding fonts keeps typography available to KDP during validation, preview generation, and print processing.',
+  'transparency-layer-rejection': 'Flattening complex transparency and hidden layers can make the upload PDF easier for KDP to process.',
+  'pdf-rejection-troubleshooting-flow': 'Diagnose repeated PDF rejection in order: trim, bleed, safe area, resolution, fonts, layers, file size, then upload.',
+  'pdf-rejection-prevention-checklist': 'A prevention checklist catches the most common KDP PDF rejection risks before upload.',
+  'upload-process-failure-points': 'KDP uploads can fail during transfer, storage, validation, preview generation, or review.',
+  'upload-failed-vs-rejected': 'Upload failed, Previewer failed, PDF rejected, and approval rejected describe different stages of the KDP workflow.',
+  'upload-failure-cause-map': 'Most KDP upload failures trace back to browser state, file size, format, PDF corruption, internet, filename, or KDP settings.',
+  'large-pdf-upload-problem': 'Large image-heavy PDFs upload more reliably after assets are optimized at final print size.',
+  'filename-problem-example': 'Simple lowercase filenames with hyphens avoid special-character upload problems.',
+  'browser-upload-troubleshooting': 'Trying a clean browser session can separate local browser problems from true file problems.',
+  'coloring-book-upload-issues': 'Coloring books often fail uploads because repeated full-page artwork creates heavy PDFs.',
+  'upload-troubleshooting-flowchart': 'A practical upload troubleshooting sequence checks format, size, filename, browser, PDF, internet, then retries.',
+  'upload-checklist': 'A final upload checklist catches simple problems before another KDP upload attempt.',
+  'pdf-requirements-validation-pipeline': 'KDP checks file structure, dimensions, bleed, preview generation, print readiness, and review.',
+  'manuscript-pdf-requirements-map': 'A manuscript PDF must match trim size, margins, gutter, and page-count expectations.',
+  'cover-pdf-requirements-map': 'A cover PDF includes back cover, spine, front cover, bleed, safe areas, and barcode space.',
+  'trim-size-requirement-comparison': 'Common trim sizes create different PDF page dimensions and cover-wrap calculations.',
+  'bleed-requirement-comparison': 'Bleed is required when artwork reaches the physical edge of the printed page.',
+  'safe-area-requirement-example': 'Safe areas keep text, page numbers, logos, and borders away from trim risk.',
+  'image-resolution-requirement': 'Print-ready images need enough real pixel detail at final printed size.',
+  'font-embedding-requirement': 'Embedded fonts travel with the PDF so KDP can render typography correctly.',
+  'color-print-requirement': 'Color and grayscale choices should be checked for predictable print output.',
+  'file-size-requirement': 'Optimized PDFs preserve print quality without unnecessary upload and rendering weight.',
+  'coloring-book-pdf-requirement': 'Coloring book PDFs need safe line art, correct bleed, and print-friendly borders.',
+  'common-pdf-mistakes-map': 'The most common KDP PDF mistakes include wrong size, missing bleed, unsafe content, low DPI, fonts, and old templates.',
+  'pdf-validation-workflow': 'A manual validation workflow checks dimensions, bleed, safe area, images, fonts, cover setup, and export.',
+  'ultimate-pdf-checklist': 'The final PDF checklist catches trim, bleed, margins, gutter, fonts, images, cover, spine, barcode, and export issues.',
+  'publishing-workflow-diagram': 'The KDP publishing process moves from idea to creation, formatting, upload, preview, and publish.',
+  'manuscript-checklist-diagram': 'A beginner manuscript checklist covers page count, trim size, margins, gutter, page numbers, and headings.',
+  'cover-checklist-diagram': 'A KDP cover checklist verifies full-wrap dimensions, bleed, spine, barcode area, and safe zones.',
+  'pdf-validation-checklist-diagram': 'PDF validation checks dimensions, bleed, embedded fonts, image resolution, transparency, and print export settings.',
+  'metadata-checklist-diagram': 'Metadata connects the book title, subtitle, description, keywords, categories, and A+ Content.',
+  'keyword-research-diagram': 'Beginner keyword research starts with reader phrases, relevance, specificity, and the final keyword slots.',
+  'category-selection-diagram': 'Category selection balances relevance, competition, and long-term discoverability.',
+  'pricing-checklist-diagram': 'Pricing should account for print cost, royalty, competitor expectations, and profit margin.',
+  'previewer-checklist-diagram': 'KDP Previewer should be checked for margins, bleed, blank pages, borders, and spine alignment.',
+  'coloring-book-publishing-checklist-diagram': 'Coloring books need special checks for single-sided pages, borders, bleed, black backgrounds, and page count.',
+  'beginner-mistakes-map': 'Common beginner KDP mistakes include wrong trim, weak keywords, unsafe margins, wrong price, and skipped proofs.',
+  'ultimate-publish-checklist-diagram': 'A final publish checklist covers manuscript, cover, PDF, metadata, keywords, categories, pricing, preview, proof, and publish.',
+  'cover-template-anatomy-diagram': 'A KDP cover template maps the back cover, spine, front cover, bleed, safe area, and barcode zone.',
+  'template-generation-process-diagram': 'KDP generates each cover template from trim size, page count, paper type, and binding choices.',
+  'front-cover-template-guide': 'The front cover area should keep title, subtitle, and focal artwork inside protected zones.',
+  'back-cover-template-guide': 'The back cover area needs readable marketing copy, spacing, and a clear barcode zone.',
+  'spine-width-template-guide': 'Spine width changes with page count and determines whether spine text can fit safely.',
+  'cover-bleed-template-guide': 'Cover backgrounds must extend into bleed to avoid white edges after trimming.',
+  'cover-safe-area-template-guide': 'Safe area keeps title, subtitle, logos, and decorative elements away from trim risk.',
+  'barcode-area-template-guide': 'The barcode area must stay clear so Amazon can place or scan the barcode properly.',
+  'cover-template-mistakes-map': 'Common template mistakes include wrong spine, missing bleed, barcode overlap, old page count, and text near trim.',
+  'coloring-book-cover-template-guide': 'Coloring book covers need large readable titles, strong contrast, and controlled background complexity.',
+  'ultimate-cover-template-checklist': 'A final cover template checklist verifies page count, template, bleed, safe area, spine, barcode, and export.',
+  'print-lab-hero-scene': 'KDP Print Previewer acts like a digital inspection lab for margins, bleed, page order, and cover alignment.',
+  'preview-generation-machine': 'KDP must transform uploaded PDFs into preview pages and print simulation before you can approve them.',
+  'margin-inspection-station': 'Margin warnings appear when text, page numbers, or other content sits too close to a print boundary.',
+  'bleed-testing-chamber': 'Bleed checks look for edge artwork that extends far enough past trim to avoid white edges.',
+  'safe-area-scanner-lab': 'Safe area warnings flag important text or design elements that are too close to trim or fold movement.',
+  'blank-page-detector-lab': 'Previewer can reveal accidental blank pages, wrong page order, or unexpected page breaks.',
+  'cover-alignment-test-rig': 'Cover preview checks spine, barcode, front cover, back cover, bleed, and overall wrap alignment.',
+  'previewer-failure-investigation-room': 'Previewer can fail because of browser state, file size, PDF complexity, or temporary KDP processing issues.',
+  'digital-vs-physical-lab': 'Previewer is a digital simulation, while a proof copy reveals physical paper, trim, ink, and binding behavior.',
+  'final-approval-room': 'Final approval should happen only after every warning and visible preview issue has been reviewed.',
 };
 
 export function ArticleDiagram({ type, caption }: ArticleDiagramProps) {
@@ -440,5 +599,81 @@ function DiagramBody({ type }: { type: ArticleDiagramType }) {
   if (type === 'proof-copy-border-before-after') return <ProofCopyBorderBeforeAfter />;
   if (type === 'high-risk-border-layout-types') return <HighRiskBorderLayoutTypes />;
   if (type === 'safer-border-alternatives-comparison') return <SaferBorderAlternativesComparison />;
+  if (type === 'margin-error-screen-vs-kdp') return <MarginErrorScreenVsKdp />;
+  if (type === 'margin-page-anatomy') return <MarginPageAnatomy />;
+  if (type === 'margin-safe-bleed-comparison') return <MarginSafeBleedComparison />;
+  if (type === 'margin-common-causes-map') return <MarginCommonCausesMap />;
+  if (type === 'canva-margin-fix-workflow') return <CanvaMarginFixWorkflow />;
+  if (type === 'coloring-book-margin-before-after') return <ColoringBookMarginBeforeAfter />;
+  if (type === 'gutter-margin-example') return <GutterMarginExample />;
+  if (type === 'cover-margin-risk-map') return <CoverMarginRiskMap />;
+  if (type === 'margin-troubleshooting-flow') return <MarginTroubleshootingFlow />;
+  if (type === 'final-margin-checklist') return <FinalMarginChecklistDiagram />;
+  if (type === 'pdf-looks-fine-rejected') return <PdfLooksFineRejected />;
+  if (type === 'kdp-pdf-validation-pipeline') return <KdpPdfValidationPipeline />;
+  if (type === 'pdf-rejection-cause-map') return <PdfRejectionCauseMap />;
+  if (type === 'wrong-trim-size-pdf-example') return <WrongTrimSizePdfExample />;
+  if (type === 'pdf-bleed-error-before-after') return <PdfBleedErrorBeforeAfter />;
+  if (type === 'pdf-safe-area-correction') return <PdfSafeAreaCorrection />;
+  if (type === 'font-embedding-problem') return <FontEmbeddingProblem />;
+  if (type === 'transparency-layer-rejection') return <TransparencyLayerRejection />;
+  if (type === 'pdf-rejection-troubleshooting-flow') return <PdfRejectionTroubleshootingFlow />;
+  if (type === 'pdf-rejection-prevention-checklist') return <PdfRejectionPreventionChecklist />;
+  if (type === 'upload-process-failure-points') return <UploadProcessFailurePoints />;
+  if (type === 'upload-failed-vs-rejected') return <UploadFailedVsRejected />;
+  if (type === 'upload-failure-cause-map') return <UploadFailureCauseMap />;
+  if (type === 'large-pdf-upload-problem') return <LargePdfUploadProblem />;
+  if (type === 'filename-problem-example') return <FilenameProblemExample />;
+  if (type === 'browser-upload-troubleshooting') return <BrowserUploadTroubleshooting />;
+  if (type === 'coloring-book-upload-issues') return <ColoringBookUploadIssues />;
+  if (type === 'upload-troubleshooting-flowchart') return <UploadTroubleshootingFlowchart />;
+  if (type === 'upload-checklist') return <UploadChecklistDiagram />;
+  if (type === 'pdf-requirements-validation-pipeline') return <PdfRequirementsValidationPipeline />;
+  if (type === 'manuscript-pdf-requirements-map') return <ManuscriptPdfRequirementsMap />;
+  if (type === 'cover-pdf-requirements-map') return <CoverPdfRequirementsMap />;
+  if (type === 'trim-size-requirement-comparison') return <TrimSizeRequirementComparison />;
+  if (type === 'bleed-requirement-comparison') return <BleedRequirementComparison />;
+  if (type === 'safe-area-requirement-example') return <SafeAreaRequirementExample />;
+  if (type === 'image-resolution-requirement') return <ImageResolutionRequirement />;
+  if (type === 'font-embedding-requirement') return <FontEmbeddingRequirement />;
+  if (type === 'color-print-requirement') return <ColorPrintRequirement />;
+  if (type === 'file-size-requirement') return <FileSizeRequirement />;
+  if (type === 'coloring-book-pdf-requirement') return <ColoringBookPdfRequirement />;
+  if (type === 'common-pdf-mistakes-map') return <CommonPdfMistakesMap />;
+  if (type === 'pdf-validation-workflow') return <PdfValidationWorkflow />;
+  if (type === 'ultimate-pdf-checklist') return <UltimatePdfChecklistDiagram />;
+  if (type === 'publishing-workflow-diagram') return <PublishingWorkflowDiagram />;
+  if (type === 'manuscript-checklist-diagram') return <ManuscriptChecklistDiagram />;
+  if (type === 'cover-checklist-diagram') return <CoverChecklistDiagram />;
+  if (type === 'pdf-validation-checklist-diagram') return <PdfValidationChecklistDiagram />;
+  if (type === 'metadata-checklist-diagram') return <MetadataChecklistDiagram />;
+  if (type === 'keyword-research-diagram') return <KeywordResearchDiagram />;
+  if (type === 'category-selection-diagram') return <CategorySelectionDiagram />;
+  if (type === 'pricing-checklist-diagram') return <PricingChecklistDiagram />;
+  if (type === 'previewer-checklist-diagram') return <PreviewerChecklistDiagram />;
+  if (type === 'coloring-book-publishing-checklist-diagram') return <ColoringBookPublishingChecklistDiagram />;
+  if (type === 'beginner-mistakes-map') return <BeginnerMistakesMap />;
+  if (type === 'ultimate-publish-checklist-diagram') return <UltimatePublishChecklistDiagram />;
+  if (type === 'cover-template-anatomy-diagram') return <CoverTemplateAnatomyDiagram />;
+  if (type === 'template-generation-process-diagram') return <TemplateGenerationProcessDiagram />;
+  if (type === 'front-cover-template-guide') return <FrontCoverTemplateGuide />;
+  if (type === 'back-cover-template-guide') return <BackCoverTemplateGuide />;
+  if (type === 'spine-width-template-guide') return <SpineWidthTemplateGuide />;
+  if (type === 'cover-bleed-template-guide') return <CoverBleedTemplateGuide />;
+  if (type === 'cover-safe-area-template-guide') return <CoverSafeAreaTemplateGuide />;
+  if (type === 'barcode-area-template-guide') return <BarcodeAreaTemplateGuide />;
+  if (type === 'cover-template-mistakes-map') return <CoverTemplateMistakesMap />;
+  if (type === 'coloring-book-cover-template-guide') return <ColoringBookCoverTemplateGuide />;
+  if (type === 'ultimate-cover-template-checklist') return <UltimateCoverTemplateChecklist />;
+  if (type === 'print-lab-hero-scene') return <PrintLabHeroScene />;
+  if (type === 'preview-generation-machine') return <PreviewGenerationMachine />;
+  if (type === 'margin-inspection-station') return <MarginInspectionStation />;
+  if (type === 'bleed-testing-chamber') return <BleedTestingChamber />;
+  if (type === 'safe-area-scanner-lab') return <SafeAreaScannerLab />;
+  if (type === 'blank-page-detector-lab') return <BlankPageDetectorLab />;
+  if (type === 'cover-alignment-test-rig') return <CoverAlignmentTestRig />;
+  if (type === 'previewer-failure-investigation-room') return <PreviewerFailureInvestigationRoom />;
+  if (type === 'digital-vs-physical-lab') return <DigitalVsPhysicalLab />;
+  if (type === 'final-approval-room') return <FinalApprovalRoom />;
   return <CoverAnatomy />;
 }

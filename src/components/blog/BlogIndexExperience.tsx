@@ -5,10 +5,12 @@ import type React from 'react';
 import { Search } from 'lucide-react';
 import { blogCategoryFilters, getBlogCategory, type BlogCategoryFilter } from '@/lib/blog-categories';
 import type { BlogPost } from '@/types/blog';
-import { BlogCard } from './BlogCard';
+import { BlogCard, type BlogCardPost } from './BlogCard';
 import { CategoryFilter } from './CategoryFilter';
 
-export function BlogIndexExperience({ posts, footer }: { posts: BlogPost[]; footer?: React.ReactNode }) {
+export type BlogIndexPost = BlogCardPost & Pick<BlogPost, 'description' | 'keywords' | 'tags'>;
+
+export function BlogIndexExperience({ posts, footer }: { posts: BlogIndexPost[]; footer?: React.ReactNode }) {
   const [activeCategory, setActiveCategory] = useState<BlogCategoryFilter>('all');
   const [query, setQuery] = useState('');
 
