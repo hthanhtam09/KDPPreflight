@@ -41,7 +41,7 @@ export default function Navbar() {
       <div className="mx-auto h-full w-full max-w-(--page-max) flex items-center justify-between gap-4 px-(--page-x) sm:gap-5">
         <Logo />
 
-        <div className="hidden items-center gap-3 md:flex lg:gap-4">
+        <div className="hidden items-center gap-3 lg:flex">
           <nav className="flex items-center gap-1 rounded-full p-1" aria-label="Main navigation">
             <NavLinks isActive={isActive} />
           </nav>
@@ -49,7 +49,7 @@ export default function Navbar() {
           <ThemeToggle theme={theme} ready={themeReady} onToggle={toggleTheme} ariaLabel={themeLabel} />
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <ThemeToggle theme={theme} ready={themeReady} onToggle={toggleTheme} ariaLabel={themeLabel} />
 
           <button
@@ -74,7 +74,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute left-0 right-0 top-(--nav-height) rounded-b-2xl border-b border-l border-r border-border bg-surface/95 p-2 shadow-elevated backdrop-blur-3xl md:hidden overflow-y-auto max-h-[calc(100vh-var(--nav-height))]"
+              className="absolute left-0 right-0 top-(--nav-height) rounded-b-2xl border-b border-l border-r border-border bg-surface/95 p-2 shadow-elevated backdrop-blur-3xl lg:hidden overflow-y-auto max-h-[calc(100vh-var(--nav-height))]"
             >
               <div className="grid gap-1">
                 <NavLinks isActive={isActive} mobile onNavigate={() => setMobileOpen(false)} />
