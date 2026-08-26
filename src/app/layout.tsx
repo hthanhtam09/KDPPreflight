@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import { ThemeProvider } from 'next-themes';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import Script from 'next/script';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { SITE_URL, SITE_NAME } from '@/lib/seo';
@@ -67,6 +68,7 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'o9c9vJSryXVfuO9RmeUue6zrAdjLyK_cYF93Dmr3Gkc',
+    other: { 'msvalidate.01': '398D449E55B10B331C5CDFE300B91210' },
   },
   robots: {
     index: true,
@@ -132,7 +134,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} notranslate antialiased`}
         translate="no"
+        suppressHydrationWarning
       >
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4979943891567316"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
