@@ -130,6 +130,11 @@ export default function RootLayout({
         <meta name="google" content="notranslate" />
         {/* llms.txt — AI agent discovery (llmstxt.org standard) */}
         <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4979943891567316"
+          crossOrigin="anonymous"
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} notranslate antialiased`}
