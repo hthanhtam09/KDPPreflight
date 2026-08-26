@@ -1,28 +1,27 @@
-import type { Metadata } from 'next';
-import localFont from 'next/font/local';
-import { ThemeProvider } from 'next-themes';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import Script from 'next/script';
-import './globals.css';
-import { Toaster } from '@/components/ui/sonner';
-import { SITE_URL, SITE_NAME } from '@/lib/seo';
-import AppChrome from '@/components/system/AppChrome';
-import ResponsiveDebug from '@/components/system/ResponsiveDebug';
+import AppChrome from '@/components/system/AppChrome'
+import ResponsiveDebug from '@/components/system/ResponsiveDebug'
+import { Toaster } from '@/components/ui/sonner'
+import { SITE_NAME, SITE_URL } from '@/lib/seo'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
+import type { Metadata } from 'next'
+import { ThemeProvider } from 'next-themes'
+import localFont from 'next/font/local'
+import './globals.css'
 
 const geistSans = localFont({
   src: './fonts/geist-latin.woff2',
   variable: '--font-geist-sans',
   display: 'swap',
   preload: true,
-});
+})
 
 const geistMono = localFont({
   src: './fonts/geist-mono-latin.woff2',
   variable: '--font-geist-mono',
   display: 'swap',
   preload: false,
-});
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -119,11 +118,9 @@ export const metadata: Metadata = {
     images: ['/android-chrome-512x512.png'],
     site: '@kdppreflight',
   },
-};
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="notranslate" translate="no" suppressHydrationWarning>
       <head>
@@ -141,18 +138,7 @@ export default function RootLayout({
         translate="no"
         suppressHydrationWarning
       >
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4979943891567316"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <AppChrome>{children}</AppChrome>
           <Toaster />
         </ThemeProvider>
@@ -161,5 +147,5 @@ export default function RootLayout({
         <ResponsiveDebug />
       </body>
     </html>
-  );
+  )
 }
