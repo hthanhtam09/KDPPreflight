@@ -22,6 +22,7 @@ const resourceLinks = [
   { href: '/blog/category/cover-rejections', label: 'KDP Cover Guides' },
   { href: '/faq', label: 'KDP FAQ' },
   { href: '/about', label: 'About KDPPreflight' },
+  { href: '/contact', label: 'Contact' },
 ]
 
 const blogLinks: { href: string; label: string }[] = []
@@ -130,6 +131,17 @@ export default function Footer() {
             <p className="text-[12px] text-muted-foreground">
               © {new Date().getFullYear()} KDPPreflight. Free for Amazon KDP self-publishers.
             </p>
+            <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <Link href="/privacy" className="text-[12px] text-muted-foreground transition hover:text-foreground">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="text-[12px] text-muted-foreground transition hover:text-foreground">
+                Terms of Service
+              </Link>
+              <Link href="/contact" className="text-[12px] text-muted-foreground transition hover:text-foreground">
+                Contact
+              </Link>
+            </nav>
             <p className="text-[12px] text-muted-foreground">
               Not affiliated with Amazon or Kindle Direct Publishing.{' '}
               <a
