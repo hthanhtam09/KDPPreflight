@@ -18,6 +18,9 @@ export const metadata: Metadata = generatePageMetadata({
     'KDP paperback dimensions',
     'KDP safe area',
   ],
+  // App screen with almost no standalone text — kept out of the index so it is
+  // not judged as thin content. Revert once the page carries real copy.
+  noIndex: true,
 });
 
 const faqs = [

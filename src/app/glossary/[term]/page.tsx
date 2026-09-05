@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { glossaryExplainers } from '@/lib/glossary-content';
 import { getGlossaryTerm, glossaryTerms } from '@/lib/glossary-data';
 import { getInternalLinks } from '@/lib/internal-links';
 import { generatePageMetadata } from '@/lib/seo';
@@ -34,6 +35,8 @@ export default async function GlossaryTermPage({ params }: Props) {
   if (!term) notFound();
 
   const links = getInternalLinks(term.topic);
+  const extra = glossaryExplainers[term.slug];
+  const faqs = [...term.faqs, ...(extra?.extraFaqs ?? [])];
 
   return (
     <>
@@ -41,7 +44,7 @@ export default async function GlossaryTermPage({ params }: Props) {
         id={`glossary-${term.slug}-schema`}
         data={[
           definedTermSchema(term.term, term.definition, `${SITE_URL}/glossary`),
-          faqSchema(term.faqs),
+          faqSchema(faqs),
           breadcrumbSchema([
             { name: 'Home', url: SITE_URL },
             { name: 'Glossary', url: `${SITE_URL}/glossary` },
@@ -65,6 +68,19 @@ export default async function GlossaryTermPage({ params }: Props) {
               <h2 className="text-2xl font-bold text-foreground">Why it matters for KDP</h2>
               <p className="mt-3 text-base leading-8 text-muted-foreground">{term.whyItMatters}</p>
             </section>
+            {extra?.explainer.length ? (
+              <section className="mt-10">
+                <h2 className="text-2xl font-bold text-foreground">{term.term} explained</h2>
+                <div className="mt-4 space-y-4">
+                  {extra.explainer.map((paragraph) => (
+                    <p key={paragraph.slice(0, 48)} className="text-base leading-8 text-muted-foreground">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
             <section className="mt-10">
               <h2 className="text-2xl font-bold text-foreground">Common mistakes</h2>
               <ul className="mt-4 grid gap-3">
@@ -79,7 +95,7 @@ export default async function GlossaryTermPage({ params }: Props) {
             <section className="mt-10">
               <h2 className="text-2xl font-bold text-foreground">FAQ</h2>
               <div className="mt-4 divide-y divide-border rounded-2xl border border-border bg-card">
-                {term.faqs.map((faq) => (
+                {faqs.map((faq) => (
                   <details key={faq.question} className="p-5">
                     <summary className="cursor-pointer list-none font-bold text-foreground">{faq.question}</summary>
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">{faq.answer}</p>

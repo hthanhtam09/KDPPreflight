@@ -1,3 +1,4 @@
+import AdSenseScript from '@/components/seo/AdSenseScript'
 import AppChrome from '@/components/system/AppChrome'
 import ResponsiveDebug from '@/components/system/ResponsiveDebug'
 import { Toaster } from '@/components/ui/sonner'
@@ -127,11 +128,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="google" content="notranslate" />
         {/* llms.txt — AI agent discovery (llmstxt.org standard) */}
         <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4979943891567316"
-          crossOrigin="anonymous"
-        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} notranslate antialiased`}
@@ -142,6 +138,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <AppChrome>{children}</AppChrome>
           <Toaster />
         </ThemeProvider>
+        <AdSenseScript />
         <Analytics />
         <SpeedInsights />
         <ResponsiveDebug />

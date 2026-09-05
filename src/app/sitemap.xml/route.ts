@@ -17,9 +17,8 @@ export function GET() {
 
   const entries: SitemapEntry[] = [
     { url: SITE_URL, lastModified: now, changeFrequency: 'weekly', priority: 1 },
-    { url: `${SITE_URL}/preflight`, lastModified: now, changeFrequency: 'weekly', priority: 0.95 },
-    { url: `${SITE_URL}/setup`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${SITE_URL}/preview`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    // /preflight, /setup and /preview are noindex app screens — intentionally
+    // omitted so the sitemap only advertises pages with real content.
     { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/faq`, lastModified: now, changeFrequency: 'weekly', priority: 0.85 },
     { url: `${SITE_URL}/tools`, lastModified: now, changeFrequency: 'monthly', priority: 0.82 },
@@ -37,6 +36,9 @@ export function GET() {
       changeFrequency: 'monthly',
       priority: 0.62,
     })),
+    { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${SITE_URL}/privacy`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${SITE_URL}/terms`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries

@@ -40,7 +40,7 @@ export function generatePageMetadata({
     keywords: allKeywords,
     alternates: { canonical },
     robots: noIndex
-      ? { index: false, follow: false }
+      ? { index: false, follow: true }
       : { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large', 'max-video-preview': -1 },
     openGraph: {
       title,

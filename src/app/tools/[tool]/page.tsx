@@ -6,6 +6,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { getInternalLinks } from '@/lib/internal-links';
 import { generatePageMetadata, SITE_URL } from '@/lib/seo';
 import { breadcrumbSchema, faqSchema, softwareApplicationSchema } from '@/lib/schema';
+import { toolPageSections, type ToolSection } from '@/lib/tool-page-content';
 import { getToolPage, toolPages } from '@/lib/tool-pages';
 
 interface Props {
@@ -35,6 +36,7 @@ export default async function ToolPage({ params }: Props) {
   if (!page) notFound();
 
   const links = getInternalLinks(page.topic);
+  const sections = toolPageSections[page.slug] ?? [];
 
   return (
     <>
@@ -101,6 +103,10 @@ export default async function ToolPage({ params }: Props) {
               </ol>
             </section>
 
+            {sections.map((section) => (
+              <ToolSectionBlock key={section.heading} section={section} />
+            ))}
+
             <section id="faq" className="mt-14" aria-labelledby="faq-heading">
               <h2 id="faq-heading" className="text-3xl font-bold tracking-[-0.025em] text-foreground">Frequently asked questions</h2>
               <div className="mt-6 divide-y divide-border rounded-2xl border border-border bg-card shadow-soft">
@@ -122,6 +128,71 @@ export default async function ToolPage({ params }: Props) {
         </div>
       </main>
     </>
+  );
+}
+
+function ToolSectionBlock({ section }: { section: ToolSection }) {
+  const id = section.heading.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  return (
+    <section className="mt-14" aria-labelledby={id}>
+      <h2 id={id} className="text-3xl font-bold tracking-[-0.025em] text-foreground">
+        {section.heading}
+      </h2>
+
+      <div className="mt-5 space-y-4">
+        {section.body.map((paragraph) => (
+          <p key={paragraph.slice(0, 48)} className="text-base leading-7 text-muted-foreground">
+            {paragraph}
+          </p>
+        ))}
+      </div>
+
+      {section.bullets?.length ? (
+        <dl className="mt-6 grid gap-3">
+          {section.bullets.map((bullet) => (
+            <div key={bullet.term} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+              <dt className="text-sm font-bold text-foreground">{bullet.term}</dt>
+              <dd className="mt-1 text-sm leading-6 text-muted-foreground">{bullet.text}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+
+      {section.table ? (
+        <figure className="mt-6">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+            <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
+              <caption className="sr-only">{section.table.caption}</caption>
+              <thead>
+                <tr className="border-b border-border">
+                  {section.table.columns.map((column) => (
+                    <th key={column} scope="col" className="px-4 py-3 font-bold text-foreground">
+                      {column}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {section.table.rows.map((row) => (
+                  <tr key={row.join('|')} className="border-b border-border/60 last:border-0">
+                    {row.map((cell, index) => (
+                      <td
+                        key={cell + index}
+                        className={index === 0 ? 'px-4 py-3 font-semibold text-foreground' : 'px-4 py-3 text-muted-foreground'}
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <figcaption className="mt-2 text-xs text-muted-foreground">{section.table.caption}</figcaption>
+        </figure>
+      ) : null}
+    </section>
   );
 }
 
