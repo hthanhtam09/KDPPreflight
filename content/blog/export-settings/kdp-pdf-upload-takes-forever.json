@@ -55,7 +55,7 @@
   "relatedGuides": [
     {
       "label": "KDP File Checker",
-      "href": "/checker"
+      "href": "/preflight"
     },
     {
       "label": "KDP Cover Checker",
@@ -152,7 +152,7 @@
       {
         "name": "Split-test the manuscript",
         "text": "Upload a 10-page test PDF, then a 50-page test PDF, then the full file. This isolates corrupted or unusually heavy pages.",
-        "url": "https://kdppreflight.com/checker"
+        "url": "https://kdppreflight.com/preflight"
       }
     ]
   },
@@ -253,7 +253,7 @@
     "## How KDPPreflight Helps Prevent Slow Uploads",
     "KDPPreflight helps you catch the issues that make uploads slow before you spend another afternoon watching a spinner. It checks PDF dimensions, validates bleed, compares trim setup, helps identify risky exports, and warns about large image usage and low-resolution assets.",
     "That matters because KDP upload problems often combine multiple issues. A file can be oversized and have the wrong bleed. A cover can be slow to process and still have unsafe edge text. A manuscript can be heavy because page images are oversized, while the cover has a spine mismatch from an old page count.",
-    "Run the final exported file through [KDPPreflight](/checker), not just the source design. The exported PDF is what KDP sees.",
+    "Run the final exported file through [KDPPreflight](/preflight), not just the source design. The exported PDF is what KDP sees.",
     "## Related KDP Upload and Export Guides",
     "These guides help with the surrounding problems that often appear with slow uploads:",
     "- [Low resolution image fixes for KDP](/blog/fix-low-resolution-images-kdp)",

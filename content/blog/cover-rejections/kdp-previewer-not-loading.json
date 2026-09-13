@@ -63,7 +63,7 @@
     },
     {
       "label": "KDP File Checker",
-      "href": "/checker"
+      "href": "/preflight"
     }
   ],
   "faqs": [

@@ -1,4 +1,4 @@
-import AdSenseScript from '@/components/seo/AdSenseScript'
+import { ADSENSE_SCRIPT_SRC } from '@/lib/adsense'
 import AppChrome from '@/components/system/AppChrome'
 import ResponsiveDebug from '@/components/system/ResponsiveDebug'
 import { Toaster } from '@/components/ui/sonner'
@@ -102,21 +102,13 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     type: 'website',
     locale: 'en_US',
-    images: [
-      {
-        url: '/android-chrome-512x512.png',
-        width: 1200,
-        height: 630,
-        alt: 'KDPPreflight — KDP cover checker, bleed checker, and trim size calculator',
-      },
-    ],
+    // og:image comes from `src/app/opengraph-image.tsx` (1200x630).
   },
   twitter: {
     card: 'summary_large_image',
     title: 'KDPPreflight — KDP Cover Checker & Bleed Checker',
     description:
       'Validate KDP files before upload. Check bleed, trim, spine width, margins, and PDF export issues. Local processing — no file storage.',
-    images: ['/android-chrome-512x512.png'],
     site: '@kdppreflight',
   },
 }
@@ -125,6 +117,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className="notranslate" translate="no" suppressHydrationWarning>
       <head>
+        {/*
+          AdSense loader. Rendered as a plain <script> in the server HTML on
+          purpose: next/script with strategy="afterInteractive" only emits a
+          <link rel="preload"> server-side and injects the real tag after
+          hydration, which the AdSense verification crawler never sees.
+        */}
+        <script async src={ADSENSE_SCRIPT_SRC} crossOrigin="anonymous" />
         <meta name="google" content="notranslate" />
         {/* llms.txt — AI agent discovery (llmstxt.org standard) */}
         <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs.txt" />
@@ -138,7 +137,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <AppChrome>{children}</AppChrome>
           <Toaster />
         </ThemeProvider>
-        <AdSenseScript />
         <Analytics />
         <SpeedInsights />
         <ResponsiveDebug />

@@ -66,7 +66,7 @@ const homeHowTo = howToSchema({
     {
       name: 'Scan exported KDP files',
       text: 'Upload your cover PDF and manuscript PDF to detect missing bleed, trim mismatch, unsafe margins, low-resolution images, and spine width issues.',
-      url: `${SITE_URL}/checker`,
+      url: `${SITE_URL}/preflight`,
     },
     {
       name: 'Fix issues and preview the book',

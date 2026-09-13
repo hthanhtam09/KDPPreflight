@@ -13,7 +13,7 @@ const staticInternalRoutes = new Set([
   '/',
   '/about',
   '/blog',
-  '/checker',
+  '/preflight',
   '/faq',
   '/glossary',
   '/preview',
